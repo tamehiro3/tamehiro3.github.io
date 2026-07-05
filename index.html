@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>しのびのゲーム工房 | 家族で遊べる無料ブラウザゲーム</title>
+  <meta name="description" content="子どもから大人まで、スマホのホーム画面に追加してすぐ遊べる無料のなぞときゲームを公開しています。課金なし・個人情報の入力なし・オフラインでも遊べます。">
+
+  <!-- ▼▼ AdSense審査コードはこの下に貼り付ける ▼▼
+       AdSense管理画面「サイト」→「サイトを追加」で表示される
+       <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+       という1行をコピーして、このコメントのすぐ下に貼る。
+       ▲▲ ここまで ▲▲ -->
+
+  <style>
+    :root {
+      --washi: #f7f0e3; --ink: #2b2b33; --indigo: #1f2a44;
+      --gold: #b8934a; --gold-bright: #e8c56b; --card: #fffdf7; --line: #d9cdb4;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--washi); color: var(--ink);
+      font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP", system-ui, sans-serif;
+      line-height: 1.9; font-size: 17px;
+    }
+    header { background: var(--indigo); color: var(--washi); text-align: center; padding: 34px 16px 26px; }
+    header h1 { margin: 0; font-size: 1.6rem; letter-spacing: .15em; }
+    header p { margin: 8px 0 0; opacity: .9; font-size: .95rem; }
+    main { max-width: 720px; margin: 0 auto; padding: 20px 16px 40px; }
+    h2 { color: var(--indigo); border-left: 5px solid var(--gold); padding-left: 10px; font-size: 1.2rem; margin-top: 36px; }
+    .game-card {
+      background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(43,43,51,.08); padding: 20px; margin: 16px 0;
+      display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;
+    }
+    .game-card img { width: 84px; height: 84px; border-radius: 18px; border: 1px solid var(--line); }
+    .game-card .body { flex: 1; min-width: 240px; }
+    .game-card h3 { margin: 0 0 4px; font-size: 1.15rem; }
+    .tagline { color: var(--gold); font-weight: 700; font-size: .9rem; margin: 0 0 8px; }
+    .meta { font-size: .85rem; color: #6b6555; margin: 6px 0; }
+    .play-btn {
+      display: inline-block; background: var(--indigo); color: var(--washi);
+      text-decoration: none; font-weight: 700; border-radius: 12px; padding: 10px 22px; margin-top: 8px;
+    }
+    ul { padding-left: 22px; }
+    li { margin: 4px 0; }
+    table { border-collapse: collapse; width: 100%; font-size: .92rem; }
+    td, th { border: 1px solid var(--line); padding: 8px 10px; text-align: left; background: var(--card); }
+    footer {
+      background: var(--indigo); color: #aab3c9; text-align: center;
+      padding: 22px 16px; font-size: .85rem; margin-top: 40px;
+    }
+    footer a { color: var(--gold-bright); }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🌕 しのびのゲーム工房</h1>
+  <p>家族で遊べる、無料のなぞときブラウザゲーム</p>
+</header>
+
+<main>
+  <p>
+    「しのびのゲーム工房」は、子どもから大人まで安心して遊べる<strong>無料のなぞときゲーム</strong>を公開している個人運営のサイトです。
+    どのゲームもアプリストアを通さず、スマホのブラウザで開いて「ホーム画面に追加」するだけで、アプリのように毎日遊べます。
+    課金要素はなく、名前やメールアドレスなどの個人情報を入力する場面もありません。一度読み込めばオフラインでも動作します。
+  </p>
+
+  <h2>公開中のゲーム</h2>
+
+  <div class="game-card">
+    <img src="/ninja-mission-kobo/icons/icon-192.png" alt="CNP にんじゃミッション工房のアイコン">
+    <div class="body">
+      <h3>CNP にんじゃミッション工房</h3>
+      <p class="tagline">毎日とどく忍者ミッションで、里をそだてよう(小学生向け)</p>
+      <p>
+        かわいい忍者キャラクターといっしょに、なぞなぞ・すいり・めいろ・あんごうなど10種類のなぞときに挑戦。
+        問題は日付をもとに毎日自動でつくられるので、あきずに続けられます。クリアのごほうびで自分だけの里を飾れます。
+      </p>
+      <p class="meta">対象: 小学生〜 / 1回5分 / 制限時間なし / 保護者向け設定つき</p>
+      <a class="play-btn" href="/ninja-mission-kobo/">▶ 遊んでみる</a>
+    </div>
+  </div>
+
+  <div class="game-card">
+    <img src="/shinobi-nazomeguri/icons/icon-192.png" alt="CryptoNinja 忍びの謎巡りのアイコン">
+    <div class="body">
+      <h3>CryptoNinja 忍びの謎巡り</h3>
+      <p class="tagline">毎日ひとつ、忍者と解く大人のなぞとき旅(40代からの脳トレ)</p>
+      <p>
+        和風の世界を旅しながら、ずらし暗号・証言すいり・和文化クイズ・暦の謎など10種類の謎に挑む大人向けなぞときです。
+        文字は大きめ、制限時間もペナルティもなし。解いた旅は「旅日記」に残り、ほうびの小判で自分の里を育てられます。
+      </p>
+      <p class="meta">対象: 大人(親子でも) / 1回3〜7分 / ヒント3段階 / 難易度3段階</p>
+      <a class="play-btn" href="/shinobi-nazomeguri/">▶ 遊んでみる</a>
+    </div>
+  </div>
+
+  <h2>スマホでアプリのように遊ぶ方法</h2>
+  <table>
+    <tr><th>iPhone</th><td>Safariでゲームを開く → 共有ボタン → 「ホーム画面に追加」</td></tr>
+    <tr><th>Android</th><td>Chromeでゲームを開く → メニュー(⋮) → 「アプリをインストール」</td></tr>
+  </table>
+  <p>ホーム画面のアイコンから起動すると全画面で遊べます。2回目からはオフラインでも動きます。</p>
+
+  <h2>安心して遊べる工夫</h2>
+  <ul>
+    <li>課金・ガチャ・スタミナはありません(すべて無料で最後まで遊べます)</li>
+    <li>名前・メールアドレスなど個人情報の入力はありません(記録は端末の中だけに保存)</li>
+    <li>自由に文字を打つチャット機能はありません</li>
+    <li>暴力的・恐怖をあおる表現は使っていません</li>
+    <li>子ども向けゲームからの外部リンクはありません</li>
+  </ul>
+
+  <h2>更新履歴</h2>
+  <ul>
+    <li>2026-07-05 「CryptoNinja 忍びの謎巡り」を公開。ポータルサイトを開設</li>
+    <li>2026-07-04 「にんじゃミッション工房」に章の難度進行・おにむず任務を追加</li>
+    <li>2026-06 「にんじゃミッション工房」を公開</li>
+  </ul>
+
+  <h2>運営者について</h2>
+  <p>
+    個人(ハンドルネーム: tamehiro3)が制作・運営しています。
+    ゲームのキャラクターは、商用利用可能なCC0ライセンスで公開されている CryptoNinja / CryptoNinja Partners(CNP)を使用した個人制作の作品です。
+    ご意見・不具合のご報告は <a href="https://github.com/tamehiro3">GitHub</a> の各リポジトリのIssueにお寄せください。
+  </p>
+</main>
+
+<footer>
+  <p>
+    <a href="/privacy.html">プライバシーポリシー</a>
+  </p>
+  <p>© 2026 tamehiro3 / キャラクター: CryptoNinja &amp; CNP(CC0)</p>
+</footer>
+
+</body>
+</html>

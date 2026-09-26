@@ -54,14 +54,25 @@ def fal_voice_id(ep: Path, cfg: dict) -> str:
     cache = ROOT / "voice_ref" / "voice_id.json"
     if cache.exists():
         return json.loads(cache.read_text())["custom_voice_id"]
-    refs = sorted(p for p in (ROOT / "voice_ref").glob("*") if p.suffix.lower() in (".wav", ".mp3", ".m4a"))
-    if not refs:
-        raise SystemExit("voice_ref/ に ためひろさんの声（10秒〜3分、1人で話している音声）を置いてください")
-    url = fal_client.upload_file(str(refs[0]))
+    # VOICE_REF_URL があれば、ファイルをリポジトリに置かずにそのURLから fal に取り込ませる
+    url, source = os.environ.get("VOICE_REF_URL"), "VOICE_REF_URL"
+    if not url:
+        refs = sorted(p for p in (ROOT / "voice_ref").glob("*") if p.suffix.lower() in (".wav", ".mp3", ".m4a"))
+        if not refs:
+            raise SystemExit("voice_ref/ に ためひろさんの声（10秒〜3分、1人で話している音声）を置いてください")
+        source = refs[0].name
+        # 長い収録は、VOICE_REF_START 秒目から VOICE_REF_SECONDS 秒（既定 90 秒）だけ切り出して使う
+        start = os.environ.get("VOICE_REF_START", "0")
+        secs = os.environ.get("VOICE_REF_SECONDS", "90")
+        with tempfile.TemporaryDirectory() as d:
+            clip = Path(d) / "ref.wav"
+            subprocess.run(["ffmpeg", "-v", "error", "-y", "-ss", start, "-t", secs, "-i", str(refs[0]),
+                            "-ac", "1", "-ar", "44100", str(clip)], check=True)
+            url = fal_client.upload_file(str(clip))
     res = fal_client.subscribe(cfg.get("clone_model", "fal-ai/minimax/voice-clone"), arguments={
         "audio_url": url, "noise_reduction": True, "need_volume_normalization": True})
     vid = res["custom_voice_id"]
-    cache.write_text(json.dumps({"custom_voice_id": vid, "source": refs[0].name}, ensure_ascii=False))
+    cache.write_text(json.dumps({"custom_voice_id": vid, "source": source}, ensure_ascii=False))
     return vid
 
 

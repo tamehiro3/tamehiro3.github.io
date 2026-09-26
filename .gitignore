@@ -1,0 +1,9 @@
+# APIキーや秘密情報は公開リポジトリに上げない（★サイトを公開する.bat は git add -A で全部送るため）
+.fal_key
+.fal_key.*
+*.fal_key
+fal_key*
+*fal*key*
+.env
+.env.*
+*.key

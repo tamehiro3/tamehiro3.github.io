@@ -21,6 +21,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 KEY_FILE = ROOT / "assets" / ".fal_key"
+# Windows のメモ帳で保存すると「.fal_key.txt」になることがあるので、それも探す
+KEY_CANDIDATES = [KEY_FILE, ROOT / "assets" / ".fal_key.txt"]
 VOICE_CACHE = ROOT / "voice_ref" / "voice_id.json"
 
 CLONE_MODEL = "fal-ai/minimax/voice-clone"
@@ -30,15 +32,16 @@ ASR_MODEL = "fal-ai/whisper"
 
 def load_key() -> None:
     """assets/.fal_key を読んで fal_client 用の環境変数 FAL_KEY に入れる"""
-    if not KEY_FILE.exists():
+    key_file = next((p for p in KEY_CANDIDATES if p.exists()), None)
+    if key_file is None:
         raise SystemExit(f"{KEY_FILE.relative_to(ROOT)} がありません。fal のダッシュボードで発行した"
                          "APIキーを1行で保存してください（GitHubには上がりません）")
-    text = KEY_FILE.read_text(encoding="utf-8").strip()
+    text = key_file.read_text(encoding="utf-8-sig").strip()   # メモ帳の BOM・改行コード(CRLF)を除く
     key = text.split("=", 1)[1].strip() if text.startswith("FAL_KEY=") else text
     if not key or "\n" in key:
         raise SystemExit(f"{KEY_FILE.relative_to(ROOT)} の中身が読めません（キーを1行だけ書いてください）")
-    if KEY_FILE.stat().st_mode & (stat.S_IRGRP | stat.S_IROTH):
-        print(f"注意: {KEY_FILE.name} を他のユーザーも読めます。chmod 600 を推奨", file=sys.stderr)
+    if os.name != "nt" and key_file.stat().st_mode & (stat.S_IRGRP | stat.S_IROTH):
+        print(f"注意: {key_file.name} を他のユーザーも読めます。chmod 600 を推奨", file=sys.stderr)
     os.environ["FAL_KEY"] = key
 
 

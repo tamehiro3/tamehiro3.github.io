@@ -11,6 +11,7 @@ import sys
 import json
 import os
 import re
+import shutil
 import subprocess
 import tempfile
 from pathlib import Path
@@ -112,7 +113,10 @@ def chunk_bounds(x: np.ndarray, chunks: list[str], cfg: dict) -> list[float]:
     """／区切りの境目の時刻（秒）。Open JTalk の各チャンク単体の長さを比率に使い、近くの無音に吸着させる"""
     if len(chunks) == 1:
         return []
-    lens = [len(trim(openjtalk(c, cfg))) for c in chunks]
+    if shutil.which("open_jtalk"):
+        lens = [len(trim(openjtalk(c, cfg))) for c in chunks]
+    else:  # Windows など Open JTalk がない環境では文字数の比率で近似（このあと無音に吸着させる）
+        lens = [max(1, len(c)) for c in chunks]
     total = len(x) / SR
     cum = np.cumsum(lens)[:-1] / sum(lens) * total
     win = int(0.01 * SR)

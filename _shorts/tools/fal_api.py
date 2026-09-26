@@ -36,16 +36,40 @@ TTS_MODEL = "fal-ai/minimax/speech-02-hd"
 ASR_MODEL = "fal-ai/whisper"
 
 
+def extract_key(raw: bytes) -> str:
+    """ファイルの中身からキーの部分だけを取り出す。
+    メモ帳の BOM・Shift_JIS・全角文字・「APIキー：」のような見出しや説明が混ざっていてもよい。"""
+    import re
+    import unicodedata
+    for enc in ("utf-8-sig", "cp932", "utf-16"):
+        try:
+            text = raw.decode(enc)
+            break
+        except UnicodeDecodeError:
+            continue
+    else:
+        return ""
+    text = unicodedata.normalize("NFKC", text)          # 全角の英数字・コロンを半角に
+    # fal のキーは「ID:秘密の文字列」の形
+    m = re.findall(r"[A-Za-z0-9][A-Za-z0-9_\-]{7,}:[A-Za-z0-9_\-]{16,}", text)
+    if m:
+        return max(m, key=len)
+    tokens = [t for t in re.findall(r"[\x21-\x7e]+", text) if len(t) >= 20 and not t.upper().startswith("FAL_KEY")]
+    tokens = [t.split("=", 1)[1] if t.upper().startswith("FAL_KEY=") else t for t in tokens]
+    return max(tokens, key=len) if tokens else ""
+
+
 def load_key() -> None:
     """assets/.fal_key を読んで fal_client 用の環境変数 FAL_KEY に入れる"""
     key_file = next((p for p in KEY_CANDIDATES if p.exists()), None)
     if key_file is None:
         raise SystemExit("fal のAPIキーが見つかりません。次のどれかに1行で保存してください:\n  "
                          + "\n  ".join(str(p) for p in KEY_CANDIDATES))
-    text = key_file.read_text(encoding="utf-8-sig").strip()   # メモ帳の BOM・改行コード(CRLF)を除く
-    key = text.split("=", 1)[1].strip() if text.startswith("FAL_KEY=") else text
-    if not key or "\n" in key:
-        raise SystemExit(f"{KEY_FILE.relative_to(ROOT)} の中身が読めません（キーを1行だけ書いてください）")
+    key = extract_key(key_file.read_bytes())
+    if not key:
+        raise SystemExit(f"{key_file} の中にキーが見つかりません。\n"
+                         "fal のダッシュボードの「API Keys」でコピーしたキー（英数字と : と - だけの文字列）を、"
+                         "そのファイルに1行だけ貼ってください。見出しや説明は書かなくて大丈夫です")
     if os.name != "nt" and key_file.stat().st_mode & (stat.S_IRGRP | stat.S_IROTH):
         print(f"注意: {key_file.name} を他のユーザーも読めます。chmod 600 を推奨", file=sys.stderr)
     os.environ["FAL_KEY"] = key
@@ -86,7 +110,10 @@ def clone_voice(source: str, start: float = 0, seconds: float = 90, name: str = 
     else:
         src = Path(source)
         if not src.exists():
-            raise SystemExit(f"{source} が見つかりません")
+            raise SystemExit(f"音声ファイル「{source}」が見つかりません。\n"
+                             "「声のファイルのパス」の部分は、実際のファイルの場所に置き換えてください。\n"
+                             "エクスプローラーで m4a ファイルを PowerShell の画面にドラッグすると、場所が自動で入ります。\n"
+                             "例: python tools/fal_api.py clone \"C:\\Users\\3mori\\Documents\\AudioBlog\\音声メディアが生き残る理由.m4a\" --start 60 --seconds 90")
         with tempfile.TemporaryDirectory() as d:
             clip = Path(d) / "ref.wav"
             subprocess.run(["ffmpeg", "-v", "error", "-y", "-ss", str(start), "-t", str(seconds), "-i", str(src),
@@ -177,7 +204,9 @@ def main():
 
     if a.cmd == "check":
         load_key()
-        print(f"キーを読み込みました（{len(os.environ['FAL_KEY'])}文字）")
+        k = os.environ["FAL_KEY"]
+        shape = "ID:秘密の文字列 の形" if ":" in k else "コロンなし（fal のキーは通常 ID:秘密の文字列 の形なので要確認）"
+        print(f"キーを読み込みました（{len(k)}文字、{shape}、英数字のみ: {'はい' if k.isascii() else 'いいえ'}）")
     elif a.cmd == "selftest":
         selftest()
     elif a.cmd == "approve":

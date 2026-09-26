@@ -8,15 +8,25 @@
 - **ads.txt の正式な置き場所**(AdSenseはドメイン直下 `tamehiro3.github.io/ads.txt` しか読まないため、ここに置く)
 - **プライバシーポリシー**(`privacy.html`・AdSense審査の必須要件)
 
-## AdSense申請の手順(GitHub側は準備済み)
+## AdSense の状況と残りの手順
 
-1. [Google AdSense](https://adsense.google.com/) でアカウント作成
-2. 「サイトを追加」で `tamehiro3.github.io` を登録
-3. 表示される審査コード(`<script async src="...adsbygoogle.js?client=ca-pub-XXXX"...>`)を
-   `index.html` の `<head>` 内のコメント「▼▼ AdSense審査コードはこの下に貼り付ける ▼▼」の下に貼る
-4. `ads.txt` の `pub-0000000000000000` を自分のIDに書き換えて行頭の `# ` を消す
-5. `★サイトを公開する.bat` をダブルクリックして再公開 → AdSense管理画面で審査をリクエスト
-6. 合格後、`ninja-game/ads.js` の `client` / `slot` にIDを入れてninja-gameも再公開
+設置済み(2026-09-26 時点):
+
+- 審査コード(`ca-pub-2175971581635704`)… ポータル・両ゲーム・両ゲームの遊び方ページの `<head>`
+- `ads.txt` … このリポジトリ直下
+- `privacy.html` … 第三者配信・Cookie・オプトアウト(aboutads.info)の記載あり
+- `robots.txt` / `sitemap.xml` … 審査クローラー向け
+- 遊び方ページ(`/ninja-mission-kobo/about.html`・`/shinobi-nazomeguri/about.html`)… ゲーム画面はJSで描画され文字が少ないため、審査で「有用性の低いコンテンツ」と判定されないよう文章ページを追加
+
+残りの手順(AdSense管理画面での作業):
+
+1. 「サイト」で `tamehiro3.github.io` の状態を確認。「要審査」「準備中」なら「審査をリクエスト」
+2. 承認されたら「広告 → 広告ユニットごと → ディスプレイ広告」でユニットを2つ作成(例: `ninja-home-banner` / `nazomeguri-bottom`)
+3. 表示されたコードの `data-ad-slot="1234567890"` の数字を、それぞれ
+   - `ninja-mission-kobo/ads.js` の `slot`
+   - `shinobi-nazomeguri/ads.js` の `slot`
+   に入れて各ゲームを再公開。**slot が空のあいだはゲーム内の広告枠は表示されません**(仮表示は審査で不利なため出さない)
+4. 推奨: 「ブランド保護 → コンテンツ」で子ども向けゲームの広告カテゴリを絞る/「自動広告」はゲーム画面(`/ninja-mission-kobo/`, `/shinobi-nazomeguri/`)を除外ページに設定
 
 ## 更新方法
 

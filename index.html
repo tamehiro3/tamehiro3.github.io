@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>しのびのゲーム工房 | 家族で遊べる無料ブラウザゲーム</title>
-  <meta name="description" content="子どもから大人まで、スマホのホーム画面に追加してすぐ遊べる無料のなぞときゲームを公開しています。課金なし・個人情報の入力なし・オフラインでも遊べます。">
+  <title>しのびのゲーム工房 | 家族で遊べる無料ブラウザゲームとくらしの便利アプリ</title>
+  <meta name="description" content="子どもから大人まで、スマホのホーム画面に追加してすぐ使える無料のなぞときゲームと、おてつだい管理・EV充電スポット検索などのくらしの便利アプリを公開しています。課金なし・個人情報の入力なし。">
 
   <!-- AdSense審査コード（pub-2175971581635704 / 2026-07-05設置） -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2175971581635704" crossorigin="anonymous"></script>
@@ -30,6 +30,7 @@
       box-shadow: 0 2px 8px rgba(43,43,51,.08); padding: 20px; margin: 16px 0;
       display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;
     }
+    .game-card.app { border-left: 5px solid var(--gold); }
     .game-card img { width: 84px; height: 84px; border-radius: 18px; border: 1px solid var(--line); }
     .game-card .body { flex: 1; min-width: 240px; }
     .game-card h3 { margin: 0 0 4px; font-size: 1.15rem; }
@@ -54,13 +55,13 @@
 
 <header>
   <h1>🌕 しのびのゲーム工房</h1>
-  <p>家族で遊べる、無料のなぞときブラウザゲーム</p>
+  <p>家族で遊べる、無料のなぞときブラウザゲームと くらしの便利アプリ</p>
 </header>
 
 <main>
   <p>
-    「しのびのゲーム工房」は、子どもから大人まで安心して遊べる<strong>無料のなぞときゲーム</strong>を公開している個人運営のサイトです。
-    どのゲームもアプリストアを通さず、スマホのブラウザで開いて「ホーム画面に追加」するだけで、アプリのように毎日遊べます。
+    「しのびのゲーム工房」は、子どもから大人まで安心して遊べる<strong>無料のなぞときゲーム</strong>と、毎日のくらしに役立つ<strong>便利アプリ</strong>を公開している個人運営のサイトです。
+    どのゲーム・アプリもアプリストアを通さず、スマホのブラウザで開いて「ホーム画面に追加」するだけで、アプリのように毎日遊べます。
     課金要素はなく、名前やメールアドレスなどの個人情報を入力する場面もありません。一度読み込めばオフラインでも動作します。
   </p>
 
@@ -94,10 +95,42 @@
     </div>
   </div>
 
+  <h2>くらしの便利アプリ</h2>
+
+  <div class="game-card app">
+    <img src="/otetsudai-brothers/icons/icon-192.png" alt="おてつだいブラザーズのアイコン">
+    <div class="body">
+      <h3>おてつだいブラザーズ</h3>
+      <p class="tagline">きそうより、きょうりょく！兄弟2人の おてつだい×おこづかい帳</p>
+      <p>
+        子どもが「できた！」を押し、おうちの人がOKするとポイントがたまる、兄弟向けのおてつだい管理アプリです。
+        2人そろって達成する「きょうりょくミッション」でボーナスが出るので、取り合いではなく協力が自然に生まれます。
+        おてつだいの内容・ポイント・担当・くりかえす曜日はおうちに合わせて変更でき、がんばりはグラフで振り返れます。
+      </p>
+      <p class="meta">対象: 小学生の兄弟と保護者 / 家族共用の1台で使う / 記録は端末内のみ・バックアップ機能つき</p>
+      <a class="play-btn" href="/otetsudai-brothers/">▶ 使ってみる</a>
+    </div>
+  </div>
+
+  <div class="game-card app">
+    <img src="/charge-spot-map/icons/icon-192.png" alt="EV充電スポット検索のアイコン">
+    <div class="body">
+      <h3>EV充電スポット検索</h3>
+      <p class="tagline">イオン・ENECHANGE・エコQ電の充電スポットを地図と一覧で</p>
+      <p>
+        全国のイオン施設と、ENECHANGE／エコQ電ネットワークのEV充電スポットを、現在地・地名・施設名から探せるアプリです。
+        都道府県・急速/普通・出力などで絞り込め、Google マップ／Apple マップでそのまま経路案内できます。
+        掲載情報は公開情報から出典つきで作成しています(空き状況のリアルタイム表示には未対応)。
+      </p>
+      <p class="meta">対象: EVに乗る方 / 全国294スポット掲載(2026年9月時点) / ログイン不要</p>
+      <a class="play-btn" href="/charge-spot-map/">▶ 使ってみる</a>
+    </div>
+  </div>
+
   <h2>スマホでアプリのように遊ぶ方法</h2>
   <table>
-    <tr><th>iPhone</th><td>Safariでゲームを開く → 共有ボタン → 「ホーム画面に追加」</td></tr>
-    <tr><th>Android</th><td>Chromeでゲームを開く → メニュー(⋮) → 「アプリをインストール」</td></tr>
+    <tr><th>iPhone</th><td>Safariでゲーム・アプリを開く → 共有ボタン → 「ホーム画面に追加」</td></tr>
+    <tr><th>Android</th><td>Chromeでゲーム・アプリを開く → メニュー(⋮) → 「アプリをインストール」</td></tr>
   </table>
   <p>ホーム画面のアイコンから起動すると全画面で遊べます。2回目からはオフラインでも動きます。</p>
 
@@ -112,6 +145,7 @@
 
   <h2>更新履歴</h2>
   <ul>
+    <li>2026-09-26 くらしの便利アプリ「おてつだいブラザーズ」「EV充電スポット検索」の紹介を追加</li>
     <li>2026-07-05 「CryptoNinja 忍びの謎巡り」を公開。ポータルサイトを開設</li>
     <li>2026-07-04 「にんじゃミッション工房」に章の難度進行・おにむず任務を追加</li>
     <li>2026-06 「にんじゃミッション工房」を公開</li>

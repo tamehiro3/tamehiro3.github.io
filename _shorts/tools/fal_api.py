@@ -21,8 +21,12 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 KEY_FILE = ROOT / "assets" / ".fal_key"
-# Windows のメモ帳で保存すると「.fal_key.txt」になることがあるので、それも探す
-KEY_CANDIDATES = [KEY_FILE, ROOT / "assets" / ".fal_key.txt"]
+# Windows のメモ帳で保存すると「.fal_key.txt」になることがあるので、それも探す。
+# いちばん安全なのはリポジトリの外（1つ上のフォルダ。例 C:\Users\3mori\SNS\）に置くこと。
+# そこなら「★サイトを公開する.bat」（git add -A）でも絶対に公開されない。
+_OUTSIDE = ROOT.parent.parent
+KEY_CANDIDATES = [KEY_FILE, ROOT / "assets" / ".fal_key.txt",
+                  _OUTSIDE / ".fal_key", _OUTSIDE / ".fal_key.txt", _OUTSIDE / "fal APIキー.txt"]
 VOICE_CACHE = ROOT / "voice_ref" / "voice_id.json"
 
 CLONE_MODEL = "fal-ai/minimax/voice-clone"
@@ -34,8 +38,8 @@ def load_key() -> None:
     """assets/.fal_key を読んで fal_client 用の環境変数 FAL_KEY に入れる"""
     key_file = next((p for p in KEY_CANDIDATES if p.exists()), None)
     if key_file is None:
-        raise SystemExit(f"{KEY_FILE.relative_to(ROOT)} がありません。fal のダッシュボードで発行した"
-                         "APIキーを1行で保存してください（GitHubには上がりません）")
+        raise SystemExit("fal のAPIキーが見つかりません。次のどれかに1行で保存してください:\n  "
+                         + "\n  ".join(str(p) for p in KEY_CANDIDATES))
     text = key_file.read_text(encoding="utf-8-sig").strip()   # メモ帳の BOM・改行コード(CRLF)を除く
     key = text.split("=", 1)[1].strip() if text.startswith("FAL_KEY=") else text
     if not key or "\n" in key:

@@ -6,9 +6,10 @@ cd "$(dirname "$0")/.."
 sudo=""; [ "$(id -u)" -ne 0 ] && sudo="sudo"
 $sudo apt-get update -qq
 $sudo apt-get install -y -qq ffmpeg fonts-noto-cjk fonts-noto-cjk-extra fonts-noto-color-emoji \
-  open-jtalk open-jtalk-mecab-naist-jdic hts-voice-nitech-jp-atr503-m001
+  open-jtalk open-jtalk-mecab-naist-jdic hts-voice-nitech-jp-atr503-m001 \
+  mecab mecab-ipadic-utf8 libmecab-dev
 
-pip install -q pillow numpy scipy opencv-python-headless ncnn soundfile fonttools fal-client
+pip install -q pillow numpy scipy opencv-python-headless ncnn soundfile fonttools fugashi fal-client
 
 # テロップ用フォント（SIL OFL 1.1）
 mkdir -p assets/fonts assets/models

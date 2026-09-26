@@ -36,7 +36,8 @@ SR = 48000
 AI_WORDS = ["これにより", "さらに", "重要", "不可欠", "ぜひ", "いかがでしたか", "しましょう", "結論から言うと",
             "解説します", "魅力的", "画期的", "革新的", "最適", "活用", "実現", "可能性があります", "について",
             "徹底", "完全ガイド", "必見", "神", "最強"]
-RISKY_READ = {"一時": "イチジ", "最中": "サイチュウ", "今日": "キョウ", "方": None, "何": None, "上手": "ジョウズ"}
+# 期待する読み（音素をカナにしたときの表記。長音は「オ」になる：今日→キョオ）
+RISKY_READ = {"一時": "イチジ", "最中": "サイチュウ", "今日": "キョオ", "上手": "ジョオズ", "生憎": "アイニク"}
 
 # ---------------- A. 音声 ----------------
 KANA = {
@@ -192,7 +193,7 @@ def visual_texts(v):
             out.append(x)
         elif isinstance(x, dict):
             for k, y in x.items():
-                if k not in ("type", "emoji", "icons") and not k.startswith("_"):
+                if k not in ("type", "emoji", "icons", "icon") and not k.startswith("_"):
                     walk(y)
         elif isinstance(x, list):
             for y in x:
@@ -209,6 +210,11 @@ def emoji_of(v):
         if c and c.get("emoji"):
             es.append(c["emoji"])
     es += list((v.get("icons") or {}).values())
+    if v.get("icon"):
+        es.append(v["icon"])
+    for m in v.get("msgs", []):
+        if m.get("emoji"):
+            es.append(m["emoji"])
     return es
 
 

@@ -144,30 +144,79 @@ TELOP_SIZE, TELOP_EMPH = 88, 1.3
 BREAK_AFTER = set("はがをにでとものへやかね、。！？!?」）…")
 
 
+_TAGGER = None
+
+
+def tagger():
+    """MeCab（IPA辞書）。入っていなければ None（文字ベースの改行にフォールバック）"""
+    global _TAGGER
+    if _TAGGER is None:
+        try:
+            import fugashi
+            _TAGGER = fugashi.GenericTagger("-r /etc/mecabrc -d /var/lib/mecab/dic/ipadic-utf8")
+        except Exception:
+            _TAGGER = False
+    return _TAGGER or None
+
+
+INDEP = {"名詞", "動詞", "形容詞", "副詞", "連体詞", "接続詞", "感動詞", "接頭詞"}
+
+
+def bunsetsu_breaks(plain_text):
+    """文節の頭になれる位置（plain_text の文字位置）と、そこが助詞・読点の直後かどうか"""
+    tg = tagger()
+    if not tg:
+        return None
+    out, pos, prev = {}, 0, None
+    for w in tg(plain_text):
+        f0, f1 = w.feature[0], w.feature[1]
+        starts = (f0 in INDEP and f1 not in ("接尾", "非自立")) or (f0 == "記号" and f1 == "括弧開")
+        if prev is not None and starts:
+            p0, p1 = prev.feature[0], prev.feature[1]
+            joined = (p0 == "名詞" and f0 == "名詞") or p0 == "接頭詞" or (p0 == "記号" and p1 == "括弧開")
+            if not joined:
+                out[pos] = p0 in ("助詞", "助動詞") or (p0 == "記号" and p1 in ("読点", "句点", "括弧閉"))
+        pos += len(w.surface)
+        prev = w
+    return out
+
+
 def split_two(text):
-    """強調や英単語を割らずに、左右の幅が近くなる位置で2行に分ける"""
-    plainpos, depth, cands = [], 0, []
-    chars = list(text)
-    for i, ch in enumerate(chars):
-        if ch == "【":
-            depth += 1
-        elif ch == "】":
-            depth -= 1
-        if depth == 0 and 0 < i < len(chars) - 1:
-            nxt = chars[i + 1]
-            if not (ch.isascii() and ch.isalnum() and nxt.isascii() and nxt.isalnum()) and nxt not in "ー、。！？」）" \
-                    and not (nxt in "をはがにでとものへや" and ch not in "、。！？"):
-                cands.append(i + 1)
+    """強調や単語を割らずに、文節の切れ目で左右の幅が近くなる位置で2行に分ける"""
+    plain_idx = [i for i, ch in enumerate(text) if ch not in "【】"]
+    plain_text = "".join(text[i] for i in plain_idx)
+    br = bunsetsu_breaks(plain_text)
+    cands = []
+    if br is not None:
+        for p, good in br.items():
+            i = plain_idx[p]
+            while i > 0 and text[i - 1] == "【":
+                i -= 1
+            cands.append((i, good))
+    else:
+        depth = 0
+        for i, ch in enumerate(text):
+            depth += (ch == "【") - (ch == "】")
+            if depth == 0 and 0 < i < len(text) - 1:
+                nxt = text[i + 1]
+                if not (ch.isascii() and ch.isalnum() and nxt.isascii() and nxt.isalnum()) and nxt not in "ー、。！？」）":
+                    cands.append((i + 1, ch in BREAK_AFTER))
     best, score = None, 1e9
-    for c in cands:
+    for c, good in cands:
         l, r = text[:c], text[c:]
-        if l.count("【") != l.count("】"):
-            continue
+        if l.count("【") != l.count("】"):   # 強調の途中で割るときは、両側で【】を閉じ直す
+            l, r = l + "】", "【" + r
         wl, wr = rich_width(l, TELOP_SIZE, F_TELOP, TELOP_EMPH), rich_width(r, TELOP_SIZE, F_TELOP, TELOP_EMPH)
-        sc = abs(wl - wr) + (0 if l.rstrip("】")[-1:] in BREAK_AFTER else 120)
+        in_quote = l.count("「") > l.count("」")
+        sc = abs(wl - wr) + (0 if good else 90) + (110 if in_quote else 0)
         if sc < score:
             best, score = c, sc
-    return [text[:best], text[best:]] if best else [text]
+    if not best:
+        return [text]
+    l, r = text[:best], text[best:]
+    if l.count("【") != l.count("】"):
+        l, r = l + "】", "【" + r
+    return [l, r]
 
 
 @lru_cache(maxsize=512)
@@ -327,7 +376,7 @@ def v_big(v, t, enter):
     return im
 
 
-def bubble(text, me, maxw=720, size=48, hl=False):
+def bubble(text, me, maxw=720, size=48, hl=False, color=None):
     lines = wrap(text, F_BOLD, size, maxw - 60)
     f = font(F_BOLD, size)
     tw = max(f.getlength(l) for l in lines)
@@ -336,7 +385,7 @@ def bubble(text, me, maxw=720, size=48, hl=False):
     d = ImageDraw.Draw(im)
     if hl:
         rounded(d, (0, 0, w + 16, h + 16), 36, fill=YELLOW)
-    rounded(d, (8, 8, w + 8, h + 8), 30, fill=BLUE if me else (238, 241, 246))
+    rounded(d, (8, 8, w + 8, h + 8), 30, fill=color or (BLUE if me else (238, 241, 246)))
     y = 8 + 20 + size
     for l in lines:
         d.text((8 + 30, y), l, font=f, fill=(255, 255, 255) if me else INK, anchor="ls")
@@ -347,36 +396,39 @@ def bubble(text, me, maxw=720, size=48, hl=False):
 def v_chat(v, t, enter, prev=None):
     im = Image.new("RGBA", (CW, CH), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
-    rounded(d, (20, 10, CW - 20, 100), 26, fill=(243, 246, 250))
-    d.text((96, 55), v.get("title", "AIチャット"), font=font(F_BLACK, 44), fill=INK, anchor="lm")
-    im.alpha_composite(emoji("🤖", 52), (34, 29))
     msgs = v["msgs"]
-    start_new = v.get("_from", 0) if not enter else 0
+    # enter=False: 前の文と同じ画面（または1コマ目）なら全部表示、_from があればそこから先だけ演出
+    start_new = v.get("_from", len(msgs)) if not enter else 0
     items, y = [], 120
     for k, m in enumerate(msgs):
         appear = 0.0 if k < start_new else (k - start_new) * 0.55
         if t < appear:
             break
         text = m["text"]
-        if m.get("from") == "ai" and k >= start_new:
+        if m.get("from") in ("ai", "them") and k >= start_new:
             n = int(len(text) * min(1, (t - appear) / max(0.6, len(text) * 0.035)))
             text = text[:max(n, 1)]
-        b = bubble(text, m.get("from") == "me", hl=(v.get("hl") == k))
+        them = m.get("from") == "them"
+        b = bubble(text, m.get("from") == "me", hl=(v.get("hl") == k), color=(255, 232, 204) if them else None)
         s = ease_out_back((t - appear) / 0.25) if k >= start_new else 1
-        items.append((b, m.get("from") == "me", s))
-    total = sum(b.height + 16 for b, _, _ in items)
+        items.append((b, m.get("from") == "me", s, m.get("emoji", "👷" if them else "✨")))
+    total = sum(b.height + 16 for b, _, _, _ in items)
     y = 120 - max(0, total - (CH - 130))           # はみ出す分は上にスクロール
-    for b, me, s in items:
+    for b, me, s, av in items:
         bb = scaled(b, max(0.05, s))
         if me:
             x = CW - 24 - bb.width
         else:
             x = 100
             if y + 10 > 110:
-                im.alpha_composite(emoji("✨", 60), (24, int(y + 16)))
+                im.alpha_composite(emoji(av, 60), (24, int(y + 16)))
         if y + bb.height > 100:
             im.alpha_composite(bb, (int(x), int(y)))
         y += b.height + 16
+    d.rectangle((0, 0, CW, 108), fill=(255, 255, 255, 255))
+    rounded(d, (20, 10, CW - 20, 100), 26, fill=(243, 246, 250))
+    d.text((96, 55), v.get("title", "AIチャット"), font=font(F_BLACK, 44), fill=INK, anchor="lm")
+    im.alpha_composite(emoji(v.get("icon", "🤖"), 52), (34, 29))
     if v.get("stamp") and t > v.get("stamp_at", 0.9):
         st = t - v.get("stamp_at", 0.9)
         f = font(F_BLACK, 56)

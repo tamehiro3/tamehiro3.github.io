@@ -8,7 +8,7 @@
   "pitch": 2.5,
   "intonation": 1.5,
   "fal_model": "fal-ai/minimax/speech-02-hd",
-  "fal_speed": 1.15,
+  "fal_speed": 1.0,
   "emotion": "happy"
  },
  "improvements_from_ep01": [

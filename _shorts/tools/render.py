@@ -1039,7 +1039,12 @@ def loudnorm(src, dst, target=-14.0):
     r = subprocess.run(["ffmpeg", "-hide_banner", "-i", str(src), "-af",
                         f"loudnorm=I={target}:TP=-1.5:LRA=11:print_format=json", "-f", "null", "-"],
                        capture_output=True, text=True, encoding="utf-8", errors="replace")
-    js = json.loads(r.stderr[r.stderr.rfind("{"):])
+    # ffmpeg のログの中から loudnorm の JSON（{ … "input_i" … }）だけを取り出す。
+    # Windows 版などは JSON のあとにも行を出すので、最後の { から末尾まで、という取り方はしない
+    m = re.findall(r"\{[^{}]*\"input_i\"[^{}]*\}", r.stderr)
+    if not m:
+        raise SystemExit("ffmpeg の loudnorm の結果が読めませんでした:\n" + r.stderr[-800:])
+    js = json.loads(m[-1])
     subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(src), "-af",
                     f"loudnorm=I={target}:TP=-1.5:LRA=11:measured_I={js['input_i']}:measured_TP={js['input_tp']}:"
                     f"measured_LRA={js['input_lra']}:measured_thresh={js['input_thresh']}:offset={js['target_offset']}:linear=true",

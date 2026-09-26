@@ -1,0 +1,254 @@
+{
+ "id": "ep05",
+ "theme": "学校のプリントを写真1枚で予定表・カレンダーにする（画像入力）",
+ "style": "studio",
+ "series": "AI初心者の時短ワザ",
+ "voice": {
+  "engine": "openjtalk",
+  "speed": 1.15,
+  "pitch": 2.5,
+  "intonation": 1.5,
+  "fal_model": "fal-ai/minimax/speech-02-hd",
+  "fal_speed": 1.0,
+  "emotion": "happy"
+ },
+ "sources": [
+  "https://www.dsk-cloud.com/blog/gws/what-can-you-do-with-gemini-and-google-calendar"
+ ],
+ "lines": [
+  {
+   "text": "学校のプリント、／まだ【手で】写してる？",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "📄",
+    "text": "プリント\nまだ【手で】写してる？",
+    "size": 88
+   }
+  },
+  {
+   "text": "写真1枚で、／【予定表】にできるよ",
+   "tts": "写真いちまいで、／予定表にできるよ",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "📸",
+    "text": "写真1枚で\n【予定表】",
+    "size": 100
+   }
+  },
+  {
+   "text": "毎月のプリント仕事、／これで【ラクになる】よ",
+   "shot": "close",
+   "pose": "pose02",
+   "visual": {
+    "type": "big",
+    "emoji": "🙌",
+    "text": "プリント仕事が\n【ラクになる】",
+    "size": 92
+   }
+  },
+  {
+   "text": "ChatGPTかGeminiで、／【カメラ】をタップ",
+   "tts": "チャットジーピーティーかジェミニで、／カメラをタップ",
+   "heading": "やり方",
+   "shot": "wide",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "📷",
+    "text": "【カメラ】を\nタップ",
+    "size": 100
+   }
+  },
+  {
+   "text": "プリントを、／なるべく【まっすぐ】撮って",
+   "shot": "close",
+   "pose": "pose08",
+   "visual": {
+    "type": "big",
+    "emoji": "📐",
+    "text": "【まっすぐ】\n撮る",
+    "size": 100
+   }
+  },
+  {
+   "text": "「日付と持ち物を／【表にして】」って送る",
+   "tts": "日付と持ち物を、／表にして、って送る",
+   "shot": "wide",
+   "pose": "pose01",
+   "visual": {
+    "type": "chat",
+    "title": "AIチャット",
+    "msgs": [
+     {
+      "from": "me",
+      "text": "（プリントの写真）日付と持ち物を表にして"
+     }
+    ]
+   }
+  },
+  {
+   "text": "行事と持ち物が、／【一覧】になって返ってくる",
+   "shot": "close",
+   "pose": "pose06",
+   "visual": {
+    "type": "chat",
+    "title": "AIチャット",
+    "msgs": [
+     {
+      "from": "me",
+      "text": "（プリントの写真）日付と持ち物を表にして"
+     },
+     {
+      "from": "ai",
+      "text": "10/3 遠足：お弁当・水筒・レジャーシート\n10/8 授業参観：上履き"
+     }
+    ]
+   }
+  },
+  {
+   "text": "持ち物に【チェック欄】も／付けてって頼める",
+   "shot": "wide",
+   "pose": "pose02",
+   "visual": {
+    "type": "list",
+    "title": "持ち物【チェック】",
+    "items": [
+     "お弁当",
+     "水筒",
+     "レジャーシート"
+    ],
+    "show": 3,
+    "hl": null
+   }
+  },
+  {
+   "text": "Geminiなら、／【カレンダー登録】まで頼める",
+   "tts": "ジェミニなら、／カレンダー登録まで頼める",
+   "shot": "close",
+   "pose": "pose09",
+   "visual": {
+    "type": "big",
+    "emoji": "🗓️",
+    "text": "【カレンダー登録】\nまで頼める",
+    "size": 92
+   }
+  },
+  {
+   "text": "夫婦で共有すれば、／【言った言わない】も減る",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "👫",
+    "text": "【言った言わない】\nが減る",
+    "size": 92
+   }
+  },
+  {
+   "text": "献立表や部活の予定も、／【同じやり方】でいける",
+   "shot": "close",
+   "pose": "pose05",
+   "visual": {
+    "type": "big",
+    "emoji": "🍱",
+    "text": "献立表・部活も\n【同じやり方】",
+    "size": 92
+   }
+  },
+  {
+   "text": "日付の【読み間違い】は、／たまにある",
+   "heading": "注意！",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "big",
+    "emoji": "⚠️",
+    "text": "日付の\n【読み間違い】",
+    "size": 100
+   }
+  },
+  {
+   "text": "特に【曜日】と日付の／ずれに気をつけて",
+   "shot": "close",
+   "pose": "pose10",
+   "visual": {
+    "type": "big",
+    "emoji": "📆",
+    "text": "【曜日】と日付の\nずれ",
+    "size": 92
+   }
+  },
+  {
+   "text": "最後は【元のプリント】と／見比べてね",
+   "shot": "wide",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "🔍",
+    "text": "【元のプリント】と\n見比べる",
+    "size": 92
+   }
+  },
+  {
+   "text": "名前や住所が／【写らないように】撮ってね",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "🙈",
+    "text": "名前・住所は\n【写さない】",
+    "size": 96
+   }
+  },
+  {
+   "text": "手で写す時間が、／【ぐっと減る】よ",
+   "heading": "まとめ",
+   "shot": "wide",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "⏱️",
+    "text": "手で写す時間が\n【ぐっと減る】",
+    "size": 92
+   }
+  },
+  {
+   "text": "次のプリントが来たら、／【さっそく】試してみて",
+   "shot": "close",
+   "pose": "pose07",
+   "visual": {
+    "type": "big",
+    "emoji": "🙌",
+    "text": "次のプリントで\n【試してみて】",
+    "size": 92
+   }
+  },
+  {
+   "text": "同じクラスの保護者にも、／【送ってあげて】",
+   "shot": "wide",
+   "pose": "pose02",
+   "visual": {
+    "type": "cta",
+    "emoji": "📩",
+    "text": "保護者仲間に\n【送ってあげて】",
+    "size": 100,
+    "bounce": true
+   }
+  },
+  {
+   "text": "じゃあ最初の質問、／もう一回聞くね",
+   "shot": "close",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "📄",
+    "text": "プリント\nまだ【手で】写してる？",
+    "size": 88
+   }
+  }
+ ]
+}

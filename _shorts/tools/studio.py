@@ -109,7 +109,7 @@ def _glow(layer, spread=9, blur=11, opacity=0.9, color=(10, 10, 30)):
 
 
 @lru_cache(maxsize=512)
-def telop(chunk, size=92, emph=1.32, maxw=800):
+def telop(chunk, size=92, emph=1.32, maxw=820):
     """胸元に出す明朝体の白テロップ。【】は色を変えず大きさだけで強調。\\n で改行"""
     import render as R  # 分割ロジックは共通
     lines = chunk.split("\n")

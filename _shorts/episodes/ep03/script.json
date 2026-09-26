@@ -1,0 +1,302 @@
+{
+ "id": "ep03",
+ "theme": "嘘を減らす一文と、カスタム指示への登録",
+ "style": "studio",
+ "series": "AI初心者の時短ワザ",
+ "voice": {
+  "engine": "openjtalk",
+  "speed": 1.15,
+  "pitch": 2.5,
+  "intonation": 1.5,
+  "fal_model": "fal-ai/minimax/speech-02-hd",
+  "fal_speed": 1.0,
+  "emotion": "happy"
+ },
+ "sources": [
+  "https://help.openai.com/en/articles/8096356-chatgpt-custom-instructions",
+  "https://www.ailesys.co.jp/archives/15465"
+ ],
+ "lines": [
+  {
+   "text": "ChatGPTの答え、／そのまま【信じてない？】",
+   "tts": "チャットジーピーティーの答え、／そのまま信じてない？",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "chat",
+    "title": "AIチャット",
+    "msgs": [
+     {
+      "from": "me",
+      "text": "初心者向けのAIの本を教えて"
+     },
+     {
+      "from": "ai",
+      "text": "『はじめてのAI大全』（2019年）がおすすめです！"
+     }
+    ],
+    "stamp": "本当にある？",
+    "stamp_at": 1.2
+   }
+  },
+  {
+   "text": "AIは知らないことも、／【それっぽく】答えるんよ",
+   "tts": "エーアイは知らないことも、／それっぽく答えるんよ",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "🤥",
+    "text": "【それっぽく】\n答えちゃう",
+    "size": 100
+   }
+  },
+  {
+   "text": "次に来そうな言葉を、／【つないで】文章を作るから",
+   "heading": "なぜ？",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "🧩",
+    "text": "言葉を\n【つないで】作る",
+    "size": 100
+   }
+  },
+  {
+   "text": "だから自信満々のまま、／【間違える】ことがある",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "big",
+    "emoji": "😤",
+    "text": "自信満々で\n【間違える】",
+    "size": 100
+   }
+  },
+  {
+   "text": "質問の最後に、／【この一文】を足してみて",
+   "heading": "対策は？",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "list",
+    "title": "足すのは【この一文】",
+    "items": [
+     "わからない時は「わからない」",
+     "根拠にした情報も書く"
+    ],
+    "show": 0,
+    "hl": null
+   },
+   "se": "ding",
+   "se_at": 0.4
+  },
+  {
+   "text": "「わからない時は、／【わからない】と答えて」",
+   "tts": "わからない時は、／わからないと答えて、",
+   "shot": "wide",
+   "pose": "pose06",
+   "visual": {
+    "type": "list",
+    "title": "足すのは【この一文】",
+    "items": [
+     "わからない時は「わからない」",
+     "根拠にした情報も書く"
+    ],
+    "show": 1,
+    "hl": 0
+   }
+  },
+  {
+   "text": "「根拠にした情報も、／【一緒に】書いて」",
+   "tts": "根拠にした情報も、／一緒に書いて、",
+   "shot": "close",
+   "pose": "pose02",
+   "visual": {
+    "type": "list",
+    "title": "足すのは【この一文】",
+    "items": [
+     "わからない時は「わからない」",
+     "根拠にした情報も書く"
+    ],
+    "show": 2,
+    "hl": 1
+   }
+  },
+  {
+   "text": "これだけで、／【言い切り】が減りやすい",
+   "shot": "wide",
+   "pose": "pose09",
+   "visual": {
+    "type": "big",
+    "emoji": "📉",
+    "text": "【言い切り】が\n減りやすい",
+    "size": 100
+   }
+  },
+  {
+   "text": "毎回打つのが面倒なら、／【カスタム指示】に入れる",
+   "shot": "close",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "⚙️",
+    "text": "【カスタム指示】\nに入れる",
+    "size": 96
+   }
+  },
+  {
+   "text": "カスタム指示は、／パーソナライズの中にあるよ",
+   "shot": "wide",
+   "pose": "pose05",
+   "visual": {
+    "type": "menu",
+    "title": "設定",
+    "items": [
+     "一般",
+     "通知",
+     "パーソナライズ",
+     "データコントロール"
+    ],
+    "hl": 2,
+    "icons": {
+     "一般": "⚙️",
+     "通知": "🔔",
+     "パーソナライズ": "🎨",
+     "データコントロール": "🗂️"
+    }
+   }
+  },
+  {
+   "text": "「回答方法」の欄に、／【さっきの一文】を貼るだけ",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "settings",
+    "path": [
+     "設定",
+     "パーソナライズ",
+     "カスタム指示"
+    ],
+    "fields": [
+     {
+      "label": "自分について",
+      "value": "AI初心者。"
+     },
+     {
+      "label": "回答方法",
+      "value": "わからない時は、わからないと答えて。根拠にした情報も一緒に書いて。"
+     }
+    ],
+    "hl": 1
+   }
+  },
+  {
+   "text": "一回入れておけば、／【新しい会話】にも効くよ",
+   "tts": "いっかい入れておけば、／新しい会話にも効くよ",
+   "shot": "wide",
+   "pose": "pose10",
+   "visual": {
+    "type": "settings",
+    "path": [
+     "設定",
+     "パーソナライズ",
+     "カスタム指示"
+    ],
+    "fields": [
+     {
+      "label": "自分について",
+      "value": "AI初心者。"
+     },
+     {
+      "label": "回答方法",
+      "value": "わからない時は、わからないと答えて。根拠にした情報も一緒に書いて。"
+     }
+    ],
+    "hl": 1,
+    "typing": false
+   }
+  },
+  {
+   "text": "それでも嘘は、／【ゼロ】にはならない",
+   "heading": "注意！",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "⚠️",
+    "text": "嘘は\n【ゼロにならない】",
+    "size": 96
+   }
+  },
+  {
+   "text": "お金や健康の話は、／【元の情報】を自分で確認",
+   "shot": "wide",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "🔍",
+    "text": "【元の情報】を\n自分で確認",
+    "size": 96
+   }
+  },
+  {
+   "text": "出典のリンクも、／【開いて】確かめてね",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "🔗",
+    "text": "リンクを\n【開いて】確認",
+    "size": 100
+   }
+  },
+  {
+   "text": "一文足すだけで、／答えの【質】が変わる",
+   "tts": "一文足すだけで、／答えの質が変わる",
+   "heading": "まとめ",
+   "shot": "wide",
+   "pose": "pose07",
+   "visual": {
+    "type": "big",
+    "emoji": "✨",
+    "text": "一文で\n答えの【質】が変わる",
+    "size": 92
+   }
+  },
+  {
+   "text": "あとで使う人は、／【保存】しといてね",
+   "shot": "close",
+   "pose": "pose02",
+   "visual": {
+    "type": "cta",
+    "emoji": "📌",
+    "text": "【保存】して\n次の質問で",
+    "size": 100,
+    "bounce": true
+   }
+  },
+  {
+   "text": "じゃあもう一回、／最初の質問ね",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "chat",
+    "title": "AIチャット",
+    "msgs": [
+     {
+      "from": "me",
+      "text": "初心者向けのAIの本を教えて"
+     },
+     {
+      "from": "ai",
+      "text": "『はじめてのAI大全』（2019年）がおすすめです！"
+     }
+    ],
+    "stamp": "本当にある？",
+    "stamp_at": 1.2
+   }
+  }
+ ]
+}

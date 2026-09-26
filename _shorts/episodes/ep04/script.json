@@ -1,0 +1,277 @@
+{
+ "id": "ep04",
+ "theme": "「AIで月〇万」講座・副業広告を見抜く3つのチェック（国民生活センター 2026-09-16 注意喚起）",
+ "style": "studio",
+ "series": "AI初心者の時短ワザ",
+ "voice": {
+  "engine": "openjtalk",
+  "speed": 1.15,
+  "pitch": 2.5,
+  "intonation": 1.5,
+  "fal_model": "fal-ai/minimax/speech-02-hd",
+  "fal_speed": 1.0,
+  "emotion": "happy"
+ },
+ "sources": [
+  "https://internet.watch.impress.co.jp/docs/news/2142039.html",
+  "https://www.smartwatchlife.jp/80738/",
+  "https://www.gov-online.go.jp/article/201807/entry-8222.html"
+ ],
+ "lines": [
+  {
+   "text": "「AIで月30万」の広告、／本当だと【思う？】",
+   "tts": "エーアイで月さんじゅうまん、の広告、／本当だと思う？",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "chat",
+    "title": "SNSの広告",
+    "icon": "📣",
+    "msgs": [
+     {
+      "from": "them",
+      "emoji": "💰",
+      "text": "スマホ1台、AIで月30万！まずは無料説明会へ"
+     }
+    ],
+    "stamp": "本当に？",
+    "stamp_at": 1.2
+   }
+  },
+  {
+   "text": "その講座、／【数十万円】することもあるんよ",
+   "tts": "その講座、／すうじゅうまんえんすることもあるんよ",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "💸",
+    "text": "講座が\n【数十万円】",
+    "size": 100
+   }
+  },
+  {
+   "text": "2025年度は、相談が／【過去最多】になってる",
+   "tts": "にせんにじゅうごねんどは、相談が／過去最多になってる",
+   "heading": "なぜ？",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "📈",
+    "text": "相談が\n【過去最多】",
+    "size": 100,
+    "sub": "国民生活センター 2026年9月16日発表"
+   }
+  },
+  {
+   "text": "無料の説明会から、／【高い講座】に誘われる",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "big",
+    "emoji": "🎣",
+    "text": "無料説明会から\n【高い講座】へ",
+    "size": 92
+   }
+  },
+  {
+   "text": "最近は【ビデオ通話】で／勧誘されることが多い",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "💻",
+    "text": "【ビデオ通話】で\n勧誘",
+    "size": 96
+   }
+  },
+  {
+   "text": "怪しいサインは、／まず【この3つ】を見て",
+   "tts": "怪しいサインは、／まずこのみっつを見て",
+   "heading": "見抜き方",
+   "shot": "wide",
+   "pose": "pose06",
+   "visual": {
+    "type": "list",
+    "title": "怪しいサインは【3つ】",
+    "items": [
+     "【必ず稼げる】と言い切る",
+     "【今日だけ】の値引き",
+     "【借りてでも】払わせる"
+    ],
+    "show": 0,
+    "hl": null
+   },
+   "se": "ding",
+   "se_at": 0.3
+  },
+  {
+   "text": "1つ目、／【必ず稼げる】と言い切る",
+   "tts": "ひとつめ、／必ず稼げると言い切る",
+   "shot": "close",
+   "pose": "pose02",
+   "visual": {
+    "type": "list",
+    "title": "怪しいサインは【3つ】",
+    "items": [
+     "【必ず稼げる】と言い切る",
+     "【今日だけ】の値引き",
+     "【借りてでも】払わせる"
+    ],
+    "show": 1,
+    "hl": 0
+   }
+  },
+  {
+   "text": "2つ目、／【今日だけ】の値引きで焦らせる",
+   "tts": "ふたつめ、／今日だけの値引きで焦らせる",
+   "shot": "wide",
+   "pose": "pose09",
+   "visual": {
+    "type": "list",
+    "title": "怪しいサインは【3つ】",
+    "items": [
+     "【必ず稼げる】と言い切る",
+     "【今日だけ】の値引き",
+     "【借りてでも】払わせる"
+    ],
+    "show": 2,
+    "hl": 1
+   }
+  },
+  {
+   "text": "3つ目、／【借りてでも】払わせようとする",
+   "tts": "みっつめ、／借りてでも払わせようとする",
+   "shot": "close",
+   "pose": "pose03",
+   "visual": {
+    "type": "list",
+    "title": "怪しいサインは【3つ】",
+    "items": [
+     "【必ず稼げる】と言い切る",
+     "【今日だけ】の値引き",
+     "【借りてでも】払わせる"
+    ],
+    "show": 3,
+    "hl": 2
+   }
+  },
+  {
+   "text": "1つでも当てはまったら、／【一回離れて】",
+   "tts": "ひとつでも当てはまったら、／いっかい離れて",
+   "shot": "wide",
+   "pose": "pose05",
+   "visual": {
+    "type": "big",
+    "emoji": "🚪",
+    "text": "【一回離れる】",
+    "size": 100
+   }
+  },
+  {
+   "text": "ビデオ通話の勧誘なら、／【解約できる】場合もある",
+   "heading": "困ったら",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "📝",
+    "text": "【解約できる】\n場合もある",
+    "size": 96,
+    "sub": "クーリング・オフの対象になることも"
+   }
+  },
+  {
+   "text": "まずは【188】に、／電話して相談してね",
+   "tts": "まずは、いちはちはち、に／電話して相談してね",
+   "shot": "wide",
+   "pose": "pose10",
+   "visual": {
+    "type": "big",
+    "emoji": "☎️",
+    "text": "【188】",
+    "size": 150,
+    "sub": "消費者ホットライン"
+   }
+  },
+  {
+   "text": "188は、／【いやや】で覚えると忘れないよ",
+   "tts": "いちはちはちは、／いやや、で覚えると忘れないよ",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "☎️",
+    "text": "188＝【いやや！】",
+    "size": 110
+   }
+  },
+  {
+   "text": "契約する前に、／【家族に一言】話してみて",
+   "shot": "wide",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "🗣️",
+    "text": "【家族に一言】",
+    "size": 100
+   }
+  },
+  {
+   "text": "AIは使えば便利、／でも【近道】は売ってない",
+   "tts": "エーアイは使えば便利、／でも近道は売ってない",
+   "heading": "まとめ",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "🛤️",
+    "text": "【近道】は\n売ってない",
+    "size": 100
+   }
+  },
+  {
+   "text": "使い方は、／【無料】でも十分覚えられる",
+   "shot": "wide",
+   "pose": "pose07",
+   "visual": {
+    "type": "big",
+    "emoji": "🆓",
+    "text": "【無料】で\n十分覚えられる",
+    "size": 96
+   }
+  },
+  {
+   "text": "迷ってる友だちがいたら、／【送ってあげて】",
+   "shot": "close",
+   "pose": "pose02",
+   "visual": {
+    "type": "cta",
+    "emoji": "📩",
+    "text": "友だちに\n【送ってあげて】",
+    "size": 100,
+    "bounce": true
+   }
+  },
+  {
+   "text": "じゃあもう一回、／最初の質問ね",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "chat",
+    "title": "SNSの広告",
+    "icon": "📣",
+    "msgs": [
+     {
+      "from": "them",
+      "emoji": "💰",
+      "text": "スマホ1台、AIで月30万！まずは無料説明会へ"
+     }
+    ],
+    "stamp": "本当に？",
+    "stamp_at": 1.2
+   }
+  }
+ ]
+}

@@ -1,0 +1,259 @@
+{
+ "id": "ep07",
+ "theme": "役割（〇〇として）と相手・形を先に決めると、答えがわかりやすくなる",
+ "style": "studio",
+ "series": "AI初心者の時短ワザ",
+ "voice": {
+  "engine": "openjtalk",
+  "speed": 1.15,
+  "pitch": 2.5,
+  "intonation": 1.5,
+  "fal_model": "fal-ai/minimax/speech-02-hd",
+  "fal_speed": 1.0,
+  "emotion": "happy"
+ },
+ "sources": [
+  "（一般的なプロンプトの書き方。事実の主張は含めない）"
+ ],
+ "lines": [
+  {
+   "text": "AIの答え、もっと／【わかりやすく】したくない？",
+   "tts": "エーアイの答え、もっと／わかりやすくしたくない？",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "🤔",
+    "text": "もっと\n【わかりやすく】",
+    "size": 100
+   }
+  },
+  {
+   "text": "答えは、最初に／【役割】を決めること",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "🎭",
+    "text": "最初に\n【役割】を決める",
+    "size": 100
+   },
+   "se": "ding",
+   "se_at": 0.5
+  },
+  {
+   "text": "「あなたは小学校の先生です」／って【最初に】書く",
+   "heading": "やり方",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "chat",
+    "title": "AIチャット",
+    "msgs": [
+     {
+      "from": "me",
+      "text": "あなたは小学校の先生です。\n光合成を説明して"
+     }
+    ]
+   }
+  },
+  {
+   "text": "そのあとに、／いつもの【質問】を書くだけ",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "chat",
+    "title": "AIチャット",
+    "msgs": [
+     {
+      "from": "me",
+      "text": "あなたは小学校の先生です。\n光合成を説明して"
+     }
+    ]
+   }
+  },
+  {
+   "text": "すると説明が、／【子ども向け】にやさしくなる",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "chat",
+    "title": "AIチャット",
+    "msgs": [
+     {
+      "from": "me",
+      "text": "あなたは小学校の先生です。\n光合成を説明して"
+     },
+     {
+      "from": "ai",
+      "text": "植物はね、お日さまの光でごはんを作っているんだよ！"
+     }
+    ]
+   }
+  },
+  {
+   "text": "「税理士として」なら、／【専門的】な答えに",
+   "shot": "wide",
+   "pose": "pose06",
+   "visual": {
+    "type": "big",
+    "emoji": "🧾",
+    "text": "「税理士として」\n→【専門的】に",
+    "size": 92
+   }
+  },
+  {
+   "text": "「編集者として」なら、／【文章の直し】が上手に",
+   "shot": "close",
+   "pose": "pose02",
+   "visual": {
+    "type": "big",
+    "emoji": "✏️",
+    "text": "「編集者として」\n→【文章の直し】",
+    "size": 92
+   }
+  },
+  {
+   "text": "役割に加えて、／【誰向けか】も書くと効く",
+   "shot": "wide",
+   "pose": "pose09",
+   "visual": {
+    "type": "list",
+    "title": "最初の一行に【足すもの】",
+    "items": [
+     "【役割】を決める",
+     "【誰向けか】を書く",
+     "【形】を決める"
+    ],
+    "show": 2,
+    "hl": 1
+   }
+  },
+  {
+   "text": "「中学生にもわかるように」／って【一言】足す",
+   "shot": "close",
+   "pose": "pose03",
+   "visual": {
+    "type": "list",
+    "title": "最初の一行に【足すもの】",
+    "items": [
+     "【役割】を決める",
+     "【誰向けか】を書く",
+     "【形】を決める"
+    ],
+    "show": 2,
+    "hl": 1
+   }
+  },
+  {
+   "text": "「箇条書きで3つ」と、／【形】を決めるのもあり",
+   "tts": "箇条書きでみっつ、と、／形を決めるのもあり",
+   "shot": "wide",
+   "pose": "pose05",
+   "visual": {
+    "type": "list",
+    "title": "最初の一行に【足すもの】",
+    "items": [
+     "【役割】を決める",
+     "【誰向けか】を書く",
+     "【形】を決める"
+    ],
+    "show": 3,
+    "hl": 2
+   }
+  },
+  {
+   "text": "役割があると、／AIが【話し方】を選べるんよ",
+   "tts": "役割があると、／エーアイが話し方を選べるんよ",
+   "heading": "なぜ？",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "🗣️",
+    "text": "【話し方】を\n選べる",
+    "size": 100
+   }
+  },
+  {
+   "text": "何も書かないと、／【無難な答え】になりがち",
+   "shot": "wide",
+   "pose": "pose10",
+   "visual": {
+    "type": "big",
+    "emoji": "😐",
+    "text": "【無難な答え】\nになりがち",
+    "size": 96
+   }
+  },
+  {
+   "text": "「専門家として」でも、／【本物の専門家】じゃない",
+   "heading": "注意！",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "⚠️",
+    "text": "【本物の専門家】\nじゃない",
+    "size": 92
+   }
+  },
+  {
+   "text": "お金や病気のことは、／【プロに確認】してね",
+   "shot": "wide",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "🏥",
+    "text": "【プロに確認】",
+    "size": 100
+   }
+  },
+  {
+   "text": "最初の一行で、／答えの【向き】が決まる",
+   "heading": "まとめ",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "🧭",
+    "text": "最初の一行で\n【向き】が決まる",
+    "size": 92
+   }
+  },
+  {
+   "text": "よく使う役割は、／【メモ】しておくと楽",
+   "shot": "wide",
+   "pose": "pose07",
+   "visual": {
+    "type": "big",
+    "emoji": "📝",
+    "text": "よく使う役割は\n【メモ】",
+    "size": 96
+   }
+  },
+  {
+   "text": "保存して、／次の質問で【試してみて】",
+   "shot": "close",
+   "pose": "pose02",
+   "visual": {
+    "type": "cta",
+    "emoji": "📌",
+    "text": "【保存】して\n試してみて",
+    "size": 100,
+    "bounce": true
+   }
+  },
+  {
+   "text": "じゃあもう一回、／最初の質問ね",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "🤔",
+    "text": "もっと\n【わかりやすく】",
+    "size": 100
+   }
+  }
+ ]
+}

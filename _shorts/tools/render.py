@@ -826,7 +826,7 @@ class Renderer:
     STUDIO_POSE = {"face": "pose01", "expr_normal": "pose01", "expr_happy": "pose06",
                    "expr_angry": "pose04", "expr_sleepy": "pose05"}
     CARD = (62, 110, 1018, 730)
-    STUDIO_TELOP = (505, 1250)
+    STUDIO_TELOP = (507, 1250)
     STUDIO_SAFE = (50, 150, 965, 1480)   # テロップは胸元。TikTok のキャプション帯（y 1500〜）より上
 
     def frame_studio(self, f, log=None):

@@ -1,0 +1,303 @@
+{
+ "id": "ep06",
+ "theme": "ChatGPTのメモリを確認・削除・オフにする",
+ "style": "studio",
+ "series": "AI初心者の時短ワザ",
+ "voice": {
+  "engine": "openjtalk",
+  "speed": 1.15,
+  "pitch": 2.5,
+  "intonation": 1.5,
+  "fal_model": "fal-ai/minimax/speech-02-hd",
+  "fal_speed": 1.0,
+  "emotion": "happy"
+ },
+ "sources": [
+  "https://help.openai.com/ja-jp/articles/8590148-memory-faq",
+  "https://openai.com/index/memory-and-new-controls-for-chatgpt/"
+ ],
+ "lines": [
+  {
+   "text": "ChatGPT、あなたのこと／【覚えてる】って知ってた？",
+   "tts": "チャットジーピーティー、あなたのこと／覚えてるって知ってた？",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "🧠",
+    "text": "あなたのこと\n【覚えてる】？",
+    "size": 96
+   }
+  },
+  {
+   "text": "話した内容を、／【メモリ】に残すことがあるんよ",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "💾",
+    "text": "【メモリ】に\n残ることがある",
+    "size": 96
+   }
+  },
+  {
+   "text": "次から答えを、／【あなた向け】にするため",
+   "heading": "なぜ？",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "🎯",
+    "text": "答えを\n【あなた向け】に",
+    "size": 100
+   }
+  },
+  {
+   "text": "便利だけど、／【消したい記憶】もあるよね",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "big",
+    "emoji": "😳",
+    "text": "【消したい記憶】\nもある",
+    "size": 96
+   }
+  },
+  {
+   "text": "例えば、前に言った／【仕事の愚痴】とか",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "💼",
+    "text": "【仕事の愚痴】\nとか",
+    "size": 100
+   }
+  },
+  {
+   "text": "今どれだけ覚えてるか、／【見たことある？】",
+   "shot": "wide",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "👀",
+    "text": "【見たことある？】",
+    "size": 104
+   }
+  },
+  {
+   "text": "自分のアイコンから、／【設定】を開いて",
+   "heading": "確認のしかた",
+   "shot": "close",
+   "pose": "pose06",
+   "visual": {
+    "type": "menu",
+    "title": "アイコン",
+    "items": [
+     "マイプラン",
+     "パーソナライズ",
+     "設定",
+     "ヘルプ"
+    ],
+    "hl": 2,
+    "icons": {
+     "マイプラン": "💳",
+     "パーソナライズ": "🎨",
+     "設定": "⚙️",
+     "ヘルプ": "❓"
+    }
+   }
+  },
+  {
+   "text": "次に【パーソナライズ】を／タップして",
+   "shot": "wide",
+   "pose": "pose02",
+   "visual": {
+    "type": "menu",
+    "title": "設定",
+    "items": [
+     "一般",
+     "通知",
+     "パーソナライズ",
+     "データコントロール"
+    ],
+    "hl": 2,
+    "icons": {
+     "一般": "⚙️",
+     "通知": "🔔",
+     "パーソナライズ": "🎨",
+     "データコントロール": "🗂️"
+    }
+   }
+  },
+  {
+   "text": "メモリの【管理】を開くと、／覚えてることが見える",
+   "shot": "close",
+   "pose": "pose09",
+   "visual": {
+    "type": "menu",
+    "title": "メモリの管理",
+    "items": [
+     "仕事の愚痴を話した",
+     "猫を飼っている",
+     "朝型の生活",
+     "すべて削除"
+    ],
+    "hl": null,
+    "icons": {
+     "仕事の愚痴を話した": "🗑️",
+     "猫を飼っている": "🐈",
+     "朝型の生活": "🌅",
+     "すべて削除": "⚠️"
+    }
+   }
+  },
+  {
+   "text": "いらない記憶は、／【1つずつ】消せるよ",
+   "tts": "いらない記憶は、／ひとつずつ消せるよ",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "menu",
+    "title": "メモリの管理",
+    "items": [
+     "仕事の愚痴を話した",
+     "猫を飼っている",
+     "朝型の生活",
+     "すべて削除"
+    ],
+    "hl": 0,
+    "icons": {
+     "仕事の愚痴を話した": "🗑️",
+     "猫を飼っている": "🐈",
+     "朝型の生活": "🌅",
+     "すべて削除": "⚠️"
+    }
+   },
+   "se": "ding",
+   "se_at": 0.5
+  },
+  {
+   "text": "全部まとめて、／【消す】こともできる",
+   "shot": "close",
+   "pose": "pose05",
+   "visual": {
+    "type": "menu",
+    "title": "メモリの管理",
+    "items": [
+     "仕事の愚痴を話した",
+     "猫を飼っている",
+     "朝型の生活",
+     "すべて削除"
+    ],
+    "hl": 3,
+    "icons": {
+     "仕事の愚痴を話した": "🗑️",
+     "猫を飼っている": "🐈",
+     "朝型の生活": "🌅",
+     "すべて削除": "⚠️"
+    }
+   }
+  },
+  {
+   "text": "覚えてほしくないなら、／メモリを【オフ】にしてOK",
+   "tts": "覚えてほしくないなら、／メモリをオフにしてオーケー",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "settings",
+    "path": [
+     "設定",
+     "パーソナライズ"
+    ],
+    "fields": [],
+    "toggle": "保存済みメモリを\n参照する",
+    "on": true,
+    "switch_to": false,
+    "switch_at": 0.8,
+    "hl_toggle": true
+   }
+  },
+  {
+   "text": "メモリを消しても、／【チャット履歴】は別で残る",
+   "heading": "注意！",
+   "shot": "close",
+   "pose": "pose10",
+   "visual": {
+    "type": "big",
+    "emoji": "💬",
+    "text": "【チャット履歴】\nは別で残る",
+    "size": 92
+   }
+  },
+  {
+   "text": "気になるチャットは、／【そっちも】消してね",
+   "shot": "wide",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "🗑️",
+    "text": "チャットも\n【消しておく】",
+    "size": 100
+   }
+  },
+  {
+   "text": "パスワードや口座番号は、／そもそも【入れたらあかんで】",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "🔐",
+    "text": "パスワード・口座番号は\n【入れない】",
+    "size": 84
+   }
+  },
+  {
+   "text": "月に1回、／【メモリを見直す】だけでOK",
+   "tts": "月にいっかい、／メモリを見直すだけでオーケー",
+   "heading": "まとめ",
+   "shot": "wide",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "📅",
+    "text": "月に1回\n【見直す】だけ",
+    "size": 100
+   }
+  },
+  {
+   "text": "覚えてることを知ると、／【安心して】使える",
+   "shot": "close",
+   "pose": "pose07",
+   "visual": {
+    "type": "big",
+    "emoji": "😌",
+    "text": "【安心して】\n使える",
+    "size": 100
+   }
+  },
+  {
+   "text": "あとで確認する人は、／【保存】しといてね",
+   "shot": "wide",
+   "pose": "pose02",
+   "visual": {
+    "type": "cta",
+    "emoji": "📌",
+    "text": "【保存】して\nあとで確認",
+    "size": 100,
+    "bounce": true
+   }
+  },
+  {
+   "text": "じゃあもう一回、／最初の質問ね",
+   "shot": "close",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "🧠",
+    "text": "あなたのこと\n【覚えてる】？",
+    "size": 96
+   }
+  }
+ ]
+}

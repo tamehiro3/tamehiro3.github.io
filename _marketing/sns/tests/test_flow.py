@@ -151,7 +151,7 @@ class PostTest(FlowBase):
         with mock.patch.object(sns, "git_sync") as git, \
                 mock.patch.object(channels, "post_x", return_value={"remote_id": "1", "url": "u"}):
             self.run_cmd(sns.cmd_post)
-        allowed = {self.root / d for d in ("queue", "sending", "posted", "held", "media")}
+        allowed = {self.root / d for d in ("queue", "sending", "posted", "held", "media", "inbox")}
         self.assertEqual(git.call_count, 2)  # 送信開始（確保）と投稿完了
         for call in git.call_args_list:
             self.assertEqual(set(call[0][0]), allowed)

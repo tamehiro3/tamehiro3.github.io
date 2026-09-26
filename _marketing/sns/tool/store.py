@@ -30,12 +30,13 @@ class Store:
         self.posted = self.root / "posted"
         self.held = self.root / "held"
         self.media = self.root / "media"  # 承認時点の画像を不変名で保存（あとから差し替わらない）
-        for d in (self.queue, self.sending, self.posted, self.held, self.media):
+        self.inbox = self.root / "inbox"  # 受付で保存したCanva画像（期限つきリンクの退避先。承認か却下で片付ける）
+        for d in (self.queue, self.sending, self.posted, self.held, self.media, self.inbox):
             d.mkdir(parents=True, exist_ok=True)
 
     def state_dirs(self):
         """自動コミットしてよいのは在庫の状態フォルダだけ（設定やコードは巻き込まない）。"""
-        return [self.queue, self.sending, self.posted, self.held, self.media]
+        return [self.queue, self.sending, self.posted, self.held, self.media, self.inbox]
 
     @staticmethod
     def items(directory):
@@ -72,7 +73,8 @@ class Store:
             for n, img in enumerate(post.get("images", []), 1):
                 name = f"{item_id}-{n}.{img['ext']}"
                 (self.media / name).write_bytes(img["data"])
-                images.append({k: v for k, v in img.items() if k not in ("data", "ext")} | {"file": name})
+                images.append({k: v for k, v in img.items()
+                               if k not in ("data", "ext") and not k.startswith("_")} | {"file": name})
             data = {
                 "id": item_id,
                 "text": post["text"],
@@ -93,6 +95,22 @@ class Store:
             self.save(path, data)
             paths.append(path)
         return paths
+
+    def find_staged(self, issue, key):
+        hits = sorted(self.inbox.glob(f"i{issue}-{key}.*"))
+        return hits[0] if hits else None
+
+    def stage(self, issue, key, data, ext):
+        path = self.inbox / f"i{issue}-{key}.{ext}"
+        if not path.exists():
+            path.write_bytes(data)
+        return path
+
+    def clear_staged(self, issue):
+        hits = list(self.inbox.glob(f"i{issue}-*"))
+        for path in hits:
+            path.unlink()
+        return len(hits)
 
     def load_image(self, meta):
         """在庫に記録した画像を読み、承認時のハッシュと一致するか確かめる（差し替え・破損の検出）。"""

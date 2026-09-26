@@ -1,12 +1,13 @@
 # SNS 受付: Typelessで話した下書き（Issue「SNS下書き」）の機械検品と、承認→在庫投入
 # - 開く/編集する → 機械検品の結果をコメント（外部SNSには何も送らない）
 # - 所有者がラベル「承認」を付ける → 再検品してOKなら _marketing/sns/queue/ へコミットしてIssueを閉じる
+# - Canvaの書き出しリンク（期限つき）の画像は、受付の時点で _marketing/sns/inbox/ に保存する。承認か却下（閉じる）で片付け
 # Issue本文は信頼できない入力なので、run: に式で埋め込まず、イベントJSONファイル経由で読む。
 name: SNS 受付（下書きの検品・承認）
 
 on:
   issues:
-    types: [opened, edited, reopened, labeled]
+    types: [opened, edited, reopened, labeled, closed]
 
 permissions:
   contents: write
@@ -30,8 +31,11 @@ jobs:
       - name: 文字認識（OCR）の準備
         if: >-
           github.event.issue.user.login == github.repository_owner &&
+          github.event.action != 'closed' &&
           (github.event.action != 'labeled' || github.event.label.name == '承認') &&
-          (contains(github.event.issue.body, '/assets/') || contains(github.event.issue.body, 'githubusercontent.com'))
+          (contains(github.event.issue.body, '/assets/') ||
+          contains(github.event.issue.body, 'githubusercontent.com') ||
+          contains(github.event.issue.body, 'export-download.canva.com'))
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq tesseract-ocr tesseract-ocr-jpn

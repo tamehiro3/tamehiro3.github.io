@@ -8,6 +8,16 @@ import re
 from media import find_attachments
 
 SEPARATOR_RE = re.compile(r"^\s*[-ー－―]{3,}\s*$", re.M)
+CANVA_DESIGN_RE = re.compile(r"<!--\s*canva-design:\s*([A-Za-z0-9_-]+)\s*-->")
+SOURCE_RE = re.compile(r"<!--\s*sns-source:\s*([\w-]+)\s*-->")
+# Issueフォーム（sns-draft.yml）の検品チェックと同じ文言。Claudeが下書きを作るときもこの形にする
+CHECK_LABELS = [
+    "文体｜自分の体験・自分の言葉になっている（Typelessの整形で意味が変わっていない）",
+    "事実｜数字・実績は事実台帳（_marketing/OFFER_FACTS.md）にあるものだけ",
+    "リーガル｜効果・効能、No.1・最上級、NFT・投資・値上がりの話をしていない",
+    "プライバシー｜子どもの名前・学校・顔など、個人が分かる情報がない",
+    "画像｜画像の文字は説明欄と同じで、人の顔や子どもが写っておらず、使ってよい素材だけ（CNPはCC0、Canva素材はライセンスの範囲）",
+]
 CHECK_RE = re.compile(r"^\s*[-*]\s*\[( |x|X)\]\s*(.+?)\s*$", re.M)
 NO_RESPONSE = "_No response_"
 
@@ -56,4 +66,24 @@ def parse_issue_form(body):
         "images": find_attachments(_find(sections, "添付画像") or ""),
         "images_in_text": find_attachments(text or ""),
         "image_desc": image_desc,
+        "canva_design_id": (CANVA_DESIGN_RE.search(body or "") or [None, None])[1],
+        "source_marker": (SOURCE_RE.search(body or "") or [None, None])[1],
     }
+
+
+def build_issue_body(text, genre="今日の謎", link_label="なし", image_url=None, image_desc=None,
+                     canva_design_id=None, source="claude-canva"):
+    """Issueフォームと同じ形の本文を作る（Claudeが下書きを代わりに作るとき用）。チェックはすべて空欄。"""
+    image = "_No response_"
+    if image_url:
+        image = f"![画像]({image_url})"
+        if canva_design_id:
+            image += f"\n<!-- canva-design: {canva_design_id} -->"
+    checks = "\n".join(f"- [ ] {label}" for label in CHECK_LABELS)
+    return (f"<!-- sns-source: {source} -->\n"
+            f"### 投稿文\n\n{text.strip()}\n\n"
+            f"### ジャンル（輪番）\n\n{genre}\n\n"
+            f"### リンク先（1投稿1リンク）\n\n{link_label}\n\n"
+            f"### 添付画像（任意・1枚まで）\n\n{image}\n\n"
+            f"### 画像の説明（画像を付けたときは必須）\n\n{(image_desc or '').strip() or '_No response_'}\n\n"
+            f"### 検品チェック（機械検品のコメントを読んでから、自分でチェック）\n\n{checks}\n")

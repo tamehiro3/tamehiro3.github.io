@@ -8,11 +8,15 @@
   python3 sns.py check "本文" [リンク名]     手元で機械検品だけ試す
   python3 sns.py lint-queue                 在庫全件を再検品（CI用）
   python3 sns.py x-media-check              Xへの画像アップロードが通るかだけ確かめる（投稿はしない）
+  python3 sns.py canva-draft --text ... --image-url ... --image-desc ...
+                                            Canvaの書き出しから下書きIssueの本文を作る（事前検品つき。Claude用）
 """
+import argparse
 import json
 import os
 import sys
-from datetime import timedelta
+import urllib.parse
+from datetime import timedelta, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -20,7 +24,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import channels  # noqa: E402
 import gh  # noqa: E402
 import media  # noqa: E402
-from issue import parse_issue_form  # noqa: E402
+from issue import build_issue_body, parse_issue_form  # noqa: E402
 from lint import Finding, clean_text, lint_image_text, lint_ocr_text, lint_post  # noqa: E402
 from store import Store, git_sync, now_jst  # noqa: E402
 
@@ -47,7 +51,7 @@ def resolve_link(cfg, label):
     return links[label], None
 
 
-def inspect_posts(cfg, rules, parsed, store, fetch_images=False):
+def inspect_posts(cfg, rules, parsed, store, fetch_images=False, issue_number=None):
     """投稿文と添付画像を検品する。画像の指摘は1本目の投稿に付ける（画像つきは1本だけ）。"""
     link, link_error = resolve_link(cfg, parsed["link_label"])
     existing = store.all_texts()
@@ -58,13 +62,13 @@ def inspect_posts(cfg, rules, parsed, store, fetch_images=False):
             r.add("block", link_error)
         results.append(r)
         existing = existing + [r.text]  # 同じIssue内の重複も拾う
-    images, image_findings = inspect_images(cfg, rules, parsed, store, fetch_images)
+    images, image_findings = inspect_images(cfg, rules, parsed, store, fetch_images, issue_number)
     if results:
         results[0].findings.extend(image_findings)
     return link, results, images
 
 
-def inspect_images(cfg, rules, parsed, store, fetch):
+def inspect_images(cfg, rules, parsed, store, fetch, issue_number=None):
     """添付画像の検品。合否は本人が書いた「画像の説明」で決め、OCRは要確認の材料にだけ使う。"""
     findings, images = [], []
     urls = parsed.get("images") or []
@@ -90,18 +94,30 @@ def inspect_images(cfg, rules, parsed, store, fetch):
     max_bytes = cfg[channel].get("max_image_bytes", 1_000_000)
     used = store.image_hashes()
     for n, url in enumerate(urls[:max_n], 1):
+        source = media.source_of(url)
+        key = media.url_key(url)
+        # Canvaの書き出しリンクは期限つきなので、受付で保存した画像があればそれを使う（レポートで見せた画像と同じもの）
+        staged = store.find_staged(issue_number, key) if (source == "canva" and issue_number) else None
         try:
-            data = media.download(url, max_bytes)
+            data = staged.read_bytes() if staged else media.download(url, max_bytes)
             info = media.describe(data)
         except media.MediaError as e:
             findings.append(Finding("block", f"画像{n}: {e}"))
             continue
+        if len(data) > max_bytes:
+            findings.append(Finding("block", f"画像{n}: {channel} の上限（{max_bytes // 1000}KB）を超えています"))
         if info.pop("gps"):
             findings.append(Finding("block", f"画像{n}: 撮影場所（GPSの位置情報）が入っています。"
                                              "位置情報を消した画像か、Canvaで書き出した画像を貼ってください"))
-        elif info.pop("exif"):
+        elif info.pop("exif") and source != "canva":  # Canvaの書き出しには位置情報のない撮影情報が付く（実測）
             findings.append(Finding("warn", f"画像{n}: 撮影情報（EXIF）が入っています。写真なら、写っているものと撮影情報を確認してください"))
         info.pop("exif", None)
+        expiry = media.canva_expiry(url) if source == "canva" else None
+        info.update({"source": source, "_key": key, "_staged": staged.name if staged else None,
+                     "_expiry": expiry})
+        if source == "canva":
+            info.update({"canva_design_id": parsed.get("canva_design_id"),
+                         "url_path": urllib.parse.urlparse(url).path})
         status, text = media.ocr(data)
         info.update({"data": data, "alt": clean_text(parsed.get("image_desc") or ""),
                      "ocr_status": status, "ocr_text": text[:1000]})
@@ -122,11 +138,32 @@ def _level_line(r):
     return f"{head}（ブロック {blocks} / 要確認 {warns}）"
 
 
-def _image_lines(images, parsed):
+def _raw_url(store, name):
+    """受付で保存した画像を検品コメントに表示するためのURL（公開リポジトリの生ファイル）。"""
+    repo = os.environ.get("GITHUB_REPOSITORY")
+    if not repo:
+        return None
+    try:
+        rel = (store.inbox / name).relative_to(REPO_ROOT).as_posix()
+    except ValueError:
+        rel = f"_marketing/sns/inbox/{name}"
+    return f"https://raw.githubusercontent.com/{repo}/{os.environ.get('GITHUB_REF_NAME') or 'master'}/{rel}"
+
+
+def _image_lines(images, parsed, store=None):
     lines = []
+    if parsed.get("source_marker") == "claude-canva":
+        lines.append("- 🤖 この下書きは Claude が Canva から作りました（承認できるのは本人だけです。Claude はラベルを付けません）")
     for n, img in enumerate(images, 1):
         kind = "PNG" if img["mime"] == "image/png" else "JPG"
         lines.append(f"- 🖼 画像{n}: {kind} {img['width']}×{img['height']}・{img['bytes'] // 1000}KB（sha256 {img['sha256'][:12]}）")
+        if img.get("source") == "canva":
+            if img.get("_staged"):
+                raw = _raw_url(store, img["_staged"]) if store else None
+                lines.append(f"  - Canvaの書き出し → 受付で保存済み（承認ではこの画像を使います）" + (f"\n\n    ![保存した画像]({raw})\n" if raw else ""))
+            elif img.get("_expiry"):
+                jst = img["_expiry"].astimezone(timezone(timedelta(hours=9)))
+                lines.append(f"  - Canvaの書き出し（リンクの期限 {jst:%m/%d %H:%M} JST。所有者の下書きなら受付で保存します）")
     if parsed.get("images"):
         desc = (parsed.get("image_desc") or "（なし）").replace("@", "@\u200b")
         lines.append("- 画像の説明（代替テキストになります）:")
@@ -140,7 +177,7 @@ def _image_lines(images, parsed):
     return lines
 
 
-def render_report(cfg, parsed, results, images=()):
+def render_report(cfg, parsed, results, images=(), store=None):
     lines = ["## 軍配 機械検品レポート", ""]
     if not parsed["has_form"]:
         lines.append("「投稿文」欄が見つかりません。Issueフォーム「SNS下書き」から作成してください。")
@@ -157,7 +194,7 @@ def render_report(cfg, parsed, results, images=()):
         lines.append("")
         lines.append(f"- 文字数: X換算 {r.x_length}/{cfg['x']['max_weighted_length']}・Bluesky {r.bsky_length}/{cfg['bluesky']['max_graphemes']}")
         if i == 1:
-            lines += _image_lines(images, parsed)
+            lines += _image_lines(images, parsed, store)
         for f in r.findings:
             lines.append(f"- {'❌' if f.level == 'block' else '⚠️'} {f.message}")
         lines.append("")
@@ -179,6 +216,11 @@ def cmd_issue_event(event_path):
     cfg, rules, store = load_json("config.json"), load_json("rules.json"), Store(SNS_ROOT)
     parsed = parse_issue_form(issue.get("body") or "")
 
+    if action == "closed":  # 承認せずに閉じた下書き: 受付で保存した画像を片付ける
+        if store.clear_staged(number):
+            git_sync([store.inbox], f"SNS: #{number} を閉じたので受付の保存画像を片付け", REPO_ROOT)
+        return 0
+
     if action == "labeled":
         if (event.get("label") or {}).get("name") != APPROVE_LABEL:
             return 0
@@ -192,8 +234,13 @@ def cmd_issue_event(event_path):
         gh.add_labels(number, [DRAFT_LABEL])
     owner = cfg.get("owner") or os.environ.get("GITHUB_REPOSITORY_OWNER")
     by_owner = (issue.get("user") or {}).get("login") == owner
-    _, results, images = inspect_posts(cfg, rules, parsed, store, fetch_images=by_owner)
-    gh.upsert_comment(number, INSPECT_MARKER, render_report(cfg, parsed, results, images))
+    _, results, images = inspect_posts(cfg, rules, parsed, store, fetch_images=by_owner, issue_number=number)
+    fresh = [img for img in images if img.get("source") == "canva" and not img.get("_staged")]
+    for img in fresh:  # 期限つきリンクが切れる前に、画像そのものをリポジトリへ退避する
+        img["_staged"] = store.stage(number, img["_key"], img["data"], img["ext"]).name
+    if fresh:
+        git_sync([store.inbox], f"SNS: #{number} のCanva画像を受付で保存（期限つきリンクの退避）", REPO_ROOT)
+    gh.upsert_comment(number, INSPECT_MARKER, render_report(cfg, parsed, results, images, store))
     return 0
 
 
@@ -212,7 +259,8 @@ def approve(event, cfg, rules, store, parsed):
         problems.append(f"所有者（{owner}）が書いた下書きだけ承認できます")
     if not parsed["posts"]:
         problems.append("投稿文が空です")
-    link, results, images = inspect_posts(cfg, rules, parsed, store, fetch_images=(author == owner))
+    link, results, images = inspect_posts(cfg, rules, parsed, store, fetch_images=(author == owner),
+                                          issue_number=number)
     if any(r.blocked for r in results):
         problems.append("機械検品で ❌ が残っています（検品コメントを確認）")
     if parsed["images"] and len(images) != len(parsed["images"]) and author == owner:
@@ -226,7 +274,7 @@ def approve(event, cfg, rules, store, parsed):
         problems.append("検品チェックが未完了: " + " / ".join(unchecked))
 
     if problems:
-        gh.upsert_comment(number, INSPECT_MARKER, render_report(cfg, parsed, results, images))
+        gh.upsert_comment(number, INSPECT_MARKER, render_report(cfg, parsed, results, images, store))
         gh.comment(number, "## 承認できませんでした\n" + "\n".join(f"- {p}" for p in problems)
                    + f"\n\n直したら、もう一度ラベル「{APPROVE_LABEL}」を付けてください。")
         gh.remove_label(number, APPROVE_LABEL)
@@ -239,6 +287,7 @@ def approve(event, cfg, rules, store, parsed):
         posts[0]["images"] = images
     source = {"issue": number, "url": issue.get("html_url")}
     paths = store.enqueue(posts, source, sender)
+    store.clear_staged(number)  # 受付で保存した画像は media/ に移ったので片付ける
     git_sync(store.state_dirs(), f"SNS: #{number} の下書き{len(paths)}本を在庫へ（承認: {sender}）", REPO_ROOT)
     stock = len(store.items(store.queue))
     gh.comment(number, f"## 在庫に入れました（{len(paths)}本）\n"
@@ -485,6 +534,44 @@ def cmd_lint_queue():
     return 1 if bad else 0
 
 
+def cmd_canva_draft(argv):
+    """Canvaで書き出した画像から、下書きIssueの本文を作る。事前に機械検品し、❌があれば作らない。
+
+    Claude がセッション内で使う。Issueの作成は GitHub の連携（MCP）で行い、承認ラベルは付けない。
+    """
+    ap = argparse.ArgumentParser(prog="sns.py canva-draft")
+    ap.add_argument("--text", required=True, help="投稿文（本人が話した言葉）")
+    ap.add_argument("--image-url", required=True, help="Canvaの export-design で得た書き出しURL")
+    ap.add_argument("--image-desc", required=True, help="画像の中の文字をそのまま全部＋短い絵の説明")
+    ap.add_argument("--genre", default="今日の謎")
+    ap.add_argument("--link", default="なし")
+    ap.add_argument("--design-id", default=None, help="CanvaのデザインID（監査用）")
+    ap.add_argument("--title", default=None)
+    a = ap.parse_args(argv)
+    if not media.CANVA_RE.fullmatch(a.image_url):
+        print("--image-url は Canva の書き出しURL（https://export-download.canva.com/...）にしてください")
+        return 2
+    cfg, rules, store = load_json("config.json"), load_json("rules.json"), Store(SNS_ROOT)
+    body = build_issue_body(a.text, a.genre, a.link, a.image_url, a.image_desc, a.design_id)
+    parsed = parse_issue_form(body)
+    # 画像そのものはこの場では取得しない（受付のワークフローが取得・OCR・保存する）
+    _, results, _ = inspect_posts(cfg, rules, parsed, store, fetch_images=False)
+    for r in results:
+        r.findings = [f for f in r.findings if "画像の取得と文字認識はしていません" not in f.message]
+    print(render_report(cfg, parsed, results))
+    expiry = media.canva_expiry(a.image_url)
+    if expiry:
+        print(f"\n（Canvaのリンクの期限: {expiry.astimezone(timezone(timedelta(hours=9))):%m/%d %H:%M} JST。"
+              "それまでにIssueを作れば、受付で画像が保存されます）")
+    if any(r.blocked for r in results):
+        print("\n❌ があるので下書きは作りません。文面か画像を直してからやり直してください。")
+        return 1
+    title = a.title or "[SNS] " + a.text.strip().splitlines()[0][:30]
+    print("\n--- Issueにする内容（GitHubの連携で作成。ラベルは SNS下書き だけ。承認は付けない）---")
+    print(json.dumps({"title": title, "labels": [DRAFT_LABEL], "body": body}, ensure_ascii=False, indent=2))
+    return 0
+
+
 def cmd_x_media_check():
     """小さな画像を1枚だけXにアップロードして、画像投稿が使えるかを確かめる。投稿は作らない。"""
     creds, missing = channels.x_credentials(os.environ)
@@ -521,6 +608,8 @@ def main(argv):
         return cmd_lint_queue()
     if cmd == "x-media-check":
         return cmd_x_media_check()
+    if cmd == "canva-draft":
+        return cmd_canva_draft(args)
     print(__doc__)
     return 2
 

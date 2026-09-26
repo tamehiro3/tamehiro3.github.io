@@ -4,9 +4,11 @@ APIキーはコードに書かず、_shorts/assets/.fal_key から読む（.giti
 ファイルの中身は「キーだけの1行」か「FAL_KEY=キー」のどちらでもよい。
 
   python3 tools/fal_api.py check                         # キーが読めるか（値は表示しない）
+  python3 tools/fal_api.py selftest                      # 既製の声で1語だけ読ませ、キー・接続・API仕様を確かめる（数円程度）
   python3 tools/fal_api.py clone voice_ref/sample.m4a --start 60 --seconds 90
   python3 tools/fal_api.py clone https://example.com/voice.m4a
-  python3 tools/fal_api.py tts "それ、ChatGPTに打ち込んで大丈夫？" out.wav
+  python3 tools/fal_api.py tts "それ、ChatGPTに打ち込んで大丈夫？" test.wav   # 試聴用
+  python3 tools/fal_api.py approve                       # 試聴して本人の声だと確認したら承認（これが無いと一括生成しない）
   python3 tools/fal_api.py transcribe episodes/ep01/out/ep01.mp4
 """
 import argparse
@@ -123,6 +125,26 @@ def tts(text: str, voice_id: str, out_path: Path, model: str = TTS_MODEL, speed:
     return out_path
 
 
+def is_approved() -> bool:
+    return VOICE_CACHE.exists() and json.loads(VOICE_CACHE.read_text()).get("approved") is True
+
+
+def approve() -> None:
+    if not VOICE_CACHE.exists():
+        raise SystemExit("先に clone を実行してください")
+    d = json.loads(VOICE_CACHE.read_text())
+    d["approved"] = True
+    VOICE_CACHE.write_text(json.dumps(d, ensure_ascii=False))
+
+
+def selftest() -> None:
+    """既製の声（MiniMax のプリセット）で短い語を読ませて、キー・接続・入力項目名が正しいかを確かめる"""
+    with tempfile.TemporaryDirectory() as d:
+        out = tts("テスト", "Wise_Woman", Path(d) / "t.wav", speed=1.0, emotion="neutral")
+        size = out.stat().st_size
+    print(f"OK: fal に接続でき、{TTS_MODEL} で音声が返りました（{size} bytes）")
+
+
 def transcribe(path: Path, language: str = "ja") -> dict:
     """Whisper で文字起こし（動画でも可。音声だけ取り出して送る）"""
     with tempfile.TemporaryDirectory() as d:
@@ -138,6 +160,8 @@ def main():
     ap = argparse.ArgumentParser(description="fal API（MiniMax 声クローン・読み上げ・Whisper）")
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("check")
+    sub.add_parser("selftest")
+    sub.add_parser("approve")
     c = sub.add_parser("clone")
     c.add_argument("source", help="音声ファイルのパスか https URL")
     c.add_argument("--start", type=float, default=0)
@@ -154,6 +178,11 @@ def main():
     if a.cmd == "check":
         load_key()
         print(f"キーを読み込みました（{len(os.environ['FAL_KEY'])}文字）")
+    elif a.cmd == "selftest":
+        selftest()
+    elif a.cmd == "approve":
+        approve()
+        print("承認しました。python tools/tts.py episodes/ep01 --engine fal で全文を作れます")
     elif a.cmd == "clone":
         print("custom_voice_id:", clone_voice(a.source, a.start, a.seconds, force=a.force))
     elif a.cmd == "tts":

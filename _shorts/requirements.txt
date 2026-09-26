@@ -1,0 +1,9 @@
+pillow
+numpy
+scipy
+opencv-python-headless
+ncnn
+soundfile
+fonttools
+janome
+fal-client

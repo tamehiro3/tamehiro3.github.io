@@ -148,7 +148,13 @@ def main():
     timing = json.loads(timing_path.read_text()) if timing_path.exists() else {}
     if engine == "fal":
         import fal_api
-        fal_api.load_key()   # assets/.fal_key がなければここで止まる
+        fal_api.load_key()   # キーが無ければここで止まる
+        # 承認ゲート（fail closed）：本人が試聴して approve するまで、全文の生成はしない
+        if not fal_api.is_approved():
+            raise SystemExit("クローン声がまだ承認されていません。\n"
+                             "  python tools/fal_api.py clone <音声> --start <秒> --seconds 90\n"
+                             "  python tools/fal_api.py tts \"試しの一文\" test.wav  → 聞いて本人の声か確認\n"
+                             "  python tools/fal_api.py approve")
     voice_id = fal_voice_id(ep, cfg) if engine == "fal" else None
 
     for i, line in enumerate(script["lines"], 1):

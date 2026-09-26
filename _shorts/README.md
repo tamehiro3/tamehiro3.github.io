@@ -18,15 +18,28 @@
 | ⑨ | 3媒体に投稿（AIラベルON） | `episodes/ep01/post/captions.md` | キャプションは作成済み。**投稿は未**（接続手段なし） |
 | ⑩ | 数字から改善点を出す → 次の動画 | `improve/10_improvement_plan.md`、`tools/analyze.py`、`episodes/ep02/` | 計測シートと分析ツール、改善を反映した次回の動画を作成済み |
 
-## 使い方
+## 使い方（設計図：`design/00_blueprint_review.md`）
 
-```bash
-bash tools/setup.sh                      # 初回のみ（apt・pip・フォント・モデル・素材の準備）
-python3 tools/tts.py episodes/ep01       # 音声（仮の声）。クローン声なら --engine fal
-python3 tools/render.py episodes/ep01    # 動画の書き出し（4並列で約40秒）
-python3 tools/qa.py episodes/ep01        # 機械検品（レポートと1秒ごとのコマ）
-python3 tools/analyze.py improve/metrics_ep01.csv   # 投稿後の数字から改善点を出す
+本番（クローン声）は、キーと声の素材がある Windows PC で実行します。クラウドは設計と試作に使います。
+
+**Windows（PowerShell、`_shorts` フォルダで実行）**
+
+```powershell
+python tools/setup.py                        # 初回のみ（ffmpeg は winget install Gyan.FFmpeg）
+python tools/fal_api.py check                # キーが読めるか（キーは C:\Users\3mori\SNS\fal APIキー.txt）
+python tools/fal_api.py selftest             # fal に接続できるか、API の仕様が合っているか
+python tools/fal_api.py clone "声のファイル.m4a" --start 60 --seconds 90
+python tools/fal_api.py tts "それ、チャットジーピーティーに打ち込んで大丈夫？" test.wav
+python tools/fal_api.py approve              # test.wav を聞いて本人の声なら承認（承認するまで次は動かない）
+python tools/tts.py episodes/ep01 --engine fal
+python tools/render.py episodes/ep01
+python tools/qa.py episodes/ep01             # Whisper の文字起こし照合つき
+python tools/analyze.py improve/metrics_ep01.csv   # 投稿後の数字から改善点を出す
 ```
+
+**クラウド・Linux（仮の声で試作）**：`bash tools/setup.sh` のあと、`python3 tools/tts.py episodes/ep01` → `render.py` → `qa.py`
+
+キーと声の素材は、リポジトリの外に置いてください。「★サイトを公開する.bat」はフォルダの中身をすべて公開します。
 
 途中のコマだけ確認したいとき：`python3 tools/render.py episodes/ep01 --stills 0 12.5 30`
 
@@ -66,6 +79,6 @@ python3 tools/analyze.py improve/metrics_ep01.csv   # 投稿後の数字から�
 
 ## ライセンス
 
-- テロップのフォント M PLUS Rounded 1c と Noto Sans CJK / Noto Color Emoji は SIL Open Font License 1.1
+- フォント M PLUS Rounded 1c（テロップ・図解）と、絵文字画像の元の Noto Color Emoji は SIL Open Font License 1.1
 - waifu2x のモデルは MIT
 - 効果音は `tools/sfx.py` でその場で合成（外部素材なし）

@@ -28,9 +28,14 @@ SFX = ROOT / "build" / "sfx"
 W, H, FPS, SR = 1080, 1920, 30, 48000
 
 F_TELOP = str(ROOT / "assets" / "fonts" / "MPLUSRounded1c-Black.ttf")
-F_BLACK = "/usr/share/fonts/opentype/noto/NotoSansCJK-Black.ttc"
-F_BOLD = "/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc"
-F_EMOJI = "/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf"
+# フォントはOSに頼らず assets/fonts に置く（tools/setup.py が取得。Windows / Mac / Linux で同じ見た目）
+F_BLACK = F_TELOP
+F_BOLD = str(ROOT / "assets" / "fonts" / "MPLUSRounded1c-Bold.ttf")
+# 絵文字は assets/emoji/<コードポイント>.png に画像として同梱。無いときだけ、その場のOSの絵文字フォントで描いて保存する
+EMOJI_DIR = ROOT / "assets" / "emoji"
+EMOJI_FONTS = ["/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf",      # Linux（Noto Color Emoji）
+               "C:/Windows/Fonts/seguiemj.ttf",                          # Windows（Segoe UI Emoji）
+               "/System/Library/Fonts/Apple Color Emoji.ttc"]            # Mac
 
 NAVY = (20, 26, 58)
 INK = (34, 40, 72)
@@ -61,12 +66,40 @@ def font(path, size):
     return ImageFont.truetype(path, size, index=0)
 
 
+def emoji_key(ch):
+    return "-".join(f"{ord(c):x}" for c in ch if ord(c) != 0xFE0F)
+
+
+def emoji_base(ch):
+    """絵文字の元画像（高さ最大 136px 程度・RGBA）。同梱PNG → OSの絵文字フォントの順に探す"""
+    path = EMOJI_DIR / f"{emoji_key(ch)}.png"
+    if path.exists():
+        return Image.open(path).convert("RGBA")
+    for fp in EMOJI_FONTS:
+        if not Path(fp).exists():
+            continue
+        try:
+            size = 109 if "Noto" in fp else 128
+            f = ImageFont.truetype(fp, size)
+            im = Image.new("RGBA", (200, 180), (0, 0, 0, 0))
+            ImageDraw.Draw(im).text((8, 8), ch, font=f, embedded_color=True)
+            bb = im.getbbox()
+            if not bb:
+                continue
+            im = im.crop(bb)
+            EMOJI_DIR.mkdir(parents=True, exist_ok=True)
+            im.save(path)
+            return im
+        except OSError:
+            continue
+    return None
+
+
 @lru_cache(None)
 def emoji(ch, size):
-    f = ImageFont.truetype(F_EMOJI, 109)
-    im = Image.new("RGBA", (160, 140), (0, 0, 0, 0))
-    ImageDraw.Draw(im).text((4, 4), ch, font=f, embedded_color=True)
-    im = im.crop(im.getbbox())
+    im = emoji_base(ch)
+    if im is None:
+        raise SystemExit(f"絵文字 {ch}（{emoji_key(ch)}）の画像がありません。assets/emoji に追加してください")
     s = size / max(im.size)
     return im.resize((max(1, round(im.width * s)), max(1, round(im.height * s))), Image.LANCZOS)
 
@@ -148,12 +181,19 @@ _TAGGER = None
 
 
 def tagger():
-    """MeCab（IPA辞書）。入っていなければ None（文字ベースの改行にフォールバック）"""
+    """形態素解析（Janome：辞書同梱の純Python製なので Windows でも動く）。無ければ None（文字ベースの改行）"""
     global _TAGGER
     if _TAGGER is None:
         try:
-            import fugashi
-            _TAGGER = fugashi.GenericTagger("-r /etc/mecabrc -d /var/lib/mecab/dic/ipadic-utf8")
+            from janome.tokenizer import Tokenizer
+            jt = Tokenizer()
+
+            class _W:  # MeCab 互換の最小インターフェース（surface / feature[0], feature[1]）
+                def __init__(self, tok):
+                    self.surface = tok.surface
+                    self.feature = tok.part_of_speech.split(",")
+
+            _TAGGER = lambda text: [_W(t) for t in jt.tokenize(text)]  # noqa: E731
         except Exception:
             _TAGGER = False
     return _TAGGER or None
@@ -943,7 +983,7 @@ def main():
         with Pool(a.jobs, initializer=_init, initargs=(str(ep),)) as pool:
             for k, p in enumerate(pool.imap(_render_segment, segs)):
                 print(f"  segment {k + 1}/{len(segs)}", flush=True)
-        (tmp / "list.txt").write_text("".join(f"file '{p}'\n" for _, _, p in segs))
+        (tmp / "list.txt").write_text("".join(f"file '{Path(p).as_posix()}'\n" for _, _, p in segs))
         final = out / f"{ep.name}.mp4"
         subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "concat", "-safe", "0", "-i", str(tmp / "list.txt"),
                         "-i", str(tmp / "mix_norm.wav"), "-map", "0:v", "-map", "1:a", "-c:v", "copy",

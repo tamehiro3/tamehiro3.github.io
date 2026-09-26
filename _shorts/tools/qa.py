@@ -17,6 +17,7 @@
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -148,14 +149,15 @@ def check_audio(ep, script, tl, final_mp4, rep):
         seg = final[a:b]
         rms_db = 20 * np.log10(np.sqrt((seg ** 2).mean()) + 1e-9)
         tts_text = plain((src.get("tts") or src["text"]).replace("／", ""))
-        kana = to_kana(phonemes(tts_text)) if engine == "openjtalk" else ""
+        # 音素での読み確認は Open JTalk がある環境（仮の声）だけ。クローン声は Whisper で照合する
+        kana = to_kana(phonemes(tts_text)) if engine == "openjtalk" and shutil.which("open_jtalk") else ""
         flags = []
         if re.search(r"[A-Za-z]", tts_text):
             flags.append("英字をそのまま読ませている（綴り読みの恐れ）")
         if re.search(r"[0-9０-９]", tts_text):
             flags.append("数字をそのまま読ませている（読み違いの恐れ）")
         for w, good in RISKY_READ.items():
-            if good and w in tts_text and good not in kana:
+            if kana and good and w in tts_text and good not in kana:
                 flags.append(f"「{w}」の読みが {good} になっていない")
         if rms_db < -40:
             flags.append(f"区間がほぼ無音（{rms_db:.1f} dBFS）")
@@ -235,7 +237,6 @@ def check_frames(ep, script, tl, final_mp4, rep, qa_dir):
         rep["frame_count_checked"] = len(frames)
     # 文字の欠け（フォントにない文字）
     telop_cmap, black_cmap, bold_cmap = cmap_of(R.F_TELOP), cmap_of(R.F_BLACK), cmap_of(R.F_BOLD)
-    emoji_cmap = cmap_of(R.F_EMOJI)
     missing = set()
     for ln in tl["lines"]:
         for c in ln["chunks"]:
@@ -248,7 +249,7 @@ def check_frames(ep, script, tl, final_mp4, rep, qa_dir):
                 if ord(ch) not in black_cmap or ord(ch) not in bold_cmap:
                     missing.add(("図解", ch))
         for e in emoji_of(v):
-            if ord(e[0]) not in emoji_cmap:
+            if R.emoji_base(e) is None:
                 missing.add(("絵文字", e))
     for kind, ch in sorted(missing):
         issues.append(f"文字の欠け: {kind}のフォントに「{ch}」(U+{ord(ch[0]):04X}) がない")

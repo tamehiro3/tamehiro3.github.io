@@ -1,11 +1,13 @@
 """下書きに添付された画像の取得・形式判定・文字認識（OCR）。
 
-- 取得してよいのは GitHub の添付ファイルURLだけ（任意のURLは取りに行かない）
+- 取得してよいのは GitHub の添付ファイルURLと、Canva の書き出しURLだけ（任意のURLは取りに行かない）
+- Canva の書き出しURLは期限つき（実測で2〜24時間）。受付の時点で取得してリポジトリに保存する
 - 形式は PNG / JPEG のみ。幅・高さはファイルの先頭から読む（外部ライブラリ不要）
 - OCR は tesseract があるときだけ（GitHub Actions では画像つき下書きのときに入れる）。
   誤読があるので、OCRの結果は「要確認」の材料にだけ使い、合否は画像の説明（本人の申告）で決める
 """
 import hashlib
+import html
 import re
 import shutil
 import struct
@@ -14,6 +16,7 @@ import tempfile
 import urllib.parse
 import urllib.request
 import zlib
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 ATTACHMENT_RE = re.compile(
@@ -21,6 +24,9 @@ ATTACHMENT_RE = re.compile(
     r"|github\.com/[\w.-]+/[\w.-]+/assets/\d+/[0-9A-Fa-f-]{36}"
     r"|user-images\.githubusercontent\.com/\d+/[\w.-]+)"
 )
+CANVA_RE = re.compile(r"https://export-download\.canva\.com/[^\s\"'<>()\[\]\\]+")
+CANVA_HOST = "export-download.canva.com"
+IMAGE_URL_RE = re.compile(f"(?:{ATTACHMENT_RE.pattern})|(?:{CANVA_RE.pattern})")
 EXT = {"image/png": "png", "image/jpeg": "jpg"}
 TIMEOUT = 30
 
@@ -30,11 +36,31 @@ class MediaError(Exception):
 
 
 def find_attachments(text):
+    """本文から画像のURL（GitHubの添付・Canvaの書き出し）を順に取り出す。HTMLの &amp; は戻す。"""
     seen = []
-    for url in ATTACHMENT_RE.findall(text or ""):
-        if url not in seen:
-            seen.append(url)
+    for m in IMAGE_URL_RE.finditer(html.unescape(text or "")):
+        if m.group(0) not in seen:
+            seen.append(m.group(0))
     return seen
+
+
+def source_of(url):
+    return "canva" if CANVA_RE.fullmatch(url) else "github"
+
+
+def url_key(url):
+    """同じ画像を指すURLの目印（署名の部分を除いたパスのハッシュ）。受付で保存した画像との対応に使う。"""
+    return hashlib.sha256(urllib.parse.urlparse(url).path.encode()).hexdigest()[:12]
+
+
+def canva_expiry(url):
+    """Canvaの書き出しURLの期限（UTC）。読み取れなければ None。"""
+    q = urllib.parse.parse_qs(urllib.parse.urlparse(url).query)
+    try:
+        start = datetime.strptime(q["X-Amz-Date"][0], "%Y%m%dT%H%M%SZ").replace(tzinfo=timezone.utc)
+        return start + timedelta(seconds=int(q["X-Amz-Expires"][0]))
+    except (KeyError, ValueError, IndexError):
+        return None
 
 
 def _host_ok(url):
@@ -43,17 +69,23 @@ def _host_ok(url):
 
 
 def download(url, max_bytes):
-    if not ATTACHMENT_RE.fullmatch(url):
-        raise MediaError(f"GitHubの添付ファイル以外のURLは取得しません: {url}")
+    canva = bool(CANVA_RE.fullmatch(url))
+    if not (canva or ATTACHMENT_RE.fullmatch(url)):
+        raise MediaError(f"GitHubの添付ファイルとCanvaの書き出し以外のURLは取得しません: {url[:80]}")
     req = urllib.request.Request(url, headers={"User-Agent": "shinobi-sns-bot/1.0"})
     try:
         with urllib.request.urlopen(req, timeout=TIMEOUT) as res:
-            if not _host_ok(res.geturl()):
-                raise MediaError("転送先がGitHubではありません")
+            final = res.geturl()
+            ok = (urllib.parse.urlparse(final).hostname == CANVA_HOST) if canva else _host_ok(final)
+            if not ok:
+                raise MediaError("転送先が想定外のドメインです")
             data = res.read(max_bytes + 1)
     except MediaError:
         raise
     except Exception as e:  # noqa: BLE001  取得できなければ理由を添えて止める
+        expiry = canva_expiry(url) if canva else None
+        if expiry and expiry < datetime.now(timezone.utc):
+            raise MediaError(f"Canvaの画像リンクの期限が切れています（期限 {expiry.astimezone(timezone(timedelta(hours=9))):%m/%d %H:%M} JST）") from None
         raise MediaError(f"画像を取得できませんでした（{e}）") from None
     if len(data) > max_bytes:
         raise MediaError(f"画像が大きすぎます（{max_bytes // 1000}KBまで）")

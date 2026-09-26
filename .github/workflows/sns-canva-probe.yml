@@ -1,0 +1,20 @@
+# 一時的な疎通確認（確認が済んだら削除する）: GitHub の実行環境から Canva の書き出しを取得できるか
+name: SNS Canva取得の疎通確認（一時）
+on:
+  push:
+    branches: ["claude/**"]
+    paths: ["_marketing/sns/tests/probe/**", ".github/workflows/sns-canva-probe.yml"]
+permissions:
+  contents: read
+env:
+  PYTHONDONTWRITEBYTECODE: "1"
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq tesseract-ocr tesseract-ocr-jpn
+      - run: python3 _marketing/sns/tests/probe/canva_probe.py

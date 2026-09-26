@@ -47,13 +47,25 @@ body:
       default: 0
     validations:
       required: true
+  - type: textarea
+    id: image
+    attributes:
+      label: 添付画像（任意・1枚まで）
+      description: Canvaで作った画像をPNGかJPGで書き出して、ここに貼る（スマホは欄の下の添付ボタン、PCはドラッグ＆ドロップ）。画像を付けるときは、投稿文は1本だけにします。Blueskyは1MBまで（大きいときはJPGの品質80で書き出す）。
+  - type: textarea
+    id: image_desc
+    attributes:
+      label: 画像の説明（画像を付けたときは必須）
+      description: 画像の中の文字を、そのまま全部Typelessで読み上げる。文字以外は短く絵の説明を。目の不自由な人向けの代替テキストになり、機械検品もこの文で行います。
+      placeholder: "例）藍色の背景に金色の文字。今日の謎。ひらがな3文字の生き物で、夜になると光るものはなんでしょう？答えはあした。しのびのゲーム工房"
   - type: checkboxes
     id: checks
     attributes:
       label: 検品チェック（機械検品のコメントを読んでから、自分でチェック）
-      description: 4つすべてにチェックしてからラベル「承認」を付けると在庫に入ります。
+      description: チェックしてからラベル「承認」を付けると在庫に入ります（「画像」の項目は画像を付けたときだけ必須）。
       options:
         - label: 文体｜自分の体験・自分の言葉になっている（Typelessの整形で意味が変わっていない）
         - label: 事実｜数字・実績は事実台帳（_marketing/OFFER_FACTS.md）にあるものだけ
         - label: リーガル｜効果・効能、No.1・最上級、NFT・投資・値上がりの話をしていない
         - label: プライバシー｜子どもの名前・学校・顔など、個人が分かる情報がない
+        - label: 画像｜画像の文字は説明欄と同じで、人の顔や子どもが写っておらず、使ってよい素材だけ（CNPはCC0、Canva素材はライセンスの範囲）

@@ -7,6 +7,7 @@
   python3 sns.py weekly                     週次改善Issueを作る
   python3 sns.py check "本文" [リンク名]     手元で機械検品だけ試す
   python3 sns.py lint-queue                 在庫全件を再検品（CI用）
+  python3 sns.py x-media-check              Xへの画像アップロードが通るかだけ確かめる（投稿はしない）
 """
 import json
 import os
@@ -18,8 +19,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import channels  # noqa: E402
 import gh  # noqa: E402
+import media  # noqa: E402
 from issue import parse_issue_form  # noqa: E402
-from lint import lint_post  # noqa: E402
+from lint import Finding, clean_text, lint_image_text, lint_ocr_text, lint_post  # noqa: E402
 from store import Store, git_sync, now_jst  # noqa: E402
 
 SNS_ROOT = Path(os.environ.get("SNS_ROOT") or Path(__file__).resolve().parents[1])
@@ -45,7 +47,8 @@ def resolve_link(cfg, label):
     return links[label], None
 
 
-def inspect_posts(cfg, rules, parsed, store):
+def inspect_posts(cfg, rules, parsed, store, fetch_images=False):
+    """投稿文と添付画像を検品する。画像の指摘は1本目の投稿に付ける（画像つきは1本だけ）。"""
     link, link_error = resolve_link(cfg, parsed["link_label"])
     existing = store.all_texts()
     results = []
@@ -55,7 +58,61 @@ def inspect_posts(cfg, rules, parsed, store):
             r.add("block", link_error)
         results.append(r)
         existing = existing + [r.text]  # 同じIssue内の重複も拾う
-    return link, results
+    images, image_findings = inspect_images(cfg, rules, parsed, store, fetch_images)
+    if results:
+        results[0].findings.extend(image_findings)
+    return link, results, images
+
+
+def inspect_images(cfg, rules, parsed, store, fetch):
+    """添付画像の検品。合否は本人が書いた「画像の説明」で決め、OCRは要確認の材料にだけ使う。"""
+    findings, images = [], []
+    urls = parsed.get("images") or []
+    if parsed.get("images_in_text"):
+        findings.append(Finding("block", "画像は「投稿文」ではなく「添付画像」欄に貼ってください"))
+    if not urls:
+        if parsed.get("image_desc"):
+            findings.append(Finding("warn", "「画像の説明」がありますが、画像が添付されていません"))
+        return images, findings
+    icfg = cfg.get("images", {})
+    max_n = icfg.get("max_per_post", 1)
+    channel = cfg["channel"]
+    if len(parsed["posts"]) > 1:
+        findings.append(Finding("block", "画像つきの下書きは、投稿文を1本だけにしてください（どの投稿の画像か分からなくなるため）"))
+    if len(urls) > max_n:
+        findings.append(Finding("block", f"画像は1投稿{max_n}枚までです（{len(urls)}枚添付）"))
+    if channel == "x" and not cfg["x"].get("images_enabled"):
+        findings.append(Finding("block", "Xへの画像投稿はまだ有効になっていません（Actionsの「SNS X画像の疎通確認」が成功したら、config.json の x.images_enabled を true に）"))
+    findings += lint_image_text(parsed.get("image_desc") or "", rules, facts_text())
+    if not fetch:
+        findings.append(Finding("warn", "所有者以外の下書きなので、画像の取得と文字認識はしていません"))
+        return images, findings
+    max_bytes = cfg[channel].get("max_image_bytes", 1_000_000)
+    used = store.image_hashes()
+    for n, url in enumerate(urls[:max_n], 1):
+        try:
+            data = media.download(url, max_bytes)
+            info = media.describe(data)
+        except media.MediaError as e:
+            findings.append(Finding("block", f"画像{n}: {e}"))
+            continue
+        if info.pop("gps"):
+            findings.append(Finding("block", f"画像{n}: 撮影場所（GPSの位置情報）が入っています。"
+                                             "位置情報を消した画像か、Canvaで書き出した画像を貼ってください"))
+        elif info.pop("exif"):
+            findings.append(Finding("warn", f"画像{n}: 撮影情報（EXIF）が入っています。写真なら、写っているものと撮影情報を確認してください"))
+        info.pop("exif", None)
+        status, text = media.ocr(data)
+        info.update({"data": data, "alt": clean_text(parsed.get("image_desc") or ""),
+                     "ocr_status": status, "ocr_text": text[:1000]})
+        if status == "ok":
+            findings += lint_ocr_text(text, parsed.get("image_desc") or "", rules, icfg.get("min_ocr_coverage", 0.5))
+        else:
+            findings.append(Finding("warn", f"画像{n}: 文字認識を実行できませんでした（{status}）。画像の文字は目で確認してください"))
+        if info["sha256"] in used:
+            findings.append(Finding("warn", f"画像{n}: 同じ画像を以前の投稿（または在庫）でも使っています"))
+        images.append(info)
+    return images, findings
 
 
 def _level_line(r):
@@ -65,7 +122,25 @@ def _level_line(r):
     return f"{head}（ブロック {blocks} / 要確認 {warns}）"
 
 
-def render_report(cfg, parsed, results):
+def _image_lines(images, parsed):
+    lines = []
+    for n, img in enumerate(images, 1):
+        kind = "PNG" if img["mime"] == "image/png" else "JPG"
+        lines.append(f"- 🖼 画像{n}: {kind} {img['width']}×{img['height']}・{img['bytes'] // 1000}KB（sha256 {img['sha256'][:12]}）")
+    if parsed.get("images"):
+        desc = (parsed.get("image_desc") or "（なし）").replace("@", "@\u200b")
+        lines.append("- 画像の説明（代替テキストになります）:")
+        lines += ["  > " + ln for ln in desc.split("\n")]
+    fence = "`" * 3
+    for n, img in enumerate(images, 1):
+        if img.get("ocr_status") == "ok":
+            text = (img.get("ocr_text") or "（文字なし）").replace("`", "'")
+            lines += ["", f"<details><summary>画像{n}の文字認識（OCR）の結果 — 誤読を含みます</summary>", "",
+                      fence, text, fence, "", "</details>", ""]
+    return lines
+
+
+def render_report(cfg, parsed, results, images=()):
     lines = ["## 軍配 機械検品レポート", ""]
     if not parsed["has_form"]:
         lines.append("「投稿文」欄が見つかりません。Issueフォーム「SNS下書き」から作成してください。")
@@ -81,13 +156,15 @@ def render_report(cfg, parsed, results):
         lines += ["> " + (ln if ln else "　") for ln in preview.split("\n")]
         lines.append("")
         lines.append(f"- 文字数: X換算 {r.x_length}/{cfg['x']['max_weighted_length']}・Bluesky {r.bsky_length}/{cfg['bluesky']['max_graphemes']}")
+        if i == 1:
+            lines += _image_lines(images, parsed)
         for f in r.findings:
             lines.append(f"- {'❌' if f.level == 'block' else '⚠️'} {f.message}")
         lines.append("")
     lines += ["---",
               "**次にやること**",
               "1. ❌ があれば本文を編集（保存すると自動で再検品）",
-              "2. ⚠️ を自分の目で確認し、本文の「検品チェック」4つにチェック",
+              "2. ⚠️ を自分の目で確認し、本文の「検品チェック」にチェック（画像つきなら「画像」の項目も）",
               f"3. ラベル「{APPROVE_LABEL}」を付ける → 在庫に入り、毎日1本ずつ自動投稿されます"]
     return "\n".join(lines)
 
@@ -113,8 +190,10 @@ def cmd_issue_event(event_path):
     if action == "opened":
         gh.ensure_labels()
         gh.add_labels(number, [DRAFT_LABEL])
-    _, results = inspect_posts(cfg, rules, parsed, store)
-    gh.upsert_comment(number, INSPECT_MARKER, render_report(cfg, parsed, results))
+    owner = cfg.get("owner") or os.environ.get("GITHUB_REPOSITORY_OWNER")
+    by_owner = (issue.get("user") or {}).get("login") == owner
+    _, results, images = inspect_posts(cfg, rules, parsed, store, fetch_images=by_owner)
+    gh.upsert_comment(number, INSPECT_MARKER, render_report(cfg, parsed, results, images))
     return 0
 
 
@@ -133,17 +212,21 @@ def approve(event, cfg, rules, store, parsed):
         problems.append(f"所有者（{owner}）が書いた下書きだけ承認できます")
     if not parsed["posts"]:
         problems.append("投稿文が空です")
-    link, results = inspect_posts(cfg, rules, parsed, store)
+    link, results, images = inspect_posts(cfg, rules, parsed, store, fetch_images=(author == owner))
     if any(r.blocked for r in results):
         problems.append("機械検品で ❌ が残っています（検品コメントを確認）")
+    if parsed["images"] and len(images) != len(parsed["images"]) and author == owner:
+        problems.append("添付画像を取得できませんでした（検品コメントを確認）")
     if not parsed["checks"]:
         problems.append("検品チェック欄が見つかりません")
-    unchecked = [label for checked, label in parsed["checks"] if not checked]
+    # 「画像」の項目は、画像を付けたときだけ必須
+    unchecked = [label for checked, label in parsed["checks"]
+                 if not checked and (parsed["images"] or not label.startswith("画像"))]
     if unchecked:
         problems.append("検品チェックが未完了: " + " / ".join(unchecked))
 
     if problems:
-        gh.upsert_comment(number, INSPECT_MARKER, render_report(cfg, parsed, results))
+        gh.upsert_comment(number, INSPECT_MARKER, render_report(cfg, parsed, results, images))
         gh.comment(number, "## 承認できませんでした\n" + "\n".join(f"- {p}" for p in problems)
                    + f"\n\n直したら、もう一度ラベル「{APPROVE_LABEL}」を付けてください。")
         gh.remove_label(number, APPROVE_LABEL)
@@ -152,6 +235,8 @@ def approve(event, cfg, rules, store, parsed):
 
     posts = [{"text": r.text, "genre": parsed["genre"], "link_label": parsed["link_label"], "link": link,
               "warnings": [f.message for f in r.warnings]} for r in results]
+    if images:
+        posts[0]["images"] = images
     source = {"issue": number, "url": issue.get("html_url")}
     paths = store.enqueue(posts, source, sender)
     git_sync(store.state_dirs(), f"SNS: #{number} の下書き{len(paths)}本を在庫へ（承認: {sender}）", REPO_ROOT)
@@ -174,7 +259,47 @@ def estimate_cost(cfg, item):
     if cfg["channel"] != "x":
         return 0.0
     x = cfg["x"]
-    return x["cost_per_link_post_usd"] if item.get("link") else x["cost_per_post_usd"]
+    cost = x["cost_per_link_post_usd"] if item.get("link") else x["cost_per_post_usd"]
+    requests_per_image = 2 if x.get("alt_text", True) else 1  # アップロード＋代替テキスト
+    cost += len(item.get("images", [])) * requests_per_image * x.get("cost_per_media_request_usd", 0.015)
+    return round(cost, 4)
+
+
+def image_problems(cfg, store, item):
+    """在庫の画像が投稿できる状態かを確かめる（承認後の差し替え・設定変更の検出）。"""
+    problems = []
+    channel = cfg["channel"]
+    if item.get("images") and channel == "x" and not cfg["x"].get("images_enabled"):
+        problems.append("画像つきの投稿ですが、Xへの画像投稿が有効になっていません（x.images_enabled）")
+    limit = cfg[channel].get("max_image_bytes", 1_000_000)
+    for meta in item.get("images", []):
+        try:
+            data = store.load_image(meta)
+        except (FileNotFoundError, ValueError) as e:
+            problems.append(str(e))
+            continue
+        if len(data) > limit:
+            problems.append(f"画像 {meta['file']} が {channel} の上限（{limit // 1000}KB）を超えています")
+    return problems
+
+
+def post_to_channel(cfg, channel, item, creds, store):
+    """1本を投稿する。画像のアップロードは投稿の前に行い、失敗したら「未投稿」として扱う。"""
+    images = [dict(meta, data=store.load_image(meta)) for meta in item.get("images", [])]
+    if channel == "x":
+        media_ids = []
+        for img in images:
+            media_id = channels.x_upload_media(img["data"], img["mime"], creds)
+            if cfg["x"].get("alt_text", True) and img.get("alt"):
+                try:
+                    channels.x_set_alt_text(media_id, img["alt"], creds)
+                except (channels.PostRejected, channels.PostUncertain) as e:
+                    print(f"[注意] 代替テキストを設定できませんでした（投稿は続けます）: {e}")
+            media_ids.append(media_id)
+        return channels.post_x(item["text"], creds, media_ids)
+    bs = cfg.get("bluesky", {})
+    return channels.post_bluesky(item["text"], creds, bs.get("service", "https://bsky.social"),
+                                 bs.get("langs", ["ja"]), images)
 
 
 def cmd_post():
@@ -214,8 +339,8 @@ def cmd_post():
         item = store.load(path)
         others = [t for t in store.all_texts() if t != item.get("text")]
         r = lint_post(item["text"], None, cfg, rules, facts_text(), others)
-        if r.blocked:  # 承認後にルールが変わった等。この1本だけ保留して次へ
-            reasons = [f.message for f in r.findings if f.level == "block"]
+        reasons = [f.message for f in r.findings if f.level == "block"] + image_problems(cfg, store, item)
+        if reasons:  # 承認後にルールや設定が変わった・画像が差し替わった等。この1本だけ保留して次へ
             if live:
                 store.hold(path, reasons)
                 git_sync(store.state_dirs(), f"SNS: {path.stem} を保留（再検品で不合格）", REPO_ROOT)
@@ -244,7 +369,8 @@ def cmd_post():
                    "上限を上げるかどうかは本人判断です（config.json の x.monthly_budget_usd と判断ログ）。")
             return 0
 
-    print(f"--- 投稿予定: {item['id']}（リンク: {item.get('link_label')} / 推定 ${cost:.3f}）---\n{item['text']}\n---")
+    pics = "".join(f"\n[画像] {m['file']}（代替テキスト: {m.get('alt', '')[:40]}）" for m in item.get("images", []))
+    print(f"--- 投稿予定: {item['id']}（リンク: {item.get('link_label')} / 推定 ${cost:.3f}）---\n{item['text']}{pics}\n---")
     creds, missing = (channels.x_credentials if channel == "x" else channels.bluesky_credentials)(os.environ)
     if not live:
         print(f"[dry-run] 投稿しない。在庫は投稿後 {remaining} 本の見込み。"
@@ -258,12 +384,7 @@ def cmd_post():
     sending_path = store.claim(item_path)
     git_sync(store.state_dirs(), f"SNS: 送信開始 {item['id']}", REPO_ROOT)
     try:
-        if channel == "x":
-            result = channels.post_x(item["text"], creds)
-        else:
-            bs = cfg.get("bluesky", {})
-            result = channels.post_bluesky(item["text"], creds, bs.get("service", "https://bsky.social"),
-                                           bs.get("langs", ["ja"]))
+        result = post_to_channel(cfg, channel, item, creds, store)
     except channels.PostRejected as e:
         tries = len(store.load(sending_path).get("failures", [])) + 1
         if tries >= MAX_REJECTS:  # 同じ1本が先頭で詰まり続けないよう、保留に回して次へ進める
@@ -341,9 +462,10 @@ def cmd_weekly():
 
 def cmd_check(text, link_label="なし"):
     cfg, rules, store = load_json("config.json"), load_json("rules.json"), Store(SNS_ROOT)
-    parsed = {"posts": [text], "genre": None, "link_label": link_label, "checks": [], "has_form": True}
-    _, results = inspect_posts(cfg, rules, parsed, store)
-    print(render_report(cfg, parsed, results))
+    parsed = {"posts": [text], "genre": None, "link_label": link_label, "checks": [], "has_form": True,
+              "images": [], "images_in_text": [], "image_desc": None}
+    _, results, images = inspect_posts(cfg, rules, parsed, store)
+    print(render_report(cfg, parsed, results, images))
     return 1 if any(r.blocked for r in results) else 0
 
 
@@ -356,11 +478,30 @@ def cmd_lint_queue():
         item = store.load(path)
         others = [t for t in store.all_texts() if t != item.get("text")]
         r = lint_post(item["text"], None, cfg, rules, facts_text(), others)
-        status = "NG" if r.blocked else "OK"
-        print(f"{status} {path.name}: " + " / ".join(f.message for f in r.findings if f.level == "block"))
-        bad += r.blocked
+        reasons = [f.message for f in r.findings if f.level == "block"] + image_problems(cfg, store, item)
+        print(f"{'NG' if reasons else 'OK'} {path.name}: " + " / ".join(reasons))
+        bad += bool(reasons)
     print(f"在庫 {len(store.items(store.queue))} 本、不合格 {bad} 本")
     return 1 if bad else 0
+
+
+def cmd_x_media_check():
+    """小さな画像を1枚だけXにアップロードして、画像投稿が使えるかを確かめる。投稿は作らない。"""
+    creds, missing = channels.x_credentials(os.environ)
+    if missing:
+        print("認証情報が未設定です: " + ", ".join(missing))
+        return 1
+    try:
+        media_id = channels.x_upload_media(media.tiny_png(), "image/png", creds)
+    except channels.PostRejected as e:
+        print("❌ Xへの画像アップロードは通りませんでした（投稿はしていません）。\n"
+              f"{e}\n\n"
+              "401/403 の場合、今の認証方式（OAuth 1.0a）ではXの画像アップロードが使えない可能性が高いです。\n"
+              "x.images_enabled は false のままにして、画像つき投稿は Bluesky で出すか、手動で投稿してください（点検 G1）。")
+        return 1
+    print(f"✅ Xへの画像アップロードに成功しました（media id: {media_id}。投稿は作っていません）。\n"
+          "config.json の x.images_enabled を true にしてよい状態です。変えたら判断ログに1行残してください。")
+    return 0
 
 
 def main(argv):
@@ -378,6 +519,8 @@ def main(argv):
         return cmd_check(args[0], args[1] if len(args) > 1 else "なし")
     if cmd == "lint-queue":
         return cmd_lint_queue()
+    if cmd == "x-media-check":
+        return cmd_x_media_check()
     print(__doc__)
     return 2
 

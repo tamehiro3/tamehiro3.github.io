@@ -26,6 +26,15 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
+      # 画像つきの下書き（所有者が書いたものだけ）のときに文字認識（OCR）を入れる。本文は run: に埋め込まない
+      - name: 文字認識（OCR）の準備
+        if: >-
+          github.event.issue.user.login == github.repository_owner &&
+          (github.event.action != 'labeled' || github.event.label.name == '承認') &&
+          (contains(github.event.issue.body, '/assets/') || contains(github.event.issue.body, 'githubusercontent.com'))
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq tesseract-ocr tesseract-ocr-jpn
       - name: 検品・承認
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

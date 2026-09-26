@@ -8,6 +8,11 @@
   "max_posts_per_day": 1,
   "low_stock_threshold": 7,
   "max_hashtags": 2,
+  "images": {
+    "_doc": "画像つき投稿。1投稿1枚・画像の説明（代替テキスト）必須。OCRの一致率がこれ未満だと要確認",
+    "max_per_post": 1,
+    "min_ocr_coverage": 0.5
+  },
   "links": {
     "なし": null,
     "にんじゃミッション工房": "https://tamehiro3.github.io/ninja-mission-kobo/",
@@ -23,11 +28,21 @@
     "cost_per_link_post_usd": 0.2,
     "monthly_budget_usd": 3.0,
     "price_checked": "2026-09-26",
-    "price_source": "https://docs.x.com/x-api/getting-started/pricing（検索結果経由で確認。本番前に公式ページで再確認すること）"
+    "price_source": "https://docs.x.com/x-api/getting-started/pricing（検索結果経由で確認。本番前に公式ページで再確認すること）",
+    "images_enabled": false,
+    "_images_doc": "XのAPIで画像を上げられるかは未確認（点検G1）。Actions「SNS X画像の疎通確認」が成功したら true にして判断ログに記録",
+    "max_image_bytes": 5000000,
+    "cost_per_media_request_usd": 0.015,
+    "_media_cost_doc": "料金表に画像アップロードの行が見当たらないため、1リクエストを投稿と同額で保守的に見積もる（未確認）",
+    "alt_text": true
   },
   "bluesky": {
     "service": "https://bsky.social",
     "max_graphemes": 300,
-    "langs": ["ja"]
+    "langs": [
+      "ja"
+    ],
+    "max_image_bytes": 1000000,
+    "_image_doc": "Blueskyの画像上限は1,000,000バイト（2026-04に2MBへ引き上げとの報道あり・未確認のため保守的に1MB）"
   }
 }

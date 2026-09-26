@@ -18,6 +18,8 @@ from datetime import datetime, timezone
 from lint import HASHTAG_RE, URL_RE
 
 X_POST_URL = "https://api.x.com/2/tweets"
+X_MEDIA_URL = "https://api.x.com/2/media/upload"
+X_MEDIA_METADATA_URL = "https://api.x.com/2/media/metadata"
 TIMEOUT = 30
 
 
@@ -55,10 +57,10 @@ def oauth1_header(method, url, consumer_key, consumer_secret, token, token_secre
     return "OAuth " + ", ".join(f'{_pct(k)}="{_pct(v)}"' for k, v in sorted(oauth.items()))
 
 
-def _http_json(method, url, headers, payload, uncertain_on_5xx=True):
-    data = json.dumps(payload).encode() if payload is not None else None
+def _http_json(method, url, headers, payload, uncertain_on_5xx=True, raw=None, content_type="application/json"):
+    data = raw if raw is not None else (json.dumps(payload).encode() if payload is not None else None)
     req = urllib.request.Request(url, data=data, method=method)
-    req.add_header("Content-Type", "application/json")
+    req.add_header("Content-Type", content_type)
     req.add_header("User-Agent", "shinobi-sns-bot/1.0")
     for k, v in headers.items():
         req.add_header(k, v)
@@ -83,10 +85,40 @@ def x_credentials(env):
     return ({n: env[n] for n in names} if not missing else None), missing
 
 
-def post_x(text, creds):
-    auth = oauth1_header("POST", X_POST_URL, creds["X_API_KEY"], creds["X_API_SECRET"],
+def _x_auth(url, creds):
+    return oauth1_header("POST", url, creds["X_API_KEY"], creds["X_API_SECRET"],
                          creds["X_ACCESS_TOKEN"], creds["X_ACCESS_TOKEN_SECRET"])
-    res = _http_json("POST", X_POST_URL, {"Authorization": auth}, {"text": text})
+
+
+def x_upload_media(data, mime, creds):
+    """画像を1枚アップロードして media id を返す。
+
+    X API v2 の画像アップロードが OAuth 1.0a で通るかは未確認（点検 G1）。
+    `sns.py x-media-check` で疎通を確かめてから config の x.images_enabled を true にする。
+    アップロードの段階ではまだ投稿は作られないので、失敗はすべて「確実に未投稿」として扱う。
+    """
+    payload = {"media": base64.b64encode(data).decode(), "media_category": "tweet_image", "media_type": mime}
+    try:
+        res = _http_json("POST", X_MEDIA_URL, {"Authorization": _x_auth(X_MEDIA_URL, creds)}, payload)
+    except PostUncertain as e:
+        raise PostRejected(f"画像アップロード失敗: {e}") from None
+    body = res.get("data") or res
+    media_id = body.get("id") or body.get("media_id_string") or body.get("media_id")
+    if not media_id:
+        raise PostRejected(f"画像アップロードの応答にIDがありません: {json.dumps(res)[:300]}")
+    return str(media_id)
+
+
+def x_set_alt_text(media_id, alt, creds):
+    payload = {"id": media_id, "metadata": {"alt_text": {"text": alt[:1000]}}}
+    _http_json("POST", X_MEDIA_METADATA_URL, {"Authorization": _x_auth(X_MEDIA_METADATA_URL, creds)}, payload)
+
+
+def post_x(text, creds, media_ids=None):
+    body = {"text": text}
+    if media_ids:
+        body["media"] = {"media_ids": list(media_ids)}
+    res = _http_json("POST", X_POST_URL, {"Authorization": _x_auth(X_POST_URL, creds)}, body)
     post_id = (res.get("data") or {}).get("id")
     if not post_id:
         raise PostUncertain(f"応答にIDがありません: {json.dumps(res)[:300]}")
@@ -121,11 +153,23 @@ def bluesky_facets(text):
     return facets
 
 
-def post_bluesky(text, creds, service="https://bsky.social", langs=("ja",)):
-    # セッション作成の失敗は「まだ何も投稿していない」ので確実な失敗として扱う
+def post_bluesky(text, creds, service="https://bsky.social", langs=("ja",), images=()):
+    """images: [{"data", "mime", "alt", "width", "height"}]"""
+    # セッション作成と画像アップロードの失敗は「まだ何も投稿していない」ので確実な失敗として扱う
     session = _http_json("POST", f"{service}/xrpc/com.atproto.server.createSession", {},
                          {"identifier": creds["BSKY_HANDLE"], "password": creds["BSKY_APP_PASSWORD"]},
                          uncertain_on_5xx=False)
+    auth = {"Authorization": f"Bearer {session['accessJwt']}"}
+    embedded = []
+    for img in images:
+        up = _http_json("POST", f"{service}/xrpc/com.atproto.repo.uploadBlob", auth, None,
+                        uncertain_on_5xx=False, raw=img["data"], content_type=img["mime"])
+        if not up.get("blob"):
+            raise PostRejected(f"画像アップロードの応答にblobがありません: {json.dumps(up)[:300]}")
+        entry = {"alt": img.get("alt") or "", "image": up["blob"]}
+        if img.get("width") and img.get("height"):
+            entry["aspectRatio"] = {"width": img["width"], "height": img["height"]}
+        embedded.append(entry)
     record = {
         "$type": "app.bsky.feed.post",
         "text": text,
@@ -135,8 +179,9 @@ def post_bluesky(text, creds, service="https://bsky.social", langs=("ja",)):
     facets = bluesky_facets(text)
     if facets:
         record["facets"] = facets
-    res = _http_json("POST", f"{service}/xrpc/com.atproto.repo.createRecord",
-                     {"Authorization": f"Bearer {session['accessJwt']}"},
+    if embedded:
+        record["embed"] = {"$type": "app.bsky.embed.images", "images": embedded}
+    res = _http_json("POST", f"{service}/xrpc/com.atproto.repo.createRecord", auth,
                      {"repo": session["did"], "collection": "app.bsky.feed.post", "record": record})
     uri = res.get("uri")
     if not uri:

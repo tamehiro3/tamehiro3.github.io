@@ -66,7 +66,7 @@ class IssueParseTest(unittest.TestCase):
         self.assertEqual(parsed["posts"], [POST_A, POST_B, "3本目"])
         self.assertEqual(parsed["link_label"], "忍びの謎巡り")
         self.assertEqual(parsed["genre"], "今日の謎")
-        self.assertEqual([c for c, _ in parsed["checks"]], [True, False, True, True])
+        self.assertEqual([c for c, _ in parsed["checks"]], [True, False, True, True, False])
 
 
 class InboxTest(FlowBase):
@@ -151,7 +151,7 @@ class PostTest(FlowBase):
         with mock.patch.object(sns, "git_sync") as git, \
                 mock.patch.object(channels, "post_x", return_value={"remote_id": "1", "url": "u"}):
             self.run_cmd(sns.cmd_post)
-        allowed = {self.root / d for d in ("queue", "sending", "posted", "held")}
+        allowed = {self.root / d for d in ("queue", "sending", "posted", "held", "media")}
         self.assertEqual(git.call_count, 2)  # 送信開始（確保）と投稿完了
         for call in git.call_args_list:
             self.assertEqual(set(call[0][0]), allowed)

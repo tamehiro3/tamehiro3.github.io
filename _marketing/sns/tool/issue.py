@@ -5,6 +5,8 @@
 """
 import re
 
+from media import find_attachments
+
 SEPARATOR_RE = re.compile(r"^\s*[-ー－―]{3,}\s*$", re.M)
 CHECK_RE = re.compile(r"^\s*[-*]\s*\[( |x|X)\]\s*(.+?)\s*$", re.M)
 NO_RESPONSE = "_No response_"
@@ -43,11 +45,15 @@ def parse_issue_form(body):
     link = _find(sections, "リンク")
     checks_raw = _find(sections, "検品") or ""
     checks = [(m.group(1).lower() == "x", m.group(2)) for m in CHECK_RE.finditer(checks_raw)]
-    clean = lambda v: None if (v is None or v.strip() in ("", NO_RESPONSE)) else v.strip()
+    clean = lambda v: None if (v is None or v.strip() in ("", NO_RESPONSE)) else v.strip()  # noqa: E731
+    image_desc = clean(_find(sections, "画像の説明"))
     return {
         "posts": split_posts(text),
         "genre": clean(genre),
         "link_label": clean(link) or "なし",
         "checks": checks,
         "has_form": text is not None,
+        "images": find_attachments(_find(sections, "添付画像") or ""),
+        "images_in_text": find_attachments(text or ""),
+        "image_desc": image_desc,
     }

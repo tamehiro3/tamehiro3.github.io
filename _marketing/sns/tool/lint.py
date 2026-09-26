@@ -111,6 +111,86 @@ def _numbers_missing_from_facts(text, facts_text):
     return missing
 
 
+def _content_checks(body, raw, rules, facts_text, add, prefix=""):
+    """文面の中身の検品（投稿文と画像の説明で共通）: 異言語・表現ルール・事実台帳の数字。"""
+    odd = sorted(set(CYRILLIC_HANGUL_RE.findall(body)))
+    if odd:
+        add("block", f"{prefix}異言語の文字が混入: {''.join(odd)}")
+    simp = sorted({ch for ch in body if ch in SIMPLIFIED_CHARS})
+    if simp:
+        add("block", f"{prefix}簡体字が混入: {''.join(simp)}（Typelessの変換ミスの可能性）")
+    for level in ("block", "warn"):
+        for rule in rules.get(level, []):
+            m = re.search(rule["pattern"], body)
+            if m:
+                add(level, f"{prefix}「{m.group(0)}」: {rule['reason']}")
+    missing = _numbers_missing_from_facts(raw, facts_text)
+    if missing:
+        add("warn", f"{prefix}事実台帳に見当たらない数字: {'、'.join(missing)}（日付や謎の中の数字ならOK。実績・機能の数字なら台帳に登録してから）")
+
+
+def lint_image_text(declared, rules, facts_text="", max_len=1000):
+    """画像の説明（画像の中の文字を本人が読み上げたもの。代替テキストにもなる）を投稿文と同じ基準で検品する。"""
+    findings = []
+    add = lambda level, msg: findings.append(Finding(level, msg))  # noqa: E731
+    text = clean_text(declared)
+    if text in EMPTY_MARKERS:
+        add("block", "画像の説明が空です（画像の中の文字をそのまま全部、Typelessで読み上げてください。文字がなければ絵の説明だけ）")
+        return findings
+    if len(text) > max_len:
+        add("block", f"画像の説明が長すぎます（{len(text)}/{max_len}字。Xの代替テキストの上限）")
+    body = URL_RE.sub("", text)
+    if "**" in body:
+        add("block", "画像の説明: Markdown記号（**）が残っています")
+    _content_checks(body, text, rules, facts_text, add, prefix="画像の説明: ")
+    return findings
+
+
+def _chars(text):
+    """照合用に、文字と数字だけを残す（OCRが挟む空白や記号の揺れを消す）。"""
+    norm = unicodedata.normalize("NFKC", text or "").lower()
+    return "".join(ch for ch in norm if unicodedata.category(ch)[0] in "LN")
+
+
+def ocr_coverage(ocr_text, declared):
+    """OCRで読めた文字の2文字組のうち、画像の説明に含まれる割合（0〜1）。読めた文字が少なすぎればNone。"""
+    o, d = _chars(ocr_text), _chars(declared)
+    if len(o) < 8:
+        return None
+    grams = {o[i:i + 2] for i in range(len(o) - 1)}
+    have = {d[i:i + 2] for i in range(len(d) - 1)}
+    return len(grams & have) / len(grams)
+
+
+OCR_BLOCK_MIN_CHARS = 3  # これより短い一致（IQ・治る など）は誤読で出やすいので要確認止まり
+
+
+def lint_ocr_text(ocr_text, declared, rules, min_coverage=0.5):
+    """文字認識（OCR）の結果を検品する。
+
+    禁止表現（block）のうち3文字以上の一致は、誤読で偶然そろうことがまずないので止める（fail closed）。
+    短い一致・要確認表現・説明との食い違いは、誤読のこともあるので「要確認」止まり。
+    """
+    findings = []
+    body = unicodedata.normalize("NFKC", ocr_text or "")
+    compact = re.sub(r"\s+", "", body)
+    for level in ("block", "warn"):
+        for rule in rules.get(level, []):
+            m = re.search(rule["pattern"], compact) or re.search(rule["pattern"], body)
+            if not m:
+                continue
+            hit = re.sub(r"\s+", "", m.group(0))
+            if level == "block" and len(hit) >= OCR_BLOCK_MIN_CHARS:
+                findings.append(Finding("block", f"画像の中に「{hit}」があります（文字認識で検出）: {rule['reason']}。"
+                                                 "画像を直して書き出し直してください"))
+            else:
+                findings.append(Finding("warn", f"画像の文字認識で「{hit}」を検出: {rule['reason']}（誤認識のこともあるので画像を目で確認）"))
+    cov = ocr_coverage(ocr_text, declared)
+    if cov is not None and cov < min_coverage:
+        findings.append(Finding("warn", f"画像の文字と「画像の説明」が大きく違う可能性（一致率 {cov:.0%}）。説明に書いていない文字が画像にないか確認"))
+    return findings
+
+
 def lint_post(text, link, cfg, rules, facts_text="", existing_texts=()):
     """1本の下書きを検品する。existing_texts は在庫・投稿済みの本文（重複検出用）。"""
     raw = clean_text(text)
@@ -151,27 +231,9 @@ def lint_post(text, link, cfg, rules, facts_text="", existing_texts=()):
         result.add("block", f"メンション {' '.join(mentions)} は自動投稿に使えません（X自動化ルール・誤爆防止）。手動で投稿してください")
 
     body = URL_RE.sub("", composed)
-    odd = sorted(set(CYRILLIC_HANGUL_RE.findall(body)))
-    if odd:
-        result.add("block", f"異言語の文字が混入: {''.join(odd)}")
-    simp = sorted({ch for ch in body if ch in SIMPLIFIED_CHARS})
-    if simp:
-        result.add("block", f"簡体字が混入: {''.join(simp)}（Typelessの変換ミスの可能性）")
     if "**" in body or "__" in body or re.search(r"^#{1,6}\s", body, re.M):
         result.add("block", "Markdown記号（** や見出しの #）が残っています")
-
-    for rule in rules.get("block", []):
-        m = re.search(rule["pattern"], body)
-        if m:
-            result.add("block", f"「{m.group(0)}」: {rule['reason']}")
-    for rule in rules.get("warn", []):
-        m = re.search(rule["pattern"], body)
-        if m:
-            result.add("warn", f"「{m.group(0)}」: {rule['reason']}")
-
-    missing = _numbers_missing_from_facts(raw, facts_text)
-    if missing:
-        result.add("warn", f"事実台帳に見当たらない数字: {'、'.join(missing)}（日付や謎の中の数字ならOK。実績・機能の数字なら台帳に登録してから）")
+    _content_checks(body, raw, rules, facts_text, result.add)
 
     normalized = composed.strip()
     if any(normalized == (t or "").strip() for t in existing_texts):

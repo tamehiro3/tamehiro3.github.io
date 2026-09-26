@@ -29,12 +29,13 @@ class Store:
         self.sending = self.root / "sending"
         self.posted = self.root / "posted"
         self.held = self.root / "held"
-        for d in (self.queue, self.sending, self.posted, self.held):
+        self.media = self.root / "media"  # 承認時点の画像を不変名で保存（あとから差し替わらない）
+        for d in (self.queue, self.sending, self.posted, self.held, self.media):
             d.mkdir(parents=True, exist_ok=True)
 
     def state_dirs(self):
         """自動コミットしてよいのは在庫の状態フォルダだけ（設定やコードは巻き込まない）。"""
-        return [self.queue, self.sending, self.posted, self.held]
+        return [self.queue, self.sending, self.posted, self.held, self.media]
 
     @staticmethod
     def items(directory):
@@ -48,6 +49,13 @@ class Store:
     def save(path, data):
         Path(path).write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
+    def image_hashes(self):
+        hashes = set()
+        for d in (self.queue, self.sending, self.posted, self.held):
+            for p in self.items(d):
+                hashes |= {img.get("sha256") for img in self.load(p).get("images", [])}
+        return hashes
+
     def all_texts(self):
         texts = []
         for d in (self.queue, self.sending, self.posted, self.held):
@@ -55,11 +63,16 @@ class Store:
         return texts
 
     def enqueue(self, posts, source, approved_by):
-        """posts: [{"text", "link_label", "link", "genre", "warnings"}]"""
+        """posts: [{"text", "link_label", "link", "genre", "warnings", "images": [{"data", "ext", ...}]}]"""
         now = now_jst()
         paths = []
         for i, post in enumerate(posts, 1):
             item_id = f"{now:%Y%m%d}-i{source['issue']}-{i}"
+            images = []
+            for n, img in enumerate(post.get("images", []), 1):
+                name = f"{item_id}-{n}.{img['ext']}"
+                (self.media / name).write_bytes(img["data"])
+                images.append({k: v for k, v in img.items() if k not in ("data", "ext")} | {"file": name})
             data = {
                 "id": item_id,
                 "text": post["text"],
@@ -72,12 +85,24 @@ class Store:
                 "approved_at": now.isoformat(timespec="seconds"),
                 "inspection_warnings": post.get("warnings", []),
             }
+            if images:
+                data["images"] = images
             path = self.queue / f"{item_id}.json"
             if path.exists():
                 raise FileExistsError(f"同じIDの在庫があります: {path.name}")
             self.save(path, data)
             paths.append(path)
         return paths
+
+    def load_image(self, meta):
+        """在庫に記録した画像を読み、承認時のハッシュと一致するか確かめる（差し替え・破損の検出）。"""
+        path = self.media / meta["file"]
+        if not path.exists():
+            raise FileNotFoundError(f"画像ファイルがありません: {meta['file']}")
+        data = path.read_bytes()
+        if hashlib.sha256(data).hexdigest() != meta.get("sha256"):
+            raise ValueError(f"画像が承認時から変わっています: {meta['file']}")
+        return data
 
     def _move(self, path, directory, updates=None):
         data = self.load(path)

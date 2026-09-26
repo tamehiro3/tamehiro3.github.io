@@ -7,6 +7,7 @@
 timing.json には各文の長さと、テロップを切り替える区切り（／）の時刻が入る。
 """
 import argparse
+import sys
 import json
 import os
 import re
@@ -16,6 +17,8 @@ from pathlib import Path
 
 import numpy as np
 import soundfile as sf
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 SR = 48000
 ROOT = Path(__file__).resolve().parent.parent
@@ -48,52 +51,31 @@ def openjtalk(text: str, cfg: dict) -> np.ndarray:
 
 
 # ---------- fal (MiniMax voice clone) ----------
+# キーの読み込みと API 呼び出しは tools/fal_api.py（キーは assets/.fal_key）
 def fal_voice_id(ep: Path, cfg: dict) -> str:
-    import fal_client
+    import fal_api
 
-    cache = ROOT / "voice_ref" / "voice_id.json"
-    if cache.exists():
-        return json.loads(cache.read_text())["custom_voice_id"]
-    # VOICE_REF_URL があれば、ファイルをリポジトリに置かずにそのURLから fal に取り込ませる
-    url, source = os.environ.get("VOICE_REF_URL"), "VOICE_REF_URL"
-    if not url:
+    if fal_api.VOICE_CACHE.exists():
+        return json.loads(fal_api.VOICE_CACHE.read_text())["custom_voice_id"]
+    # VOICE_REF_URL があれば、ファイルをリポジトリに置かずにそのURLから取り込ませる
+    src = os.environ.get("VOICE_REF_URL")
+    if not src:
         refs = sorted(p for p in (ROOT / "voice_ref").glob("*") if p.suffix.lower() in (".wav", ".mp3", ".m4a"))
         if not refs:
             raise SystemExit("voice_ref/ に ためひろさんの声（10秒〜3分、1人で話している音声）を置いてください")
-        source = refs[0].name
-        # 長い収録は、VOICE_REF_START 秒目から VOICE_REF_SECONDS 秒（既定 90 秒）だけ切り出して使う
-        start = os.environ.get("VOICE_REF_START", "0")
-        secs = os.environ.get("VOICE_REF_SECONDS", "90")
-        with tempfile.TemporaryDirectory() as d:
-            clip = Path(d) / "ref.wav"
-            subprocess.run(["ffmpeg", "-v", "error", "-y", "-ss", start, "-t", secs, "-i", str(refs[0]),
-                            "-ac", "1", "-ar", "44100", str(clip)], check=True)
-            url = fal_client.upload_file(str(clip))
-    res = fal_client.subscribe(cfg.get("clone_model", "fal-ai/minimax/voice-clone"), arguments={
-        "audio_url": url, "noise_reduction": True, "need_volume_normalization": True})
-    vid = res["custom_voice_id"]
-    cache.write_text(json.dumps({"custom_voice_id": vid, "source": source}, ensure_ascii=False))
-    return vid
+        src = str(refs[0])
+    # 長い収録は、VOICE_REF_START 秒目から VOICE_REF_SECONDS 秒（既定 90 秒）だけ切り出して使う
+    return fal_api.clone_voice(src, float(os.environ.get("VOICE_REF_START", 0)),
+                               float(os.environ.get("VOICE_REF_SECONDS", 90)))
 
 
 def fal_tts(text: str, cfg: dict, voice_id: str) -> np.ndarray:
-    import fal_client
-    import urllib.request
+    import fal_api
 
-    model = cfg.get("fal_model", "fal-ai/minimax/speech-02-hd")
-    args = {"voice_setting": {"voice_id": voice_id, "speed": cfg.get("fal_speed", 1.15), "vol": 1.0,
-                              "pitch": cfg.get("fal_pitch", 0), "emotion": cfg.get("emotion", "happy")},
-            "language_boost": "Japanese", "output_format": "url"}
-    try:
-        res = fal_client.subscribe(model, arguments={"text": text, **args})
-    except Exception as e:  # 新しいモデルは text ではなく prompt のことがある
-        if "422" not in str(e) and "text" not in str(e):
-            raise
-        res = fal_client.subscribe(model, arguments={"prompt": text, **args})
     with tempfile.TemporaryDirectory() as d:
-        src, wav = Path(d) / "a.mp3", Path(d) / "a.wav"
-        urllib.request.urlretrieve(res["audio"]["url"], src)
-        subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(src), "-ac", "1", "-ar", str(SR), str(wav)], check=True)
+        wav = fal_api.tts(text, voice_id, Path(d) / "a.wav", model=cfg.get("fal_model", fal_api.TTS_MODEL),
+                          speed=cfg.get("fal_speed", 1.15), pitch=cfg.get("fal_pitch", 0),
+                          emotion=cfg.get("emotion", "happy"), sample_rate=SR)
         x, _ = sf.read(wav, dtype="float32")
     return x
 
@@ -160,8 +142,9 @@ def main():
     out.mkdir(exist_ok=True)
     timing_path = out / "timing.json"
     timing = json.loads(timing_path.read_text()) if timing_path.exists() else {}
-    if engine == "fal" and not os.environ.get("FAL_KEY"):
-        raise SystemExit("FAL_KEY が環境変数にありません")
+    if engine == "fal":
+        import fal_api
+        fal_api.load_key()   # assets/.fal_key がなければここで止まる
     voice_id = fal_voice_id(ep, cfg) if engine == "fal" else None
 
     for i, line in enumerate(script["lines"], 1):

@@ -9,7 +9,7 @@ $sudo apt-get install -y -qq ffmpeg fonts-noto-cjk fonts-noto-cjk-extra fonts-no
   open-jtalk open-jtalk-mecab-naist-jdic hts-voice-nitech-jp-atr503-m001 \
   mecab mecab-ipadic-utf8 libmecab-dev
 
-pip install -q pillow numpy scipy opencv-python-headless ncnn soundfile fonttools fugashi fal-client
+pip install -q pillow numpy scipy opencv-python-headless ncnn soundfile fonttools fugashi fal-client  # fal のキーは assets/.fal_key に置く
 
 # テロップ用フォント（SIL OFL 1.1）
 mkdir -p assets/fonts assets/models

@@ -11,3 +11,6 @@ assets/models/
 voice_ref/*
 !voice_ref/README.md
 __pycache__/
+# fal の APIキー（絶対にコミットしない）
+assets/.fal_key
+**/.fal_key

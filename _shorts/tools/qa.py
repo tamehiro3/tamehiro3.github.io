@@ -4,7 +4,7 @@
 
 検査内容
   A. 音声 … 台本どおりに読んでいるか
-       - FAL_KEY があれば fal の Whisper で文字起こしして台本と照合
+       - assets/.fal_key があれば fal の Whisper で文字起こしして台本と照合
        - なければ音声合成エンジン（Open JTalk）の実際の読み（音素）をカタカナにして照合用に出力し、
          英字の綴り読み・数字の読み・難読語を自動で拾う
        - 書き出した mp4 の各文の区間に声が入っているか
@@ -103,11 +103,8 @@ def to_kana(phs):
 
 
 def fal_transcribe(wav_path):
-    import fal_client
-    url = fal_client.upload_file(str(wav_path))
-    res = fal_client.subscribe("fal-ai/whisper", arguments={
-        "audio_url": url, "task": "transcribe", "language": "ja", "chunk_level": "segment"})
-    return res
+    import fal_api
+    return fal_api.transcribe(Path(wav_path))
 
 
 def norm(s):
@@ -126,7 +123,7 @@ def check_audio(ep, script, tl, final_mp4, rep):
         subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(final_mp4), "-ac", "1", "-ar", str(SR), str(wav)], check=True)
         final, _ = sf.read(wav, dtype="float32")
         asr = None
-        if os.environ.get("FAL_KEY"):
+        if (Path(__file__).resolve().parent.parent / "assets" / ".fal_key").exists():
             try:
                 asr = fal_transcribe(wav)
             except Exception as e:  # ネットワーク不可など
@@ -174,7 +171,7 @@ def check_audio(ep, script, tl, final_mp4, rep):
             issues.append(f"文字起こしと台本の一致率が低い（{ratio:.2f}）")
     else:
         rep["asr"] = {"engine": None, "note": "Whisper 等の文字起こしモデルをこの環境で入手できなかったため未実施。"
-                      "音声合成エンジンの実際の読み（音素）で代替検査。FAL_KEY を設定すると fal の Whisper で自動実施。"}
+                      "音声合成エンジンの実際の読み（音素）で代替検査。assets/.fal_key を置くと fal の Whisper で自動実施。"}
     rep["audio_lines"] = rows
     return issues
 

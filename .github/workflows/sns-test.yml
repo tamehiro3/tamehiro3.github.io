@@ -1,0 +1,32 @@
+# SNS ツールのテストと在庫の再検品（SNSには何も送らない）
+name: SNS テスト
+
+on:
+  push:
+    paths:
+      - "_marketing/**"
+      - ".github/workflows/sns-*.yml"
+      - ".github/ISSUE_TEMPLATE/sns-draft.yml"
+  pull_request:
+    paths:
+      - "_marketing/**"
+      - ".github/workflows/sns-*.yml"
+      - ".github/ISSUE_TEMPLATE/sns-draft.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PYTHONDONTWRITEBYTECODE: "1"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - name: 単体テスト
+        run: python3 -m unittest discover -s _marketing/sns/tests -v
+      - name: 在庫の再検品
+        run: python3 _marketing/sns/tool/sns.py lint-queue

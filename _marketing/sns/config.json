@@ -1,0 +1,33 @@
+{
+  "_doc": "SNS自動投稿の設定。mode / channel / 予算を変えたら _marketing/ledgers/DECISIONS.md に1行残す。",
+  "mode": "dry-run",
+  "_mode_doc": "dry-run=投稿せず内容をログに出すだけ / live=本番投稿 / paused=何もしない（緊急停止）",
+  "channel": "x",
+  "_channel_doc": "主戦場は1つだけ（軍配: チャネルは並列に増やさない）。x または bluesky",
+  "owner": "tamehiro3",
+  "max_posts_per_day": 1,
+  "low_stock_threshold": 7,
+  "max_hashtags": 2,
+  "links": {
+    "なし": null,
+    "にんじゃミッション工房": "https://tamehiro3.github.io/ninja-mission-kobo/",
+    "忍びの謎巡り": "https://tamehiro3.github.io/shinobi-nazomeguri/",
+    "ポータル": "https://tamehiro3.github.io/"
+  },
+  "allowed_link_prefixes": [
+    "https://tamehiro3.github.io/"
+  ],
+  "x": {
+    "max_weighted_length": 280,
+    "cost_per_post_usd": 0.015,
+    "cost_per_link_post_usd": 0.2,
+    "monthly_budget_usd": 3.0,
+    "price_checked": "2026-09-26",
+    "price_source": "https://docs.x.com/x-api/getting-started/pricing（検索結果経由で確認。本番前に公式ページで再確認すること）"
+  },
+  "bluesky": {
+    "service": "https://bsky.social",
+    "max_graphemes": 300,
+    "langs": ["ja"]
+  }
+}

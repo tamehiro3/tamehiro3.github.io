@@ -45,6 +45,13 @@ if ($LASTEXITCODE -ne 0) {
 } else {
     git remote get-url origin | Out-Null
     if ($LASTEXITCODE -ne 0) { git remote add origin "https://github.com/$owner/$repoName.git" }
+    # SNS自動投稿(GitHub Actions)がサーバー側で在庫ファイルをコミットするので、先に取り込んでからアップロードする
+    git pull --rebase --autostash origin (git branch --show-current)
+    if ($LASTEXITCODE -ne 0) {
+        git rebase --abort 2>$null
+        Read-Host "サーバー側の更新(SNS自動投稿の記録など)の取り込みに失敗しました。Enterで終了"
+        exit 1
+    }
     git push -u origin HEAD
     if ($LASTEXITCODE -ne 0) { Read-Host "アップロードに失敗しました。Enterで終了"; exit 1 }
 }

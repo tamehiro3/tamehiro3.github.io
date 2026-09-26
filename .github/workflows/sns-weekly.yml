@@ -1,0 +1,26 @@
+# SNS 週次改善: 毎週日曜の夜に「週次改善」Issueを作る（軍配 kaizen の最小形）
+# 自動でやるのは集計まで。数字の書き写し・所見・提案の裁定は人間。
+name: SNS 週次改善
+
+on:
+  schedule:
+    - cron: "7 12 * * 0" # 毎週日曜 21:07 JST
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+env:
+  PYTHONDONTWRITEBYTECODE: "1"
+
+jobs:
+  weekly:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - name: 週次改善Issueを作成
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 _marketing/sns/tool/sns.py weekly

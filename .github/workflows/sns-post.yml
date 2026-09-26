@@ -1,0 +1,44 @@
+# SNS 定時投稿: 在庫（_marketing/sns/queue/）から1日1本
+# - 本番かどうかは _marketing/sns/config.json の mode で決まる（dry-run / live / paused）
+# - 手動実行（Run workflow）は既定でドライラン。初回は必ずドライランで投稿文を確認する
+# - 二重投稿防止: 送信前に sending/ へ確保してコミット（at-most-once）。同時実行もしない
+name: SNS 定時投稿
+
+on:
+  schedule:
+    - cron: "17 11 * * *" # 毎日 20:17 JST（毎時0分は混むので避ける）
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "ドライラン（投稿せず、投稿予定の文面だけ表示）"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: sns-post
+  cancel-in-progress: false
+
+env:
+  PYTHONDONTWRITEBYTECODE: "1"
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - name: 1本投稿
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SNS_FORCE_DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET: ${{ secrets.X_API_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
+          BSKY_HANDLE: ${{ secrets.BSKY_HANDLE }}
+          BSKY_APP_PASSWORD: ${{ secrets.BSKY_APP_PASSWORD }}
+        run: python3 _marketing/sns/tool/sns.py post

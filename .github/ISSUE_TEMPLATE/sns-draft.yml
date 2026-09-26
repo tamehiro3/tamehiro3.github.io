@@ -1,0 +1,59 @@
+name: SNS下書き（Typelessで話して投稿）
+description: 話した文章を置く → 機械検品 → ラベル「承認」で在庫へ。毎日1本ずつ自動投稿されます。
+title: "[SNS] "
+labels: ["SNS下書き"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **使い方**: 「投稿文」欄をタップして、Typelessで話します。
+        - 何本かまとめて話すときは、1本ごとに空行をはさんで `---`（全角の `ーーー` でも可）の行で区切ります。
+        - URLは話さず、下の「リンク先」で選びます（1投稿1リンク）。
+        - 保存すると数十秒で機械検品の結果がコメントされます。
+  - type: textarea
+    id: text
+    attributes:
+      label: 投稿文
+      description: Xなら1本あたり全角140字まで（リンクを付けると約128字）。@メンションは使えません。ハッシュタグは2個まで。
+      placeholder: "例）今日の謎。〇〇〇〇（答えはあした）"
+    validations:
+      required: true
+  - type: dropdown
+    id: genre
+    attributes:
+      label: ジャンル（輪番）
+      description: 輪番表は _marketing/BLUEPRINT.md の「投稿の型」を参照
+      options:
+        - 今日の謎
+        - 親子で
+        - 作り手の話
+        - 遊び方
+        - 大人の脳トレ時間
+        - 今週のおすすめ
+        - その他
+      default: 0
+    validations:
+      required: true
+  - type: dropdown
+    id: link
+    attributes:
+      label: リンク先（1投稿1リンク）
+      description: XのAPI料金はリンク付きだと1本約$0.20（リンクなしの約13倍）。リンク付きは週2本が目安です。
+      options:
+        - なし
+        - にんじゃミッション工房
+        - 忍びの謎巡り
+        - ポータル
+      default: 0
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: 検品チェック（機械検品のコメントを読んでから、自分でチェック）
+      description: 4つすべてにチェックしてからラベル「承認」を付けると在庫に入ります。
+      options:
+        - label: 文体｜自分の体験・自分の言葉になっている（Typelessの整形で意味が変わっていない）
+        - label: 事実｜数字・実績は事実台帳（_marketing/OFFER_FACTS.md）にあるものだけ
+        - label: リーガル｜効果・効能、No.1・最上級、NFT・投資・値上がりの話をしていない
+        - label: プライバシー｜子どもの名前・学校・顔など、個人が分かる情報がない

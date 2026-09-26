@@ -43,6 +43,18 @@ python tools/analyze.py improve/metrics_ep01.csv   # 投稿後の数字から改
 
 途中のコマだけ確認したいとき：`python3 tools/render.py episodes/ep01 --stills 0 12.5 30`
 
+## 見た目のスタイル
+
+`script.json` の `"style": "studio"` で、ゴールイメージに合わせた見た目になります（ep01・ep02 はこちら）。
+
+- 背景：夜の配信スタジオ。手前にキャラシートのマイク
+- キャラ：画面いっぱいに大きく表示し、文ごとにしぐさを変える
+- 図解：画面の説明が要る文だけ、上に白いカードが浮かぶ（`chat` / `settings` / `menu` / `list` / `compare`）。`big` / `cta` / `title` は頭の横に絵文字アイコンを出す
+- テロップ：胸元に明朝体（Zen Old Mincho Black）の白文字。【】は色ではなく大きさで強調
+- 見出し：区切りの最初の約2秒だけ、上に紺の帯を出す。そのあとカードが出る
+
+`style` を書かなければ、旧スタイル（上半分の図解パネル＋丸ゴシックのテロップ）になります。
+
 ## 台本ファイル（script.json）の書き方
 
 ```json

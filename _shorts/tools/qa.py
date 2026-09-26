@@ -266,7 +266,7 @@ def check_frames(ep, script, tl, final_mp4, rep, qa_dir):
             # 縮小率 = 実際の高さ / 縮小なしの想定高さ
             lines_n = max(1, round(ti.height / 150))
             natural_w = R.rich_width(c["text"].split("\n")[0], R.TELOP_SIZE, R.F_TELOP, R.TELOP_EMPH)
-            scale = min(1.0, R.TELOP_IMG_MAXW / (natural_w + 60)) if lines_n == 1 else 1.0
+            scale = c.get("scale") or (min(1.0, R.TELOP_IMG_MAXW / (natural_w + 60)) if lines_n == 1 else 1.0)
             ok_safe = x0 >= sx0 and x1 <= sx1 and y0 >= sy0 and y1 <= sy1
             trows.append({"line": ln["i"], "text": c["text"], "box": c["box"], "dur": round(dur, 2),
                           "scale": round(scale, 2), "safe": ok_safe})

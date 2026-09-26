@@ -674,6 +674,14 @@ def char_image(name, scale, crop_top_ratio=None):
     return out
 
 
+@lru_cache(maxsize=128)
+def char_plain(name, scale):
+    """白フチなし・やわらかい影つきのキャラ（スタジオ用）"""
+    im = Image.open(PARTS / f"{name}.png").convert("RGBA")
+    im = scaled(im, scale)
+    return shadowed(im, offset=(0, 18), blur=18, color=(10, 8, 30), opacity=0.45)
+
+
 def pose_scale_wide(name):
     im = Image.open(PARTS / f"{name}_m0.png")
     return 760 / im.height
@@ -812,7 +820,100 @@ class Renderer:
                 cur = ln
         return cur
 
+    # ------------------------------------------------------------------
+    # スタジオ・スタイル（ゴールイメージ準拠：全画面キャラ＋浮かぶカード＋胸元の明朝テロップ）
+    # ------------------------------------------------------------------
+    STUDIO_POSE = {"face": "pose01", "expr_normal": "pose01", "expr_happy": "pose06",
+                   "expr_angry": "pose04", "expr_sleepy": "pose05"}
+    CARD = (62, 110, 1018, 730)
+    STUDIO_TELOP = (505, 1250)
+    STUDIO_SAFE = (50, 150, 965, 1480)   # テロップは胸元。TikTok のキャプション帯（y 1500〜）より上
+
+    def frame_studio(self, f, log=None):
+        import studio as S
+        t = f / FPS
+        ln = self.line_at(t)
+        lt = t - ln["start"]
+        img = S.background().copy()
+
+        # ---- キャラクター（画面いっぱい。寄りは1.28倍） ----
+        m = int(self.mouth[f]) if f < len(self.mouth) else 0
+        if not (ln["start"] <= t <= ln["end"]):
+            m = 0
+        pose = self.STUDIO_POSE.get(ln["pose"], ln["pose"])
+        base = Image.open(PARTS / f"{pose}_m0.png")
+        s = 1450 / base.height * (1.25 if ln["shot"] == "close" else 1.0)
+        ci = char_plain(f"{pose}_m{m}", round(s, 4))
+        pop = ease_out_back(min(1, max(lt, 0) / 0.18)) if lt < 0.18 and f > 0 else 1
+        drift = 1 + 0.025 * min(1, max(lt, 0) / 4)
+        ci = scaled(ci, drift * (0.96 + 0.04 * pop))
+        breathe = math.sin(t * 2 * math.pi * 0.45) * 6
+        bob = -self.level[f] * 8 if f < len(self.level) else 0
+        top = (280 if ln["shot"] == "close" else 390) + breathe + bob
+        img.alpha_composite(ci, (int(500 - ci.width / 2), int(top)))
+
+        # ---- 手前のマイク ----
+        mc = S.mic(str(PARTS))
+        img.alpha_composite(mc, (W - mc.width + 70, H - mc.height + 90))
+
+        # ---- 見出しの帯（区切りの最初の約2秒） ----
+        sec = ln["section"]
+        card_delay = 0.0
+        if sec and ln["heading"]:
+            st = t - sec["t"]
+            if st < 2.1:
+                a = min(1, st / 0.15, (2.1 - st) / 0.2)
+                bar = S.heading_bar(sec["text"])
+                img.alpha_composite(with_alpha(bar, a), ((W - bar.width) // 2, 250))
+            card_delay = 1.9
+            if log is not None:
+                log["heading"] = sec["text"]
+
+        # ---- 図解：画面ならカード、それ以外は頭の横に浮かぶアイコン ----
+        v = ln["visual"]
+        if v:
+            ct = lt - card_delay
+            if v["type"] in ("big", "cta", "title"):
+                if ct >= 0 and v.get("emoji"):
+                    k = ease_out_back(min(1, ct / 0.3)) if (ln["enter"] or card_delay) else 1
+                    st_img = S.sticker(v["emoji"], 230, ring=v["type"] == "cta")
+                    left = ln["i"] % 2 == 0
+                    cx, cy = (250 if left else 830), 520 + math.sin(t * 3) * 10
+                    paste_center(img, scaled(st_img, max(0.05, k)), cx, cy)
+            elif ct >= 0 or not ln["enter"]:
+                enter = ln["enter"] or card_delay > 0
+                tt = max(0.0, ct) if enter else max(0.0, lt)
+                x0, y0, x1, y1 = self.CARD
+                card = S.card_base(x1 - x0, y1 - y0).copy()
+                layer = VISUALS[v["type"]](v, tt, enter)
+                card.alpha_composite(layer, (30 + (x1 - x0 - CW) // 2, 30 + (y1 - y0 - CH) // 2))
+                if v["type"] in MOCK_TYPES:
+                    ImageDraw.Draw(card).text((x1 - x0 + 10, y1 - y0 + 20), "※画面はイメージです",
+                                              font=font(F_BOLD, 24), fill=GRAY, anchor="rs")
+                k = ease_out(min(1, tt / 0.22)) if enter else 1
+                card = with_alpha(scaled(card, 0.92 + 0.08 * k), k)
+                paste_center(img, card, (x0 + x1) / 2, (y0 + y1) / 2 + (1 - k) * 30)
+
+        # ---- テロップ（胸元・明朝・声の区切りで切り替え） ----
+        chunk = ln["chunks"][0]
+        for c in ln["chunks"]:
+            if t >= c["t"] - 0.03:
+                chunk = c
+        ti = S.telop(chunk["text"])
+        ct2 = t - chunk["t"]
+        sc = 0.9 + 0.1 * ease_out(ct2 / 0.12) if 0 <= ct2 < 0.12 and f > 0 else 1
+        paste_center(img, scaled(ti, sc), *self.STUDIO_TELOP)
+
+        out = img.convert("RGB")
+        if t < 0.25:
+            k = 1 + 0.05 * (1 - ease_out(t / 0.25))
+            big = out.resize((int(W * k), int(H * k)), Image.BICUBIC)
+            out = big.crop(((big.width - W) // 2, (big.height - H) // 2, (big.width - W) // 2 + W, (big.height - H) // 2 + H))
+        return out
+
     def frame(self, f, log=None):
+        if self.script.get("style") == "studio":
+            return self.frame_studio(f, log)
         if self.bg is None:
             self.bg = build_background(self.script.get("series", ""))
         t = f / FPS
@@ -964,12 +1065,19 @@ def main():
         return
 
     # タイムラインを QA 用に保存（テロップの外接矩形つき）
+    studio_style = R.script.get("style") == "studio"
+    if studio_style:
+        import studio as S
     for ln in R.lines:
         for c in ln["chunks"]:
-            ti = telop_image(c["text"])
-            c["box"] = [int(TELOP_CX - ti.width / 2), int(TELOP_CY - ti.height / 2),
-                        int(TELOP_CX + ti.width / 2), int(TELOP_CY + ti.height / 2)]
-    tl = {"total": R.total, "fps": FPS, "safe": SAFE, "lines": R.lines, "events": R.events}
+            if studio_style:
+                ti = S.telop(c["text"])
+                cx, cy = Renderer.STUDIO_TELOP
+                c["scale"] = ti.info.get("scale", 1.0)
+            else:
+                ti, (cx, cy) = telop_image(c["text"]), (TELOP_CX, TELOP_CY)
+            c["box"] = [int(cx - ti.width / 2), int(cy - ti.height / 2), int(cx + ti.width / 2), int(cy + ti.height / 2)]
+    tl = {"total": R.total, "fps": FPS, "safe": Renderer.STUDIO_SAFE if studio_style else SAFE, "lines": R.lines, "events": R.events}
     (out / "timeline.json").write_text(json.dumps(tl, ensure_ascii=False, indent=1))
 
     with tempfile.TemporaryDirectory() as tmp:

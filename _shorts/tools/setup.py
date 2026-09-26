@@ -18,6 +18,8 @@ DOWNLOADS = {
         "https://raw.githubusercontent.com/google/fonts/main/ofl/mplusrounded1c/MPLUSRounded1c-Black.ttf",
     "assets/fonts/MPLUSRounded1c-Bold.ttf":
         "https://raw.githubusercontent.com/google/fonts/main/ofl/mplusrounded1c/MPLUSRounded1c-Bold.ttf",
+    "assets/fonts/ZenOldMincho-Black.ttf":
+        "https://raw.githubusercontent.com/google/fonts/main/ofl/zenoldmincho/ZenOldMincho-Black.ttf",
     "assets/models/noise1_scale2.0x_model.param":
         "https://raw.githubusercontent.com/nihui/waifu2x-ncnn-vulkan/master/models/models-cunet/noise1_scale2.0x_model.param",
     "assets/models/noise1_scale2.0x_model.bin":

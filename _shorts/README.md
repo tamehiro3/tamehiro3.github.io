@@ -1,0 +1,71 @@
+# ショート動画パイプライン（AI初心者の時短ワザ）
+
+台本からキャラクター動画（1080×1920 / 60秒）を作って点検し、投稿・改善までを回すための作業フォルダです。
+フォルダ名が `_` で始まるので、GitHub Pages（Jekyll）のサイトには公開されません。
+
+## 10ステップと成果物
+
+| # | ステップ | 成果物 | 状態 |
+|---|---|---|---|
+| ① | 伸びている動画のリサーチ | `research/01_trend_research.md` | 済（各SNSのページを開けなかったため、数値は検索と記事から） |
+| ② | テーマ別の60秒台本 | `scripts/02_scripts_by_theme.md`（5本）、`episodes/ep01/script.json` | 済 |
+| ③ | ためひろさんの声のクローン（fal） | `tools/tts.py --engine fal`、`voice_ref/README.md` | **未**：fal.ai に接続できず、`FAL_KEY` も声の素材もないため |
+| ④ | 1文ずつ音声化 | `episodes/ep01/audio/`（timing.json） | 仮の合成音声（Open JTalk）で作成。③ができたら差し替える |
+| ⑤ | キャラクターシートの組み合わせ | `tools/extract_assets.py` | 済：顔9状態（口パク×まばたき）、10ポーズ、表情4つ |
+| ⑥ | 60秒の動画編集 | `tools/render.py` → `episodes/ep01/out/ep01.mp4` | 済（57.3秒） |
+| ⑦ | テロップ・見出し・図解・効果音 | 同上 | 済 |
+| ⑧ | 軍配で点検 | `tools/qa.py` → `episodes/ep01/out/qa/`（qa_report.md、gunbai_review.md、frames_*.png） | 機械検品は通過。出荷判定は「保留（条件つき）」 |
+| ⑨ | 3媒体に投稿（AIラベルON） | `episodes/ep01/post/captions.md` | キャプションは作成済み。**投稿は未**（接続手段なし） |
+| ⑩ | 数字から改善点を出す → 次の動画 | `improve/10_improvement_plan.md`、`tools/analyze.py`、`episodes/ep02/` | 計測シートと分析ツール、改善を反映した次回の動画を作成済み |
+
+## 使い方
+
+```bash
+bash tools/setup.sh                      # 初回のみ（apt・pip・フォント・モデル・素材の準備）
+python3 tools/tts.py episodes/ep01       # 音声（仮の声）。クローン声なら --engine fal
+python3 tools/render.py episodes/ep01    # 動画の書き出し（4並列で約40秒）
+python3 tools/qa.py episodes/ep01        # 機械検品（レポートと1秒ごとのコマ）
+python3 tools/analyze.py improve/metrics_ep01.csv   # 投稿後の数字から改善点を出す
+```
+
+途中のコマだけ確認したいとき：`python3 tools/render.py episodes/ep01 --stills 0 12.5 30`
+
+## 台本ファイル（script.json）の書き方
+
+```json
+{"text": "それ、ChatGPTに／打ち込んで【大丈夫？】",
+ "tts": "それ、チャットジーピーティーに／打ち込んで大丈夫？",
+ "shot": "close", "pose": "face", "heading": "なぜ？", "se": "ding",
+ "visual": {"type": "title", "emoji": "😨", "text": "それ、打ち込んで\n【大丈夫？】"}}
+```
+
+- `／`：声の区切り。ここでテロップが切り替わる（時刻は音声から自動で推定）
+- `【】`：大きく黄色で出す言葉（図解の中では赤）
+- `tts`：読み方を指定したいときだけ書く（英字・数字はカナにする）
+- `shot`：`close`（寄り）か `wide`（引き）。書かなければ1文ごとに交互
+- `pose`
+  - `face`：口パク＋まばたきの顔
+  - `pose01`〜`pose10`：10ポーズ。寄りのときは上半身を切り出し、05と07以外は口パクあり
+  - `expr_happy` / `expr_angry` / `expr_sleepy` / `expr_normal`：表情
+- `heading`：話の区切りの見出し。中央に大きく出たあと、パネル左上に残る
+- `se`：`ding` / `kira` / `pop` / `whoosh`。冒頭の「ドンッ」と見出しの「ポン」は自動で入る
+- `visual`：上半分の図解
+  - `title` / `big` / `cta`：大きな文字と絵文字
+  - `chat`：チャット画面（`stamp` でハンコ）
+  - `settings`：設定画面（`toggle`、`switch_to` でオン→オフの演出）
+  - `menu`：メニュー一覧
+  - `list`：番号つきの一覧（`show` で1つずつ増やす）
+  - `compare`：比べる2枚のカード
+
+## 画面の設計
+
+- 上：図解パネル（y 150〜890）
+- 中：テロップ（中心 y 1010、x 59〜955）
+- 下：キャラクター
+- TikTok・リール・ショートの右側ボタンと下のキャプションに隠れないよう、テロップと見出しは x 50〜965・y 150〜1440 に収めています（`qa.py` で毎回確認）。
+
+## ライセンス
+
+- テロップのフォント M PLUS Rounded 1c と Noto Sans CJK / Noto Color Emoji は SIL Open Font License 1.1
+- waifu2x のモデルは MIT
+- 効果音は `tools/sfx.py` でその場で合成（外部素材なし）

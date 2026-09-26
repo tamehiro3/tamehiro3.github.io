@@ -1,0 +1,13 @@
+# 再生成できる中間ファイル
+build/
+episodes/*/out/still_*.png
+episodes/*/out/*.wav
+episodes/*/audio/*.wav
+episodes/test/
+# 外部から取得するもの（tools/setup.sh が取得）
+assets/fonts/*.ttf
+assets/models/
+# 声の素材とクローンID（個人の声なのでリポジトリに入れない）
+voice_ref/*
+!voice_ref/README.md
+__pycache__/

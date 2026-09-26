@@ -115,7 +115,7 @@ def norm(s):
 
 def check_audio(ep, script, tl, final_mp4, rep):
     lines = tl["lines"]
-    timing = json.loads((ep / "audio" / "timing.json").read_text())
+    timing = json.loads((ep / "audio" / "timing.json").read_text(encoding="utf-8"))
     rows, issues = [], []
     engine = next(iter(timing.values()))["engine"]
     # 最終 mp4 から音声を取り出す
@@ -300,7 +300,7 @@ def check_frames(ep, script, tl, final_mp4, rep, qa_dir):
 # ---------------- C. 音量 ----------------
 def ebur128(path):
     r = subprocess.run(["ffmpeg", "-hide_banner", "-nostats", "-i", str(path), "-filter_complex",
-                        "ebur128=peak=true", "-f", "null", "-"], capture_output=True, text=True)
+                        "ebur128=peak=true", "-f", "null", "-"], capture_output=True, text=True, encoding="utf-8", errors="replace")
     s = r.stderr[r.stderr.rfind("Summary:"):]
     get = lambda k: float(re.search(k + r":\s+(-?[\d.]+)", s).group(1))
     return {"I_LUFS": get("I"), "LRA_LU": get("LRA"), "TruePeak_dBTP": get("Peak")}
@@ -393,10 +393,10 @@ def main():
     sections["C 音量（声・効果音）"] = check_levels(ep, tl, final, rep)
     sections["D 台本ルール"] = check_script(script, tl, rep)
     probe = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "stream=codec_name,width,height,r_frame_rate,sample_rate,channels",
-                            "-show_entries", "format=duration,size", "-of", "json", str(final)], capture_output=True, text=True)
+                            "-show_entries", "format=duration,size", "-of", "json", str(final)], capture_output=True, text=True, encoding="utf-8", errors="replace")
     rep["file"] = json.loads(probe.stdout)
     rep["sections"] = sections
-    (qa_dir / "qa.json").write_text(json.dumps(rep, ensure_ascii=False, indent=1))
+    (qa_dir / "qa.json").write_text(encoding="utf-8", data=json.dumps(rep, ensure_ascii=False, indent=1))
 
     L = [f"# 機械検品レポート: {ep.name}", ""]
     total = sum(len(v) for v in sections.values())

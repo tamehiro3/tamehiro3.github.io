@@ -120,7 +120,7 @@ def clone_voice(source: str, start: float = 0, seconds: float = 90, name: str = 
     source はローカルの音声ファイルか https URL。ローカルなら start 秒目から seconds 秒を切り出して送る。
     結果は voice_ref/voice_id.json に保存し、次回からはそれを使う（force=True で作り直し）。"""
     if VOICE_CACHE.exists() and not force:
-        return json.loads(VOICE_CACHE.read_text())["custom_voice_id"]
+        return read_voice()["custom_voice_id"]
     if source.startswith("https://"):
         url = source
     else:
@@ -149,9 +149,8 @@ def clone_voice(source: str, start: float = 0, seconds: float = 90, name: str = 
             url = upload(clip)
     res = _subscribe(CLONE_MODEL, {"audio_url": url, "noise_reduction": True, "need_volume_normalization": True})
     vid = res["custom_voice_id"]
-    VOICE_CACHE.parent.mkdir(exist_ok=True)
-    VOICE_CACHE.write_text(json.dumps({"custom_voice_id": vid, "source": name or Path(source).name,
-                                       "start": start, "seconds": seconds}, ensure_ascii=False))
+    write_voice({"custom_voice_id": vid, "source": name or Path(source).name,
+                 "start": start, "seconds": seconds})
     return vid
 
 
@@ -176,16 +175,32 @@ def tts(text: str, voice_id: str, out_path: Path, model: str = TTS_MODEL, speed:
     return out_path
 
 
+def read_voice() -> dict:
+    """voice_id.json を読む。古い版が Windows で Shift_JIS のまま保存したファイルも読めるようにする"""
+    raw = VOICE_CACHE.read_bytes()
+    for enc in ("utf-8", "cp932"):
+        try:
+            return json.loads(raw.decode(enc))
+        except (UnicodeDecodeError, json.JSONDecodeError):
+            continue
+    raise SystemExit(f"{VOICE_CACHE} が読めません。clone --force で作り直してください")
+
+
+def write_voice(d: dict) -> None:
+    VOICE_CACHE.parent.mkdir(exist_ok=True)
+    VOICE_CACHE.write_text(json.dumps(d, ensure_ascii=False), encoding="utf-8")
+
+
 def is_approved() -> bool:
-    return VOICE_CACHE.exists() and json.loads(VOICE_CACHE.read_text()).get("approved") is True
+    return VOICE_CACHE.exists() and read_voice().get("approved") is True
 
 
 def approve() -> None:
     if not VOICE_CACHE.exists():
         raise SystemExit("先に clone を実行してください")
-    d = json.loads(VOICE_CACHE.read_text())
+    d = read_voice()
     d["approved"] = True
-    VOICE_CACHE.write_text(json.dumps(d, ensure_ascii=False))
+    write_voice(d)
 
 
 def selftest() -> None:
@@ -241,7 +256,7 @@ def main():
     elif a.cmd == "tts":
         if not VOICE_CACHE.exists():
             raise SystemExit("先に clone を実行してください")
-        vid = json.loads(VOICE_CACHE.read_text())["custom_voice_id"]
+        vid = read_voice()["custom_voice_id"]
         print("saved", tts(a.text, vid, Path(a.out), speed=a.speed))
     elif a.cmd == "transcribe":
         print(transcribe(Path(a.path)).get("text", ""))

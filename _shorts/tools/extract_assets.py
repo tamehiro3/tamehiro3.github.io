@@ -246,5 +246,5 @@ if __name__ == "__main__":
     cells, mouth_src = build_faces(meta)
     build_poses(meta, cells, mouth_src)
     build_sheet(meta)
-    (OUT / "parts.json").write_text(json.dumps(meta, ensure_ascii=False, indent=1, default=int))
+    (OUT / "parts.json").write_text(encoding="utf-8", data=json.dumps(meta, ensure_ascii=False, indent=1, default=int))
     print(json.dumps(meta["poses"], ensure_ascii=False))

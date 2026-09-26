@@ -1038,7 +1038,7 @@ def loudnorm(src, dst, target=-14.0):
     """2パスで -14 LUFS / TP -1.5 に合わせる（TikTok・リール・ショート共通の目安）"""
     r = subprocess.run(["ffmpeg", "-hide_banner", "-i", str(src), "-af",
                         f"loudnorm=I={target}:TP=-1.5:LRA=11:print_format=json", "-f", "null", "-"],
-                       capture_output=True, text=True)
+                       capture_output=True, text=True, encoding="utf-8", errors="replace")
     js = json.loads(r.stderr[r.stderr.rfind("{"):])
     subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(src), "-af",
                     f"loudnorm=I={target}:TP=-1.5:LRA=11:measured_I={js['input_i']}:measured_TP={js['input_tp']}:"
@@ -1078,7 +1078,7 @@ def main():
                 ti, (cx, cy) = telop_image(c["text"]), (TELOP_CX, TELOP_CY)
             c["box"] = [int(cx - ti.width / 2), int(cy - ti.height / 2), int(cx + ti.width / 2), int(cy + ti.height / 2)]
     tl = {"total": R.total, "fps": FPS, "safe": Renderer.STUDIO_SAFE if studio_style else SAFE, "lines": R.lines, "events": R.events}
-    (out / "timeline.json").write_text(json.dumps(tl, ensure_ascii=False, indent=1))
+    (out / "timeline.json").write_text(encoding="utf-8", data=json.dumps(tl, ensure_ascii=False, indent=1))
 
     with tempfile.TemporaryDirectory() as tmp:
         tmp = Path(tmp)
@@ -1091,7 +1091,7 @@ def main():
         with Pool(a.jobs, initializer=_init, initargs=(str(ep),)) as pool:
             for k, p in enumerate(pool.imap(_render_segment, segs)):
                 print(f"  segment {k + 1}/{len(segs)}", flush=True)
-        (tmp / "list.txt").write_text("".join(f"file '{Path(p).as_posix()}'\n" for _, _, p in segs))
+        (tmp / "list.txt").write_text(encoding="utf-8", data="".join(f"file '{Path(p).as_posix()}'\n" for _, _, p in segs))
         final = out / f"{ep.name}.mp4"
         subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "concat", "-safe", "0", "-i", str(tmp / "list.txt"),
                         "-i", str(tmp / "mix_norm.wav"), "-map", "0:v", "-map", "1:a", "-c:v", "copy",

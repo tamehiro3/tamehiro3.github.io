@@ -57,7 +57,7 @@ def fal_voice_id(ep: Path, cfg: dict) -> str:
     import fal_api
 
     if fal_api.VOICE_CACHE.exists():
-        return json.loads(fal_api.VOICE_CACHE.read_text())["custom_voice_id"]
+        return fal_api.read_voice()["custom_voice_id"]
     # VOICE_REF_URL があれば、ファイルをリポジトリに置かずにそのURLから取り込ませる
     src = os.environ.get("VOICE_REF_URL")
     if not src:
@@ -145,7 +145,7 @@ def main():
     out = ep / "audio"
     out.mkdir(exist_ok=True)
     timing_path = out / "timing.json"
-    timing = json.loads(timing_path.read_text()) if timing_path.exists() else {}
+    timing = json.loads(timing_path.read_text(encoding="utf-8")) if timing_path.exists() else {}
     if engine == "fal":
         import fal_api
         fal_api.load_key()   # キーが無ければここで止まる
@@ -168,7 +168,7 @@ def main():
         timing[f"{i:02d}"] = {"engine": engine, "tts": text, "dur": round(len(x) / SR, 3),
                               "bounds": chunk_bounds(x, chunks, cfg)}
         print(f"{i:02d} {len(x) / SR:5.2f}s {text}")
-    timing_path.write_text(json.dumps(timing, ensure_ascii=False, indent=1))
+    timing_path.write_text(encoding="utf-8", data=json.dumps(timing, ensure_ascii=False, indent=1))
     total = sum(v["dur"] for v in timing.values())
     print(f"音声合計 {total:.1f}s（{len(timing)}文）")
 

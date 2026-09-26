@@ -99,6 +99,22 @@ def upload(path: Path) -> str:
     return _client().upload_file(str(path))
 
 
+def find_audio(name: str, limit_sec: float = 60) -> list:
+    """ファイル名だけ渡されたとき、ホームフォルダの下から探す（Documents / OneDrive / Obsidian の保管庫など）"""
+    import time
+    if not name or not Path(name).suffix:
+        return []
+    skip = {"AppData", "node_modules", ".git", "site-packages", "$Recycle.Bin", "Library"}
+    start, hits = time.time(), []
+    for root, dirs, files in os.walk(Path.home()):
+        dirs[:] = [d for d in dirs if d not in skip and not d.startswith(".")]
+        if name in files:
+            hits.append(Path(root) / name)
+        if time.time() - start > limit_sec:
+            break
+    return hits
+
+
 def clone_voice(source: str, start: float = 0, seconds: float = 90, name: str = "", force: bool = False) -> str:
     """MiniMax で声をクローンして custom_voice_id を返す。
     source はローカルの音声ファイルか https URL。ローカルなら start 秒目から seconds 秒を切り出して送る。
@@ -109,6 +125,14 @@ def clone_voice(source: str, start: float = 0, seconds: float = 90, name: str = 
         url = source
     else:
         src = Path(source)
+        if not src.exists():
+            found = find_audio(src.name)
+            if len(found) == 1:
+                print(f"見つけました: {found[0]}")
+                src, source = found[0], str(found[0])
+            elif len(found) > 1:
+                raise SystemExit("同じ名前のファイルが複数あります。使うものを \"\" で囲んで指定してください:\n  "
+                                 + "\n  ".join(str(f) for f in found))
         if not src.exists():
             raise SystemExit(f"音声ファイル「{source}」が見つかりません。\n"
                              "「声のファイルのパス」の部分は、実際のファイルの場所に置き換えてください。\n"

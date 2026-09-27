@@ -98,7 +98,7 @@ python tools/analyze.py improve/metrics_ep01.csv   # 投稿後の数字から改
 ## できた動画を Discord に送る
 
 1. Discord で「チャンネルの編集 → 連携サービス → ウェブフック → 新しいウェブフック → ウェブフックURLをコピー」
-2. その URL を、リポジトリの外のファイル `C:\Users\3mori\SNS\discord_webhook.txt` に1行で保存する（git に上げない・チャットに貼らない）
+2. `python tools/discord_send.py setup` を実行する（コピーした URL を自動で読み取り、リポジトリの外の `C:\Users\3mori\SNS\discord_webhook.txt` に保存する。読み取れなければ貼り付けを求める）
 3. `python tools/discord_send.py check` で、送れる状態か確かめる（投稿はしない）
 4. 作るついでに送る: `python tools/make.py ep12 ep10 ep14 --engine fal --discord`
    できている動画だけ送る: `python tools/discord_send.py ep12 ep10 ep14`

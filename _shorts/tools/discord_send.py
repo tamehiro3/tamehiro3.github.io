@@ -4,6 +4,7 @@ Webhook の URL はコードに書かず、リポジトリの外のファイル�
   いちばんおすすめ: C:\\Users\\3mori\\SNS\\discord_webhook.txt （リポジトリの1つ上のフォルダ）
 ファイルの中身は URL だけの1行でよい（説明や見出しが混ざっていても URL の部分だけ拾う）。
 
+  python tools/discord_send.py setup                 # 最初の1回：URL を貼るだけで保存する（おすすめ）
   python tools/discord_send.py check                 # URL が読めて、Webhook が生きているか（投稿はしない）
   python tools/discord_send.py ep12 ep10 ep14        # 動画を送る
   python tools/discord_send.py ep12 --limit-mb 50    # サーバーのブーストで上限が大きいとき
@@ -45,20 +46,85 @@ def extract_url(raw: bytes) -> str:
     return m.group(0) if m else ""
 
 
+SAVE_TO = _OUTSIDE / "discord_webhook.txt"
+NAME_HINTS = ("discord", "ディスコード", "webhook", "ウェブフック", "ウェブフック")
+
+
+def _find_file():
+    """決まった名前 → リポジトリの外のフォルダにある「discord / webhook」を含む名前のファイル →
+    そのフォルダのテキストファイルの中身、の順に探す（メモ帳で .txt.txt になっていても見つける）"""
+    f = next((p for p in URL_CANDIDATES if p.is_file()), None)
+    if f:
+        return f
+    try:
+        files = [p for p in _OUTSIDE.iterdir() if p.is_file() and p.stat().st_size < 65536]
+    except OSError:
+        return None
+    named = [p for p in files if any(h in p.name.lower() for h in NAME_HINTS)]
+    texts = [p for p in files if p.suffix.lower() in (".txt", ".md", "")]
+    for p in named + texts:
+        try:
+            if extract_url(p.read_bytes()):
+                return p
+        except OSError:
+            continue
+    return named[0] if named else None
+
+
+def _clipboard() -> str:
+    cmds = [["powershell", "-NoProfile", "-Command", "Get-Clipboard"]] if os.name == "nt" else [["pbpaste"]]
+    for c in cmds:
+        try:
+            r = subprocess.run(c, capture_output=True, timeout=10)
+            return extract_url(r.stdout)
+        except (OSError, subprocess.SubprocessError):
+            pass
+    return ""
+
+
+def _alive(url: str) -> dict:
+    req = urllib.request.Request(url, headers={"User-Agent": UA})
+    try:
+        with urllib.request.urlopen(req, timeout=20) as r:
+            return json.loads(r.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        raise SystemExit(f"Webhook に届きません（HTTP {e.code}）。URL が古いか、Webhook が削除されています: {masked(url)}")
+    except urllib.error.URLError as e:
+        raise SystemExit(f"Discord につながりません（ネットワーク）: {e.reason}")
+
+
+def setup() -> str:
+    """URL をコピーした状態で実行すれば、そのまま保存する。コピーしていなければ貼り付けてもらう"""
+    print("Discord の「チャンネルの編集 → 連携サービス → ウェブフック → ウェブフックURLをコピー」で URL をコピーしてください。")
+    url = _clipboard()
+    if url:
+        print(f"コピーされている URL を使います: {masked(url)}")
+    else:
+        import getpass
+        raw = getpass.getpass("URL を貼り付けて Enter（右クリック か Ctrl+V。画面には表示されません）: ")
+        url = extract_url(raw.encode("utf-8"))
+        if not url:
+            raise SystemExit("Webhook の URL ではありませんでした（https://discord.com/api/webhooks/... で始まるもの）。もう一度どうぞ")
+    info = _alive(url)
+    SAVE_TO.write_text(url + "\n", encoding="utf-8")
+    print(f"保存しました: {SAVE_TO}（リポジトリの外なので GitHub には上がりません）")
+    print(f"OK: Webhook「{info.get('name', '?')}」に送れます")
+    return url
+
+
 def load_url() -> str:
     env = os.environ.get("DISCORD_WEBHOOK_URL", "")
     if URL_RE.fullmatch(env.strip()):
         return env.strip()
-    f = next((p for p in URL_CANDIDATES if p.exists()), None)
-    if f is None:
-        raise SystemExit("Discord の Webhook URL が見つかりません。次のどれかに URL を1行で保存してください:\n  "
-                         + "\n  ".join(str(p) for p in URL_CANDIDATES[:1] + URL_CANDIDATES[4:5]))
-    url = extract_url(f.read_bytes())
-    if not url:
-        raise SystemExit(f"{f} の中に Webhook の URL が見つかりません。\n"
-                         "Discord の「チャンネルの編集 → 連携サービス → ウェブフック → ウェブフックURLをコピー」で"
-                         "コピーした URL（https://discord.com/api/webhooks/... で始まる）を貼ってください")
-    return url
+    f = _find_file()
+    url = extract_url(f.read_bytes()) if f else ""
+    if url:
+        return url
+    if sys.stdin and sys.stdin.isatty():
+        print("Discord の Webhook URL がまだ保存されていません。いま設定します。\n")
+        return setup()
+    where = f"{f} の中に URL がありません。" if f else "URL が保存されていません。"
+    raise SystemExit(f"{where}\n  python tools/discord_send.py setup\nを実行して、URL を貼り付けてください")
 
 
 def masked(url: str) -> str:
@@ -67,12 +133,7 @@ def masked(url: str) -> str:
 
 def check():
     url = load_url()
-    req = urllib.request.Request(url, headers={"User-Agent": UA})
-    try:
-        with urllib.request.urlopen(req, timeout=20) as r:
-            info = json.loads(r.read().decode("utf-8"))
-    except urllib.error.HTTPError as e:
-        raise SystemExit(f"Webhook に届きません（HTTP {e.code}）。URL が古いか、Webhook が削除されています: {masked(url)}")
+    info = _alive(url)
     print(f"OK: Webhook「{info.get('name', '?')}」に送れます（{masked(url)}）")
 
 
@@ -163,11 +224,13 @@ def main():
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     ap = argparse.ArgumentParser()
-    ap.add_argument("episodes", nargs="+", help="check または ep12 ep10 ...")
+    ap.add_argument("episodes", nargs="+", help="setup / check / ep12 ep10 ...")
     ap.add_argument("--limit-mb", type=float, default=10.0, help="Discord の1ファイルの上限（無料は 10）")
     a = ap.parse_args()
     if a.episodes == ["check"]:
         check()
+    elif a.episodes == ["setup"]:
+        setup()
     else:
         send(a.episodes, a.limit_mb)
 

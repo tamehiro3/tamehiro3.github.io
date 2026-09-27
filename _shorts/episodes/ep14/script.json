@@ -1,0 +1,243 @@
+{
+ "id": "ep14",
+ "theme": "iDeCoの掛金上限が2026年12月分から引き上げ（会社員 月6.2万円・70歳未満まで加入）",
+ "style": "studio",
+ "series": "AI初心者の時短ワザ",
+ "voice": {
+  "engine": "openjtalk",
+  "speed": 1.15,
+  "pitch": 2.5,
+  "intonation": 1.5,
+  "fal_model": "fal-ai/minimax/speech-02-hd",
+  "fal_speed": 1.0,
+  "emotion": "happy"
+ },
+ "sources": [
+  "https://www.gov-online.go.jp/article/202412/entry-6825.html",
+  "https://info.monex.co.jp/news/2026/20260514_01.html",
+  "https://dc.rakuten-sec.co.jp/about/revised/202505/"
+ ],
+ "lines": [
+  {
+   "text": "iDeCoの上限、12月から／【変わる】って知ってた？",
+   "tts": "イデコの上限、じゅうにがつから／変わるって知ってた？",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🤔",
+    "text": "iDeCoの上限\n12月から【変わる】",
+    "size": 92
+   }
+  },
+  {
+   "text": "企業年金がない会社員は、／上限が【大きく上がる】",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "📈",
+    "text": "上限が\n【大きく上がる】",
+    "size": 100
+   }
+  },
+  {
+   "text": "月2.3万円から、／【6.2万円】に上がる",
+   "tts": "つきにいてんさんまんえんから、／ろくてんにまんえんに上がる",
+   "heading": "何が変わる？",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "list",
+    "title": "企業年金なしの会社員",
+    "items": [
+     "いま：月【2.3万円】",
+     "12月から：月【6.2万円】"
+    ],
+    "show": 2,
+    "hl": 1
+   }
+  },
+  {
+   "text": "自営業の人も、／月【7.5万円】に上がる",
+   "tts": "自営業の人も、／つきななてんごまんえんに上がる",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "list",
+    "title": "自営業など",
+    "items": [
+     "いま：月【6.8万円】",
+     "12月から：月【7.5万円】"
+    ],
+    "show": 2,
+    "hl": 1
+   }
+  },
+  {
+   "text": "加入できる年齢も、／【70歳未満】まで延びる",
+   "tts": "加入できる年齢も、／ななじゅっさい未満まで延びる",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "👵",
+    "text": "加入は\n【70歳未満】まで",
+    "size": 100
+   }
+  },
+  {
+   "text": "変わるのは、／【12月分の掛金】から",
+   "tts": "変わるのは、／じゅうにがつぶんの掛金から",
+   "heading": "いつから？",
+   "shot": "wide",
+   "pose": "pose06",
+   "visual": {
+    "type": "big",
+    "emoji": "📅",
+    "text": "【12月分】の掛金から",
+    "size": 96,
+    "sub": "引き落としは2027年1月"
+   }
+  },
+  {
+   "text": "引き落としでいうと、／【来年1月】からなんよ",
+   "tts": "引き落としでいうと、／らいねんいちがつからなんよ",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "🗓️",
+    "text": "引き落としは\n【来年1月】から",
+    "size": 96
+   }
+  },
+  {
+   "text": "ただ、掛金が【勝手に増える】／わけじゃないで",
+   "heading": "注意！",
+   "shot": "wide",
+   "pose": "pose09",
+   "visual": {
+    "type": "big",
+    "emoji": "⚠️",
+    "text": "掛金は\n【勝手に増えない】",
+    "size": 96
+   }
+  },
+  {
+   "text": "増やしたい人は、／【変更の手続き】が要る",
+   "shot": "close",
+   "pose": "pose05",
+   "visual": {
+    "type": "big",
+    "emoji": "📝",
+    "text": "増やすなら\n【変更の手続き】",
+    "size": 96
+   }
+  },
+  {
+   "text": "案内は、口座がある／【金融機関】から届く",
+   "shot": "wide",
+   "pose": "pose10",
+   "visual": {
+    "type": "big",
+    "emoji": "📩",
+    "text": "案内は\n【金融機関】から",
+    "size": 100
+   }
+  },
+  {
+   "text": "企業年金がある人は、／【上限の計算】が違う",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "🧩",
+    "text": "企業年金がある人は\n【計算が違う】",
+    "size": 88
+   }
+  },
+  {
+   "text": "会社の制度とあわせて、／【いくらまで】か確認",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "🔍",
+    "text": "会社の制度と\n【あわせて確認】",
+    "size": 96
+   }
+  },
+  {
+   "text": "掛金は【全額】、／所得から差し引ける",
+   "heading": "なぜ気にする？",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "🧾",
+    "text": "掛金は【全額】\n所得から差し引ける",
+    "size": 84
+   }
+  },
+  {
+   "text": "ただ原則【60歳まで】、／お金は引き出せない",
+   "tts": "ただ原則ろくじゅっさいまで、／お金は引き出せない",
+   "shot": "wide",
+   "pose": "expr_angry",
+   "visual": {
+    "type": "big",
+    "emoji": "🔒",
+    "text": "原則【60歳まで】\n引き出せない",
+    "size": 96
+   }
+  },
+  {
+   "text": "無理のない金額かどうか、／【先に考えて】な",
+   "heading": "まとめ",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "🤔",
+    "text": "無理のない金額か\n【先に考える】",
+    "size": 92
+   }
+  },
+  {
+   "text": "何を買うかは、／【自分で調べて】決めてな",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "big",
+    "emoji": "🔍",
+    "text": "何を買うかは\n【自分で調べる】",
+    "size": 96
+   }
+  },
+  {
+   "text": "iDeCoをしてる同僚に、／【送ってあげて】",
+   "tts": "イデコをしてる同僚に、／送ってあげて",
+   "shot": "close",
+   "pose": "pose02",
+   "visual": {
+    "type": "cta",
+    "emoji": "📩",
+    "text": "同僚にも\n【送ってあげて】",
+    "size": 100,
+    "bounce": true
+   }
+  },
+  {
+   "text": "じゃあもう一回、／最初の質問に戻るね",
+   "shot": "wide",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🤔",
+    "text": "iDeCoの上限\n12月から【変わる】",
+    "size": 92
+   }
+  }
+ ]
+}

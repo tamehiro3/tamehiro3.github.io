@@ -1,0 +1,264 @@
+{
+ "id": "ep08",
+ "theme": "家計簿アプリ（マネーフォワード ME）をChatGPTにつなぐ前に確かめる3つのこと（2026-09-17 提供開始）",
+ "style": "studio",
+ "series": "AI初心者の時短ワザ",
+ "voice": {
+  "engine": "openjtalk",
+  "speed": 1.15,
+  "pitch": 2.5,
+  "intonation": 1.5,
+  "fal_model": "fal-ai/minimax/speech-02-hd",
+  "fal_speed": 1.0,
+  "emotion": "happy"
+ },
+ "sources": [
+  "https://prtimes.jp/main/html/rd/p/000001675.000008962.html",
+  "https://support.me.moneyforward.com/hc/ja/articles/61486406210841",
+  "https://www.watch.impress.co.jp/docs/news/2141941.html"
+ ],
+ "lines": [
+  {
+   "text": "家計簿のデータ、／AIに【見せて大丈夫？】",
+   "tts": "家計簿のデータ、／エーアイに見せて大丈夫？",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🤔",
+    "text": "家計簿を\n【AIに見せる？】",
+    "size": 96
+   }
+  },
+  {
+   "text": "マネーフォワードMEが、／【ChatGPT】とつながった",
+   "tts": "マネーフォワードエムイーが、／チャットジーピーティーとつながった",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "🔗",
+    "text": "家計簿 × 【ChatGPT】",
+    "size": 88,
+    "sub": "2026年9月17日から"
+   }
+  },
+  {
+   "text": "明細を見ながら、／お金の【相談ができる】んよ",
+   "heading": "何ができる？",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "chat",
+    "title": "ChatGPT",
+    "icon": "💬",
+    "msgs": [
+     {
+      "from": "me",
+      "text": "今月、何にお金を使いすぎてる？"
+     },
+     {
+      "from": "them",
+      "text": "外食が先月より多めです"
+     }
+    ]
+   }
+  },
+  {
+   "text": "でもつなぐ前に、／【3つだけ】確かめてほしい",
+   "heading": "つなぐ前に",
+   "shot": "wide",
+   "pose": "pose08",
+   "se": "ding",
+   "se_at": 0.5,
+   "visual": {
+    "type": "list",
+    "title": "つなぐ前の【3つ】",
+    "items": [
+     "【共有する範囲】を見る",
+     "【パスワード】は渡らない",
+     "使わないなら【解除】"
+    ],
+    "show": 0,
+    "hl": null
+   }
+  },
+  {
+   "text": "1つ目、／【共有する範囲】を確認する",
+   "tts": "ひとつめ、／共有する範囲を確認する",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "list",
+    "title": "つなぐ前の【3つ】",
+    "items": [
+     "【共有する範囲】を見る",
+     "【パスワード】は渡らない",
+     "使わないなら【解除】"
+    ],
+    "show": 1,
+    "hl": 0
+   }
+  },
+  {
+   "text": "つなぐ画面で、データの／種類と【範囲】が出る",
+   "shot": "wide",
+   "pose": "pose06",
+   "visual": {
+    "type": "big",
+    "emoji": "🔍",
+    "text": "つなぐ画面で\n【範囲】を確認",
+    "size": 96
+   }
+  },
+  {
+   "text": "渡るのは、明細や／【資産・負債】のデータ",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "🗂️",
+    "text": "明細・【資産・負債】\nのデータ",
+    "size": 88
+   }
+  },
+  {
+   "text": "2つ目、銀行の【パスワード】は／AIに渡らない",
+   "tts": "ふたつめ、銀行のパスワードは／エーアイに渡らない",
+   "shot": "wide",
+   "pose": "pose09",
+   "visual": {
+    "type": "list",
+    "title": "つなぐ前の【3つ】",
+    "items": [
+     "【共有する範囲】を見る",
+     "【パスワード】は渡らない",
+     "使わないなら【解除】"
+    ],
+    "show": 2,
+    "hl": 1
+   }
+  },
+  {
+   "text": "これは公式が、／【はっきり書いてる】よ",
+   "shot": "close",
+   "pose": "pose05",
+   "visual": {
+    "type": "big",
+    "emoji": "🔒",
+    "text": "銀行の【ログイン情報】は\n共有されない",
+    "size": 80,
+    "sub": "マネーフォワード公式の説明"
+   }
+  },
+  {
+   "text": "だからって口座番号を、／【自分で打ったら】あかんで",
+   "heading": "注意！",
+   "shot": "wide",
+   "pose": "expr_angry",
+   "visual": {
+    "type": "big",
+    "emoji": "⚠️",
+    "text": "口座番号を\n【自分で打たない】",
+    "size": 92
+   }
+  },
+  {
+   "text": "3つ目、使わないなら／【連携を解除】する",
+   "tts": "みっつめ、使わないなら／連携を解除する",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "list",
+    "title": "つなぐ前の【3つ】",
+    "items": [
+     "【共有する範囲】を見る",
+     "【パスワード】は渡らない",
+     "使わないなら【解除】"
+    ],
+    "show": 3,
+    "hl": 2
+   }
+  },
+  {
+   "text": "解除は、Web版に／【ログイン】してできる",
+   "tts": "解除は、ウェブ版に／ログインしてできる",
+   "shot": "wide",
+   "pose": "pose10",
+   "visual": {
+    "type": "big",
+    "emoji": "💻",
+    "text": "Web版から\n【解除】できる",
+    "size": 100
+   }
+  },
+  {
+   "text": "つなぎっぱなしで／【放置】はあかんで",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "🗑️",
+    "text": "使わないなら\n【つなぎっぱなし】にしない",
+    "size": 80
+   }
+  },
+  {
+   "text": "学習オフの設定も、／【一緒に】見直しとこ",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "🛡️",
+    "text": "【学習オフ】も\nセットで",
+    "size": 100
+   }
+  },
+  {
+   "text": "3つ確かめたら、／あとは【安心して】使える",
+   "heading": "まとめ",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "✨",
+    "text": "3つ確かめたら\n【安心して使える】",
+    "size": 88
+   }
+  },
+  {
+   "text": "家計のモヤモヤ、／【話すだけ】で整理できる",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "big",
+    "emoji": "💬",
+    "text": "【話すだけ】で\n家計を整理",
+    "size": 96
+   }
+  },
+  {
+   "text": "家計簿をつけてる家族に、／【送ってあげて】",
+   "shot": "close",
+   "pose": "pose02",
+   "visual": {
+    "type": "cta",
+    "emoji": "📩",
+    "text": "家族にも\n【送ってあげて】",
+    "size": 100,
+    "bounce": true
+   }
+  },
+  {
+   "text": "じゃあもう一回、／最初の質問に戻るね",
+   "shot": "wide",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🤔",
+    "text": "家計簿を\n【AIに見せる？】",
+    "size": 96
+   }
+  }
+ ]
+}

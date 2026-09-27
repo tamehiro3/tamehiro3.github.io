@@ -1,0 +1,244 @@
+{
+ "id": "ep12",
+ "theme": "ウエル活（毎月20日）のWAON POINT利用上限が11月20日から5,000ptに",
+ "style": "studio",
+ "series": "AI初心者の時短ワザ",
+ "voice": {
+  "engine": "openjtalk",
+  "speed": 1.15,
+  "pitch": 2.5,
+  "intonation": 1.5,
+  "fal_model": "fal-ai/minimax/speech-02-hd",
+  "fal_speed": 1.0,
+  "emotion": "happy"
+ },
+ "sources": [
+  "https://dime.jp/genre/2152864/",
+  "https://www.sukesuke-mile-kojiki.net/entry/welcia-waonpoint-5000"
+ ],
+ "lines": [
+  {
+   "text": "ウエル活の上限、／11月から【変わる】の知ってる？",
+   "tts": "ウエルかつの上限、／じゅういちがつから変わるの知ってる？",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🤔",
+    "text": "ウエル活\n11月から【変わる】",
+    "size": 92
+   }
+  },
+  {
+   "text": "ポイントで払える上限が、／【6分の1】になるんよ",
+   "tts": "ポイントで払える上限が、／ろくぶんのいちになるんよ",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "📉",
+    "text": "使える上限が\n【6分の1】",
+    "size": 100
+   }
+  },
+  {
+   "text": "毎月20日は、ポイントが／【1.5倍分】使える日",
+   "tts": "まいつきはつかは、ポイントが／いってんごばいぶん使える日",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "✨",
+    "text": "毎月20日は\n【1.5倍分】使える",
+    "size": 92
+   }
+  },
+  {
+   "text": "今は1日に、／【3万ポイント】まで使える",
+   "tts": "今はいちにちに、／さんまんポイントまで使える",
+   "heading": "何が変わる？",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "list",
+    "title": "1日に使える上限",
+    "items": [
+     "10月まで【30,000pt】",
+     "11月から【5,000pt】"
+    ],
+    "show": 1,
+    "hl": 0
+   }
+  },
+  {
+   "text": "11月20日からは、／【5千ポイント】まで",
+   "tts": "じゅういちがつはつかからは、／ごせんポイントまで",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "list",
+    "title": "1日に使える上限",
+    "items": [
+     "10月まで【30,000pt】",
+     "11月から【5,000pt】"
+    ],
+    "show": 2,
+    "hl": 1
+   }
+  },
+  {
+   "text": "お買い物でいうと、／【7,500円分】までなんよ",
+   "tts": "お買い物でいうと、／ななせんごひゃくえんぶんまでなんよ",
+   "shot": "wide",
+   "pose": "pose06",
+   "visual": {
+    "type": "big",
+    "emoji": "💸",
+    "text": "【7,500円分】まで",
+    "size": 100,
+    "sub": "ポイントが1.5倍分使える日"
+   }
+  },
+  {
+   "text": "今までは4万5千円分、／【まとめ買い】できてた",
+   "tts": "今まではよんまんごせんえんぶん、／まとめ買いできてた",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "💰",
+    "text": "今までは\n【4万5千円分】",
+    "size": 96
+   }
+  },
+  {
+   "text": "大きい買い物を、／【1回で】済ませてた人は影響大",
+   "tts": "大きい買い物を、／いっかいで済ませてた人は影響大",
+   "shot": "wide",
+   "pose": "pose09",
+   "visual": {
+    "type": "big",
+    "emoji": "😅",
+    "text": "まとめ買い派は\n【影響大】",
+    "size": 100
+   }
+  },
+  {
+   "text": "前のルールで使えるのは、／【10月20日】が最後",
+   "tts": "前のルールで使えるのは、／じゅうがつはつかが最後",
+   "heading": "いつまで？",
+   "shot": "close",
+   "pose": "pose05",
+   "visual": {
+    "type": "big",
+    "emoji": "📅",
+    "text": "前のルールは\n【10月20日】が最後",
+    "size": 88
+   }
+  },
+  {
+   "text": "つまり前のルールは、／【あと1回】だけなんよ",
+   "tts": "つまり前のルールは、／あといっかいだけなんよ",
+   "shot": "wide",
+   "pose": "pose10",
+   "visual": {
+    "type": "big",
+    "emoji": "☝️",
+    "text": "前のルールは\n【あと1回】",
+    "size": 100
+   }
+  },
+  {
+   "text": "ただ【焦って】いらん物を／買うのはあかんで",
+   "heading": "注意！",
+   "shot": "close",
+   "pose": "expr_angry",
+   "visual": {
+    "type": "big",
+    "emoji": "⚠️",
+    "text": "【焦って】\nいらない物を買わない",
+    "size": 88
+   }
+  },
+  {
+   "text": "上限を超える分は、／【次の月】に回す計画に",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "🗓️",
+    "text": "超える分は\n【次の月】へ",
+    "size": 100
+   }
+  },
+  {
+   "text": "細かいルールは、／【お店の告知】で確かめてな",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "🔍",
+    "text": "細かいルールは\n【お店の告知】で",
+    "size": 92
+   }
+  },
+  {
+   "text": "ネットの情報は、／【公式】と見比べてな",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "big",
+    "emoji": "👀",
+    "text": "ネットの情報は\n【公式】と比べる",
+    "size": 92
+   }
+  },
+  {
+   "text": "ポイ活のルールは、／【よく変わる】もの",
+   "heading": "まとめ",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "🔁",
+    "text": "ポイ活のルールは\n【よく変わる】",
+    "size": 92
+   }
+  },
+  {
+   "text": "変わる前に知ってたら、／【損しない】で済む",
+   "shot": "wide",
+   "pose": "pose06",
+   "visual": {
+    "type": "big",
+    "emoji": "🛡️",
+    "text": "先に知れば\n【損しない】",
+    "size": 100
+   }
+  },
+  {
+   "text": "ウエル活してる家族に、／【送ってあげて】",
+   "tts": "ウエルかつしてる家族に、／送ってあげて",
+   "shot": "close",
+   "pose": "pose02",
+   "visual": {
+    "type": "cta",
+    "emoji": "📩",
+    "text": "家族にも\n【送ってあげて】",
+    "size": 100,
+    "bounce": true
+   }
+  },
+  {
+   "text": "じゃあもう一回、／最初の質問に戻るね",
+   "shot": "wide",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🤔",
+    "text": "ウエル活\n11月から【変わる】",
+    "size": 92
+   }
+  }
+ ]
+}

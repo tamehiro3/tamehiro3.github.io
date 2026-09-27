@@ -1,0 +1,231 @@
+{
+ "id": "ep10",
+ "theme": "年収の壁178万円は、毎月の給料ではなく12月の年末調整で反映される",
+ "style": "studio",
+ "series": "AI初心者の時短ワザ",
+ "voice": {
+  "engine": "openjtalk",
+  "speed": 1.15,
+  "pitch": 2.5,
+  "intonation": 1.5,
+  "fal_model": "fal-ai/minimax/speech-02-hd",
+  "fal_speed": 1.0,
+  "emotion": "happy"
+ },
+ "sources": [
+  "https://www.obc.co.jp/360/list/post461",
+  "https://www.ht-tax.or.jp/topics/nenshunokabe178man-hikiage/",
+  "https://mag.smarthr.jp/hr/procedure/nencho_zeiseikaisei_2026/"
+ ],
+ "lines": [
+  {
+   "text": "年収の壁178万円、／もう【給料に効いてる？】",
+   "tts": "年収の壁、ひゃくななじゅうはちまんえん、／もう給料に効いてる？",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🤔",
+    "text": "178万円の壁\n【もう効いてる？】",
+    "size": 92
+   }
+  },
+  {
+   "text": "実は毎月の給料には、／【まだ効いてない】んよ",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "☝️",
+    "text": "毎月の給料には\n【まだ効いてない】",
+    "size": 88
+   }
+  },
+  {
+   "text": "所得税がかからない目安が、／【178万円】に上がった",
+   "tts": "所得税がかからない目安が、／ひゃくななじゅうはちまんえんに上がった",
+   "heading": "何が変わった？",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "📈",
+    "text": "所得税の壁\n【178万円】",
+    "size": 104,
+    "sub": "令和8年分・9年分の上乗せ込み"
+   }
+  },
+  {
+   "text": "基礎控除と、／【給与所得控除】が増えたから",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "list",
+    "title": "増えた【控除】",
+    "items": [
+     "【基礎控除】",
+     "【給与所得控除】"
+    ],
+    "show": 2,
+    "hl": null
+   }
+  },
+  {
+   "text": "今年の毎月の天引きは、／【前のルール】のまま",
+   "heading": "いつから？",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "📅",
+    "text": "毎月の天引きは\n【前のルール】",
+    "size": 92
+   }
+  },
+  {
+   "text": "差額は、12月の／【年末調整】で精算される",
+   "tts": "差額は、じゅうにがつの／年末調整で精算される",
+   "shot": "wide",
+   "pose": "pose06",
+   "visual": {
+    "type": "big",
+    "emoji": "🧾",
+    "text": "12月の【年末調整】で\nまとめて精算",
+    "size": 84
+   }
+  },
+  {
+   "text": "払いすぎてた分が、／【戻ってくる】人が多いはず",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "💰",
+    "text": "払いすぎた分が\n【戻ってくる】",
+    "size": 96
+   }
+  },
+  {
+   "text": "だから年末調整の書類は、／【ちゃんと出して】な",
+   "shot": "wide",
+   "pose": "pose09",
+   "visual": {
+    "type": "big",
+    "emoji": "📝",
+    "text": "書類は\n【ちゃんと出す】",
+    "size": 100
+   }
+  },
+  {
+   "text": "ただ、【住民税】の壁は／これとは別なんよ",
+   "heading": "注意！",
+   "shot": "close",
+   "pose": "pose05",
+   "visual": {
+    "type": "list",
+    "title": "178万円は【所得税】の話",
+    "items": [
+     "【住民税】の壁は別",
+     "【社会保険】の壁も別"
+    ],
+    "show": 1,
+    "hl": 0
+   }
+  },
+  {
+   "text": "【社会保険】の壁も、／これとは別やで",
+   "shot": "wide",
+   "pose": "pose10",
+   "visual": {
+    "type": "list",
+    "title": "178万円は【所得税】の話",
+    "items": [
+     "【住民税】の壁は別",
+     "【社会保険】の壁も別"
+    ],
+    "show": 2,
+    "hl": 1
+   }
+  },
+  {
+   "text": "それと上乗せ部分は、／【2年間の限定】なんよ",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "⏱️",
+    "text": "上乗せは\n【令和8年・9年分】",
+    "size": 92
+   }
+  },
+  {
+   "text": "副業や年金がある人は、／【確定申告】で精算",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "📝",
+    "text": "副業・年金がある人は\n【確定申告】",
+    "size": 84
+   }
+  },
+  {
+   "text": "迷ったら、会社の／【担当者】に聞いてみて",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "💼",
+    "text": "迷ったら\n会社の【担当者】へ",
+    "size": 96
+   }
+  },
+  {
+   "text": "今年の手取りは、／【12月に動く】と覚えといて",
+   "tts": "今年の手取りは、／じゅうにがつに動くと覚えといて",
+   "heading": "まとめ",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "big",
+    "emoji": "📌",
+    "text": "手取りは\n【12月に動く】",
+    "size": 100
+   }
+  },
+  {
+   "text": "知らんと「あれ？」って／【なりがち】なんよ",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "😅",
+    "text": "知らないと\n【あれ？】ってなる",
+    "size": 92
+   }
+  },
+  {
+   "text": "同僚やパートの家族に、／【送ってあげて】",
+   "shot": "wide",
+   "pose": "pose02",
+   "visual": {
+    "type": "cta",
+    "emoji": "📩",
+    "text": "家族や同僚に\n【送ってあげて】",
+    "size": 100,
+    "bounce": true
+   }
+  },
+  {
+   "text": "じゃあもう一回、／最初の質問に戻るね",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🤔",
+    "text": "178万円の壁\n【もう効いてる？】",
+    "size": 92
+   }
+  }
+ ]
+}

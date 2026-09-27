@@ -1,0 +1,238 @@
+{
+ "id": "ep13",
+ "theme": "証券口座のログインをパスキーに（乗っ取り・リアルタイムフィッシング対策）",
+ "style": "studio",
+ "series": "AI初心者の時短ワザ",
+ "voice": {
+  "engine": "openjtalk",
+  "speed": 1.15,
+  "pitch": 2.5,
+  "intonation": 1.5,
+  "fal_model": "fal-ai/minimax/speech-02-hd",
+  "fal_speed": 1.0,
+  "emotion": "happy"
+ },
+ "sources": [
+  "https://www.iwaicosmo.net/netlp/passkeys/index.html",
+  "https://info.monex.co.jp/news/2026/20260625_01.html",
+  "https://www.matsui.co.jp/news/2026/detail_0526_01.html"
+ ],
+ "lines": [
+  {
+   "text": "証券口座のログイン、／【パスキー】にした？",
+   "tts": "しょうけんこうざのログイン、／パスキーにした？",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🔐",
+    "text": "証券口座のログイン\n【パスキー】にした？",
+    "size": 84
+   }
+  },
+  {
+   "text": "証券会社で、パスキーの／【必須化】が進んでるんよ",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "📌",
+    "text": "パスキーの\n【必須化】が進む",
+    "size": 96
+   }
+  },
+  {
+   "text": "去年、証券口座の／【乗っ取り】が相次いだ",
+   "heading": "なぜ？",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "😨",
+    "text": "証券口座の\n【乗っ取り】が相次いだ",
+    "size": 88,
+    "sub": "2025年"
+   }
+  },
+  {
+   "text": "偽サイトに、確認コードまで／【入れさせる】手口",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "big",
+    "emoji": "🎣",
+    "text": "偽サイトに\n【確認コード】まで",
+    "size": 92
+   }
+  },
+  {
+   "text": "これで2段階認証も、／【突破】されてしまう",
+   "tts": "これでにだんかいにんしょうも、／突破されてしまう",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "⚠️",
+    "text": "2段階認証も\n【突破】される",
+    "size": 96
+   }
+  },
+  {
+   "text": "パスキーは、スマホの／【顔や指紋】でログイン",
+   "heading": "パスキーとは",
+   "shot": "wide",
+   "pose": "pose06",
+   "visual": {
+    "type": "big",
+    "emoji": "🔐",
+    "text": "【顔・指紋】で\nログイン",
+    "size": 100
+   }
+  },
+  {
+   "text": "パスワードを打たないから、／【盗まれにくい】",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "🛡️",
+    "text": "パスワードを打たない\n→【盗まれにくい】",
+    "size": 84
+   }
+  },
+  {
+   "text": "しかも【偽サイト】では、／そもそも使えない",
+   "shot": "wide",
+   "pose": "pose09",
+   "visual": {
+    "type": "compare",
+    "left": {
+     "title": "偽サイト",
+     "emoji": "🎣",
+     "text": "【使えない】"
+    },
+    "right": {
+     "title": "本物",
+     "emoji": "🔐",
+     "text": "【ログインOK】"
+    }
+   }
+  },
+  {
+   "text": "本物のサイトとだけ、／【鍵が合う】しくみなんよ",
+   "shot": "close",
+   "pose": "pose05",
+   "visual": {
+    "type": "big",
+    "emoji": "🔑",
+    "text": "本物とだけ\n【鍵が合う】",
+    "size": 100
+   }
+  },
+  {
+   "text": "設定は、証券会社の／【アプリやサイト】から",
+   "heading": "設定は？",
+   "shot": "wide",
+   "pose": "pose10",
+   "visual": {
+    "type": "big",
+    "emoji": "⚙️",
+    "text": "証券会社の\n【アプリ・サイト】で設定",
+    "size": 84,
+    "sub": "場所は会社ごとに違う"
+   }
+  },
+  {
+   "text": "スマホに【画面ロック】が／かかってるか先に確認",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "📱",
+    "text": "先に【画面ロック】を\n確認",
+    "size": 92
+   }
+  },
+  {
+   "text": "機種変更のときは、／【登録し直し】が要るで",
+   "heading": "注意！",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "🔁",
+    "text": "機種変更したら\n【登録し直し】",
+    "size": 92
+   }
+  },
+  {
+   "text": "古いスマホを消す前に、／【新しい方】で登録してな",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "📱",
+    "text": "古いスマホを消す前に\n【新しい方】で登録",
+    "size": 80
+   }
+  },
+  {
+   "text": "メールやSMSのリンクから、／【ログインしたら】あかんで",
+   "tts": "メールやエスエムエスのリンクから、／ログインしたらあかんで",
+   "shot": "wide",
+   "pose": "expr_angry",
+   "visual": {
+    "type": "big",
+    "emoji": "⚠️",
+    "text": "メールのリンクから\n【ログインしない】",
+    "size": 88
+   }
+  },
+  {
+   "text": "証券会社の【公式アプリ】から／開くのが安心",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "✅",
+    "text": "【公式アプリ】から\n開く",
+    "size": 100
+   }
+  },
+  {
+   "text": "設定は数分、／【今日やれる】作業なんよ",
+   "heading": "まとめ",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "big",
+    "emoji": "⏱️",
+    "text": "設定は\n【数分】で終わる",
+    "size": 100
+   }
+  },
+  {
+   "text": "投資をしてる友だちに、／【送ってあげて】",
+   "shot": "close",
+   "pose": "pose02",
+   "visual": {
+    "type": "cta",
+    "emoji": "📩",
+    "text": "友だちにも\n【送ってあげて】",
+    "size": 100,
+    "bounce": true
+   }
+  },
+  {
+   "text": "じゃあもう一回、／最初の質問に戻るね",
+   "shot": "wide",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🔐",
+    "text": "証券口座のログイン\n【パスキー】にした？",
+    "size": 84
+   }
+  }
+ ]
+}

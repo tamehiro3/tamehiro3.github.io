@@ -1,0 +1,247 @@
+{
+ "id": "ep11",
+ "theme": "社会保険の「106万円の壁」撤廃：なくなるのは決定、開始日は国が決める",
+ "style": "studio",
+ "series": "AI初心者の時短ワザ",
+ "voice": {
+  "engine": "openjtalk",
+  "speed": 1.15,
+  "pitch": 2.5,
+  "intonation": 1.5,
+  "fal_model": "fal-ai/minimax/speech-02-hd",
+  "fal_speed": 1.0,
+  "emotion": "happy"
+ },
+ "sources": [
+  "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000147284_00021.html",
+  "https://media.shaho.co.jp/n/naa539eedd95c",
+  "https://romsearch.officestation.jp/news/49052"
+ ],
+ "lines": [
+  {
+   "text": "パートの106万円の壁、／【なくなるって】ほんま？",
+   "tts": "パートの、ひゃくろくまんえんの壁、／なくなるってほんま？",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🤔",
+    "text": "106万円の壁\n【なくなる？】",
+    "size": 96
+   }
+  },
+  {
+   "text": "なくなるのは決まってる。／【時期】がポイント",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "☝️",
+    "text": "なくなるのは決定\n【時期】がポイント",
+    "size": 84
+   }
+  },
+  {
+   "text": "今は月8.8万円以上で、／【社会保険】に入る",
+   "tts": "今はつきはってんはちまんえん以上で、／社会保険に入る",
+   "heading": "今のルール",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "🧾",
+    "text": "月【8.8万円】以上で\n社会保険に加入",
+    "size": 84,
+    "sub": "ほかに週20時間以上などの条件"
+   }
+  },
+  {
+   "text": "この金額の条件が、／【なくなる】ことになった",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "big",
+    "emoji": "✂️",
+    "text": "金額の条件が\n【なくなる】",
+    "size": 100
+   }
+  },
+  {
+   "text": "そうなると境目は、／【週20時間】になる",
+   "tts": "そうなると境目は、／しゅうにじゅうじかんになる",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "list",
+    "title": "社会保険の境目",
+    "items": [
+     "いま：月【8.8万円】",
+     "撤廃後：週【20時間】"
+    ],
+    "show": 2,
+    "hl": 1
+   }
+  },
+  {
+   "text": "年収じゃなくて、／【働く時間】で決まるんよ",
+   "shot": "wide",
+   "pose": "pose06",
+   "visual": {
+    "type": "big",
+    "emoji": "⏱️",
+    "text": "年収じゃなく\n【働く時間】",
+    "size": 100
+   }
+  },
+  {
+   "text": "いつなくなるかは、／【国が決める】しくみ",
+   "heading": "いつから？",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "📅",
+    "text": "開始日は\n【国が決める】",
+    "size": 100,
+    "sub": "法律の公布から3年以内"
+   }
+  },
+  {
+   "text": "最低賃金の上がり方を／【見て決める】んよ",
+   "shot": "wide",
+   "pose": "pose09",
+   "visual": {
+    "type": "big",
+    "emoji": "📈",
+    "text": "【最低賃金】を見て\n決める",
+    "size": 96
+   }
+  },
+  {
+   "text": "「10月から」という記事も、／【公式で確認】してな",
+   "tts": "じゅうがつから、という記事も、／公式で確認してな",
+   "shot": "close",
+   "pose": "pose05",
+   "visual": {
+    "type": "big",
+    "emoji": "🔍",
+    "text": "「10月から」も\n【公式で確認】",
+    "size": 96
+   }
+  },
+  {
+   "text": "会社の規模の条件は、／【しばらく残る】",
+   "heading": "注意！",
+   "shot": "wide",
+   "pose": "pose10",
+   "visual": {
+    "type": "big",
+    "emoji": "💼",
+    "text": "会社の規模の条件は\n【しばらく残る】",
+    "size": 84,
+    "sub": "2027年10月から段階的に縮小"
+   }
+  },
+  {
+   "text": "大きい会社から順に、／【対象が広がって】いく",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "🔁",
+    "text": "大きい会社から\n【順番に】広がる",
+    "size": 92
+   }
+  },
+  {
+   "text": "入ると手取りは、／【少し減る】こともある",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "list",
+    "title": "社会保険に入ると",
+    "items": [
+     "手取りは【少し減る】ことも",
+     "将来の【年金が増える】",
+     "【病気・ケガ】の保障"
+    ],
+    "show": 1,
+    "hl": 0
+   }
+  },
+  {
+   "text": "でも将来の年金や、／【病気の保障】が増える",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "list",
+    "title": "社会保険に入ると",
+    "items": [
+     "手取りは【少し減る】ことも",
+     "将来の【年金が増える】",
+     "【病気・ケガ】の保障"
+    ],
+    "show": 3,
+    "hl": 2
+   }
+  },
+  {
+   "text": "損か得かは、／【人によって違う】んよ",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "big",
+    "emoji": "🤔",
+    "text": "損か得かは\n【人それぞれ】",
+    "size": 100
+   }
+  },
+  {
+   "text": "勤め先から【案内】が来たら、／ちゃんと読んでな",
+   "heading": "まとめ",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "📄",
+    "text": "勤め先の【案内】を\nちゃんと読む",
+    "size": 88
+   }
+  },
+  {
+   "text": "開始日は、厚労省の／【ページ】で確かめて",
+   "tts": "開始日は、こうろうしょうの／ページで確かめて",
+   "shot": "wide",
+   "pose": "pose06",
+   "visual": {
+    "type": "big",
+    "emoji": "🔍",
+    "text": "開始日は\n【厚労省】で確認",
+    "size": 96
+   }
+  },
+  {
+   "text": "パートしてる家族に、／【送ってあげて】",
+   "shot": "close",
+   "pose": "pose02",
+   "visual": {
+    "type": "cta",
+    "emoji": "📩",
+    "text": "家族にも\n【送ってあげて】",
+    "size": 100,
+    "bounce": true
+   }
+  },
+  {
+   "text": "じゃあもう一回、／最初の質問に戻るね",
+   "shot": "wide",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🤔",
+    "text": "106万円の壁\n【なくなる？】",
+    "size": 96
+   }
+  }
+ ]
+}

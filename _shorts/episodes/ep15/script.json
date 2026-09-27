@@ -1,0 +1,250 @@
+{
+ "id": "ep15",
+ "theme": "こどもNISA（2027年1月開始）の基本：対象・上限・引き出し・18歳での移行",
+ "style": "studio",
+ "series": "AI初心者の時短ワザ",
+ "voice": {
+  "engine": "openjtalk",
+  "speed": 1.15,
+  "pitch": 2.5,
+  "intonation": 1.5,
+  "fal_model": "fal-ai/minimax/speech-02-hd",
+  "fal_speed": 1.0,
+  "emotion": "happy"
+ },
+ "sources": [
+  "https://www.77bank.co.jp/financial-column/article93.html",
+  "https://www.sc.mufg.jp/learn/article/260303.html",
+  "https://www.dir.co.jp/report/research/law-research/tax/20260526_025774.html"
+ ],
+ "lines": [
+  {
+   "text": "0歳からNISA、／ほんまに【できるん？】",
+   "tts": "ゼロさいからニーサ、／ほんまにできるん？",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🤔",
+    "text": "0歳からNISA\n【できるん？】",
+    "size": 96
+   }
+  },
+  {
+   "text": "来年1月から、／【こどもNISA】が始まるんよ",
+   "tts": "らいねんいちがつから、／こどもニーサが始まるんよ",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "📅",
+    "text": "【こどもNISA】\n2027年1月から",
+    "size": 96
+   }
+  },
+  {
+   "text": "対象は、／【0歳から17歳】の子ども",
+   "tts": "対象は、／ゼロさいからじゅうななさいの子ども",
+   "heading": "どんな制度？",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "list",
+    "title": "こどもNISA",
+    "items": [
+     "【0〜17歳】が対象",
+     "年【60万円】まで",
+     "合計【600万円】まで"
+    ],
+    "show": 1,
+    "hl": 0
+   }
+  },
+  {
+   "text": "1年で【60万円】まで、／非課税で積み立てられる",
+   "tts": "いちねんでろくじゅうまんえんまで、／非課税で積み立てられる",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "list",
+    "title": "こどもNISA",
+    "items": [
+     "【0〜17歳】が対象",
+     "年【60万円】まで",
+     "合計【600万円】まで"
+    ],
+    "show": 2,
+    "hl": 1
+   }
+  },
+  {
+   "text": "子ども1人あたり、／合計【600万円】まで",
+   "tts": "子どもひとりあたり、／合計ろっぴゃくまんえんまで",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "list",
+    "title": "こどもNISA",
+    "items": [
+     "【0〜17歳】が対象",
+     "年【60万円】まで",
+     "合計【600万円】まで"
+    ],
+    "show": 3,
+    "hl": 2
+   }
+  },
+  {
+   "text": "買えるのは、つみたて向けの／【投資信託】だけ",
+   "shot": "wide",
+   "pose": "pose06",
+   "visual": {
+    "type": "big",
+    "emoji": "📈",
+    "text": "買えるのは\n【投資信託】だけ",
+    "size": 96,
+    "sub": "つみたて投資枠と同じ対象"
+   }
+  },
+  {
+   "text": "毎月など【決まった額】で、／積み立てる形なんよ",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "🔁",
+    "text": "【決まった額】を\n積み立てる",
+    "size": 96
+   }
+  },
+  {
+   "text": "お金を出せるのは、／原則【12歳から】",
+   "tts": "お金を出せるのは、／原則じゅうにさいから",
+   "heading": "注意！",
+   "shot": "wide",
+   "pose": "pose09",
+   "visual": {
+    "type": "big",
+    "emoji": "📅",
+    "text": "引き出しは\n原則【12歳から】",
+    "size": 96
+   }
+  },
+  {
+   "text": "子ども本人のためで、／【本人の同意】も要る",
+   "shot": "close",
+   "pose": "pose05",
+   "visual": {
+    "type": "big",
+    "emoji": "🙋",
+    "text": "子どものため＋\n【本人の同意】",
+    "size": 92
+   }
+  },
+  {
+   "text": "親が【自由に使える】お金では／ないで",
+   "shot": "wide",
+   "pose": "expr_angry",
+   "visual": {
+    "type": "big",
+    "emoji": "⚠️",
+    "text": "親が\n【自由に使えない】",
+    "size": 96
+   }
+  },
+  {
+   "text": "18歳になったら、／【大人のNISA】に移る",
+   "tts": "じゅうはっさいになったら、／大人のニーサに移る",
+   "heading": "18歳になったら",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "🔁",
+    "text": "18歳で\n【大人のNISA】へ",
+    "size": 96
+   }
+  },
+  {
+   "text": "600万円の枠も、／【そのまま引き継げる】",
+   "tts": "ろっぴゃくまんえんの枠も、／そのまま引き継げる",
+   "shot": "wide",
+   "pose": "pose10",
+   "visual": {
+    "type": "big",
+    "emoji": "✅",
+    "text": "600万円の枠は\n【そのまま】",
+    "size": 96
+   }
+  },
+  {
+   "text": "前のジュニアNISAとは、／【別の新しい制度】やで",
+   "tts": "前のジュニアニーサとは、／別の新しい制度やで",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "☝️",
+    "text": "ジュニアNISAとは\n【別の制度】",
+    "size": 88
+   }
+  },
+  {
+   "text": "元本割れもあるのが、／【投資】ってことは忘れんといて",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "⚠️",
+    "text": "【元本割れ】も\nありえる",
+    "size": 100
+   }
+  },
+  {
+   "text": "始める前に、／【家計の余裕】を確認してな",
+   "heading": "まとめ",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "🧾",
+    "text": "始める前に\n【家計の余裕】",
+    "size": 96
+   }
+  },
+  {
+   "text": "細かいルールは、／【金融庁】のページで確認",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "big",
+    "emoji": "🔍",
+    "text": "細かいルールは\n【金融庁】で確認",
+    "size": 92
+   }
+  },
+  {
+   "text": "子育て中の友だちに、／【送ってあげて】",
+   "shot": "close",
+   "pose": "pose02",
+   "visual": {
+    "type": "cta",
+    "emoji": "📩",
+    "text": "友だちにも\n【送ってあげて】",
+    "size": 100,
+    "bounce": true
+   }
+  },
+  {
+   "text": "じゃあもう一回、／最初の質問に戻るね",
+   "shot": "wide",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🤔",
+    "text": "0歳からNISA\n【できるん？】",
+    "size": 96
+   }
+  }
+ ]
+}

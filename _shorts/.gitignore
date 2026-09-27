@@ -17,4 +17,6 @@ assets/.fal_key
 **/.fal_key.txt
 # 動画・音声は各自のPCで生成する（クローン声版とぶつからないように。ep01/ep02 の既存分は履歴に残る）
 episodes/ep0[3-9]/out/
+episodes/ep[1-9][0-9]/out/
 episodes/ep0[3-9]/audio/
+episodes/ep[1-9][0-9]/audio/

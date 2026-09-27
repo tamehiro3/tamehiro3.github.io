@@ -1,0 +1,239 @@
+{
+ "id": "ep09",
+ "theme": "暗号資産の税金「20%」はまだ始まっていない（分離課税の開始時期）",
+ "style": "studio",
+ "series": "AI初心者の時短ワザ",
+ "voice": {
+  "engine": "openjtalk",
+  "speed": 1.15,
+  "pitch": 2.5,
+  "intonation": 1.5,
+  "fal_model": "fal-ai/minimax/speech-02-hd",
+  "fal_speed": 1.0,
+  "emotion": "happy"
+ },
+ "sources": [
+  "https://www.nikkei.com/article/DGXZQOUB1866E0Y5A211C2000000/",
+  "https://www.pwc.com/jp/ja/knowledge/news/legal-news/legal-20260728-4.html",
+  "https://www.yamada-partners.jp/reform/r8/k04-separate-taxation-for-crypto-assets"
+ ],
+ "lines": [
+  {
+   "text": "仮想通貨の税金、／もう【20%】になった？",
+   "tts": "かそうつうかの税金、／もうにじゅっパーセントになった？",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🤔",
+    "text": "仮想通貨の税金\nもう【20%】？",
+    "size": 96
+   }
+  },
+  {
+   "text": "答えは、今年の利益は／【まだ前のルール】なんよ",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "☝️",
+    "text": "今年の利益は\n【前のルール】",
+    "size": 96
+   }
+  },
+  {
+   "text": "20%にすると決まったのは、／【ほんまの話】",
+   "tts": "にじゅっパーセントにすると決まったのは、／ほんまの話",
+   "heading": "なぜ？",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "📝",
+    "text": "【20%】の分離課税が\n決まった",
+    "size": 84,
+    "sub": "令和8年度 税制改正"
+   }
+  },
+  {
+   "text": "ただ始まるのは、／ある【法律の施行】のあと",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "big",
+    "emoji": "📌",
+    "text": "始まるのは\n【法律の施行】のあと",
+    "size": 88
+   }
+  },
+  {
+   "text": "その法律は7月に、／【成立】したばかり",
+   "tts": "その法律はしちがつに、／成立したばかり",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "📅",
+    "text": "金融商品取引法の改正\n【2026年7月 成立】",
+    "size": 76
+   }
+  },
+  {
+   "text": "20%になるのは、／施行の【翌年1月】から",
+   "tts": "にじゅっパーセントになるのは、／施行のよくねんいちがつから",
+   "shot": "wide",
+   "pose": "pose06",
+   "visual": {
+    "type": "list",
+    "title": "【20%】になるまで",
+    "items": [
+     "法律が【成立】（7月）",
+     "法律の【施行】",
+     "施行の【翌年1月】から"
+    ],
+    "show": 3,
+    "hl": 2
+   }
+  },
+  {
+   "text": "早くても【2028年】から、／という見方が多い",
+   "tts": "早くてもにせんにじゅうはちねんから、／という見方が多い",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "📆",
+    "text": "【2028年】から\nが有力",
+    "size": 104,
+    "sub": "専門家の見通し（まだ決まっていない）"
+   }
+  },
+  {
+   "text": "つまり今年の利益は、／【最大55%】のまま",
+   "tts": "つまり今年の利益は、／さいだいごじゅうごパーセントのまま",
+   "shot": "wide",
+   "pose": "pose09",
+   "visual": {
+    "type": "big",
+    "emoji": "💸",
+    "text": "今年の利益は\n【最大55%】",
+    "size": 100
+   }
+  },
+  {
+   "text": "給料などと合わせて、／【税率が決まる】しくみ",
+   "shot": "close",
+   "pose": "pose05",
+   "visual": {
+    "type": "big",
+    "emoji": "🧾",
+    "text": "給料と合わせて\n【税率が決まる】",
+    "size": 88
+   }
+  },
+  {
+   "text": "20%になるのも、／【国内の取引所】で売った分",
+   "tts": "にじゅっパーセントになるのも、／国内の取引所で売った分",
+   "heading": "注意！",
+   "shot": "wide",
+   "pose": "pose10",
+   "visual": {
+    "type": "list",
+    "title": "【20%】の対象",
+    "items": [
+     "【国内の取引所】で売る",
+     "【海外】の取引所は対象外",
+     "【個人間】の取引も対象外"
+    ],
+    "show": 1,
+    "hl": 0
+   }
+  },
+  {
+   "text": "海外の取引所や、／【個人間】の取引は対象外",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "list",
+    "title": "【20%】の対象",
+    "items": [
+     "【国内の取引所】で売る",
+     "【海外】の取引所は対象外",
+     "【個人間】の取引も対象外"
+    ],
+    "show": 3,
+    "hl": 2
+   }
+  },
+  {
+   "text": "「20%やから大丈夫」は、／【まだ早い】で",
+   "tts": "にじゅっパーセントやから大丈夫、は、／まだ早いで",
+   "shot": "wide",
+   "pose": "expr_angry",
+   "visual": {
+    "type": "big",
+    "emoji": "⚠️",
+    "text": "「20%やから大丈夫」は\n【まだ早い】",
+    "size": 80
+   }
+  },
+  {
+   "text": "迷ったら、／【税務署や税理士】に聞いてな",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "☎️",
+    "text": "迷ったら\n【税務署・税理士】へ",
+    "size": 88
+   }
+  },
+  {
+   "text": "始まる日は、／【これから決まる】んよ",
+   "heading": "まとめ",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "📅",
+    "text": "開始日は\n【これから決まる】",
+    "size": 96
+   }
+  },
+  {
+   "text": "今年の分は、／【今までどおり】計算してな",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "🧾",
+    "text": "今年の分は\n【今までどおり】",
+    "size": 96
+   }
+  },
+  {
+   "text": "仮想通貨をやってる友だちに、／【送ってあげて】",
+   "tts": "かそうつうかをやってる友だちに、／送ってあげて",
+   "shot": "wide",
+   "pose": "pose02",
+   "visual": {
+    "type": "cta",
+    "emoji": "📩",
+    "text": "友だちにも\n【送ってあげて】",
+    "size": 100,
+    "bounce": true
+   }
+  },
+  {
+   "text": "じゃあもう一回、／最初の質問に戻るね",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🤔",
+    "text": "仮想通貨の税金\nもう【20%】？",
+    "size": 96
+   }
+  }
+ ]
+}

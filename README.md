@@ -40,4 +40,5 @@ Typelessで話した下書きを GitHub の Issue に置くと、機械検品 �
 - 使い方: [`_marketing/README.md`](_marketing/README.md)
 - 設計図と進め方: [`_marketing/BLUEPRINT.md`](_marketing/BLUEPRINT.md)
 - 軍配の点検記録: [`_marketing/GUNBAI_REVIEW.md`](_marketing/GUNBAI_REVIEW.md)
+- ターゲット設計図（SNSごとに誰に・どの欲望で売るか）: [`_marketing/TARGET_MAP.md`](_marketing/TARGET_MAP.md)
 - 本番スイッチ: `_marketing/sns/config.json` の `mode`(初期値 `dry-run` = 投稿しない)

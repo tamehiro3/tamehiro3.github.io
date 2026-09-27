@@ -26,3 +26,4 @@ SNS運用の決定・保留・却下を1行ずつ残します。書いた行は�
 | 2026-09-27 | Facebook | 見送り。Threads の4週の結果を見てから検討 | tamehiro3 | 保留 | 主戦場は1つ（core §3） |
 | 2026-09-27 | Threads の鍵 | 自動更新せず、50日ごとに手で作り直す（残り10日で警報） | Claude（提案） | 本人判断待ち | 鍵は更新で置き換わる（M1）。自動化には強い権限の鍵が要る |
 | 2026-09-27 | Threads の代替テキスト | 初期値オフ（APIの仕様が未確認） | Claude（提案） | 本人判断待ち | M6 |
+| 2026-09-27 | ターゲット設計図 | 7つのSNS（X・Instagram・TikTok・YouTube・Substack・note・Brain）の設計図（案）を TARGET_MAP.md に。柱は親近感×確実性、次の候補は Instagram、Brain は使わない。作り方はスキル sns-target-map | 依頼: tamehiro3 / 案: Claude | 本人判断待ち | 勘（計測なし）。事実は OFFER_FACTS のみ |

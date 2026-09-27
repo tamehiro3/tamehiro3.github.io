@@ -37,7 +37,7 @@
    "pose": "pose03",
    "visual": {
     "type": "big",
-    "emoji": "📅",
+    "emoji": "🗓️",
     "text": "【こどもNISA】\n2027年1月から",
     "size": 96
    }
@@ -125,7 +125,7 @@
    "pose": "pose09",
    "visual": {
     "type": "big",
-    "emoji": "📅",
+    "emoji": "🗓️",
     "text": "引き出しは\n原則【12歳から】",
     "size": 96
    }

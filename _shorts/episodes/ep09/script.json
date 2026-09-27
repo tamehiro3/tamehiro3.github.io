@@ -73,7 +73,7 @@
    "pose": "pose04",
    "visual": {
     "type": "big",
-    "emoji": "📅",
+    "emoji": "🗓️",
     "text": "金融商品取引法の改正\n【2026年7月 成立】",
     "size": 76
    }
@@ -102,7 +102,7 @@
    "pose": "face",
    "visual": {
     "type": "big",
-    "emoji": "📆",
+    "emoji": "🗓️",
     "text": "【2028年】から\nが有力",
     "size": 104,
     "sub": "専門家の見通し（まだ決まっていない）"
@@ -195,7 +195,7 @@
    "pose": "pose03",
    "visual": {
     "type": "big",
-    "emoji": "📅",
+    "emoji": "🗓️",
     "text": "開始日は\n【これから決まる】",
     "size": 96
    }

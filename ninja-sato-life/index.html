@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <title>ニンジャ里ライフ | 推しの忍者と、里でくらそう</title>
+  <meta name="description" content="自分で育てた里に、CryptoNinjaの忍者たちが遊びに来て住みつく、のんびり里づくりゲーム。課金・ガチャ・スタミナなし。CryptoNinja 非公式ファンゲーム。">
+  <meta name="theme-color" content="#2f4a3a">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="ニンジャ里ライフ">
+  <link rel="stylesheet" href="style.css?v=1">
+</head>
+<body>
+  <!-- 里（キャンバス） -->
+  <canvas id="world" aria-label="里の様子"></canvas>
+
+  <!-- 上の表示 -->
+  <header id="hud" class="hidden">
+    <div class="res-row">
+      <button class="chip" data-res="coin" title="里コイン"><i class="ic ic-coin"></i><b id="r-coin">0</b></button>
+      <button class="chip" data-res="wood" title="木材"><i class="ic ic-wood"></i><b id="r-wood">0</b><small id="c-wood"></small></button>
+      <button class="chip" data-res="herb" title="薬草"><i class="ic ic-herb"></i><b id="r-herb">0</b><small id="c-herb"></small></button>
+      <button class="chip" data-res="seal" title="交流印"><i class="ic ic-seal"></i><b id="r-seal">0</b></button>
+    </div>
+    <div class="lv-row">
+      <button id="lv-badge" class="lv-badge">里Lv<b id="lv-num">1</b><span id="lv-name"></span></button>
+      <span id="clock-note" class="clock-note" hidden title="サーバーの時刻と合わせられていません（生産は仮の値）">仮</span>
+      <button id="mail-badge" class="mail-badge" hidden title="受け取り箱">📦<b id="mail-n">0</b></button>
+    </div>
+    <div id="quest-card" class="quest-card" hidden></div>
+  </header>
+
+  <!-- 見学中の表示 -->
+  <div id="visit-bar" class="visit-bar" hidden>
+    <div><b id="visit-name">見本の里</b><small id="visit-note"></small></div>
+    <div class="visit-actions">
+      <button class="btn small" data-react="すてき">👏 すてき</button>
+      <button class="btn small" data-react="なごむ">🍵 なごむ</button>
+      <button class="btn small" data-react="まねしたい">✨ まねしたい</button>
+      <button class="btn small ghost" id="visit-report" hidden>通報</button>
+      <button class="btn small primary" id="visit-back">里へもどる</button>
+    </div>
+  </div>
+
+  <!-- 下のメニュー -->
+  <nav id="nav" class="hidden">
+    <button data-panel="quests"><i>📜</i>依頼<em id="nav-q" hidden></em></button>
+    <button data-panel="build"><i>🔨</i>建築</button>
+    <button data-panel="people"><i>🏮</i>住民</button>
+    <button data-panel="visit"><i>🧭</i>訪問</button>
+    <button data-panel="shop"><i>🏪</i>店</button>
+    <button data-panel="menu"><i>≡</i>メニュー</button>
+  </nav>
+
+  <!-- 建築中の道具 -->
+  <div id="build-bar" class="build-bar" hidden>
+    <div class="bb-info"><b id="bb-name"></b><span id="bb-msg"></span></div>
+    <div class="bb-btns">
+      <button class="btn" id="bb-rot" title="90度回す">↻ 回す</button>
+      <button class="btn" id="bb-store" hidden>倉庫へ</button>
+      <button class="btn" id="bb-up" hidden>強化</button>
+      <button class="btn" id="bb-move" hidden>移動</button>
+      <button class="btn ghost" id="bb-cancel">✕ やめる</button>
+      <button class="btn primary" id="bb-ok">✓ 決定</button>
+    </div>
+  </div>
+  <button id="undo-btn" class="undo-btn" hidden>↶ 取り消し</button>
+
+  <!-- パネル（下から出る） -->
+  <section id="panel" class="panel" hidden aria-modal="true" role="dialog">
+    <div class="panel-head"><h2 id="panel-title"></h2><button class="btn small ghost" id="panel-close" aria-label="とじる">✕</button></div>
+    <div id="panel-tabs" class="tabs"></div>
+    <div id="panel-body" class="panel-body"></div>
+  </section>
+
+  <!-- 会話 -->
+  <section id="talk" class="talk" hidden>
+    <div class="talk-face" id="talk-face"></div>
+    <div class="talk-body">
+      <div class="talk-name" id="talk-name"></div>
+      <div class="talk-text" id="talk-text"></div>
+      <div class="talk-btns" id="talk-btns"></div>
+    </div>
+  </section>
+
+  <!-- 結果・確認 -->
+  <section id="modal" class="modal" hidden role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <div id="modal-body"></div>
+      <div class="modal-btns" id="modal-btns"></div>
+    </div>
+  </section>
+
+  <!-- 修行 -->
+  <section id="train" class="modal" hidden>
+    <div class="modal-card train-card">
+      <h3 id="train-title">修行：手裏剣の間合い</h3>
+      <p class="muted">動く印が金色の枠に入ったら「打つ」。3回。</p>
+      <div class="train-bar"><div class="train-zone" id="train-zone"></div><div class="train-mark" id="train-mark">✦</div></div>
+      <div class="train-score" id="train-score">○ ○ ○</div>
+      <div class="modal-btns"><button class="btn primary big" id="train-hit">打つ！</button></div>
+    </div>
+  </section>
+
+  <!-- 案内（チュートリアル） -->
+  <div id="guide" class="guide" hidden>
+    <div class="guide-face" id="guide-face"></div>
+    <div class="guide-text"><b id="guide-name">岩爺</b><p id="guide-msg"></p><div class="guide-btns" id="guide-btns"></div></div>
+  </div>
+  <div id="pointer" class="pointer" hidden>👇</div>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <!-- タイトル -->
+  <section id="title" class="title">
+    <div class="title-inner">
+      <p class="title-sub">推しの忍者と、里でくらそう</p>
+      <h1 class="title-logo">ニンジャ<span>里</span>ライフ</h1>
+      <div class="title-chars" id="title-chars"></div>
+      <div class="title-btns">
+        <button class="btn primary big" id="btn-start">はじめる</button>
+        <button class="btn big" id="btn-continue" hidden>つづきから</button>
+        <div class="row">
+          <a class="btn" href="about.html">遊び方</a>
+          <a class="btn" href="sheets/">キャラクターシート</a>
+        </div>
+      </div>
+      <p class="mini">CryptoNinja（CC0）のキャラクターを使った非公式ファンゲームです。<br>課金・ガチャ・スタミナはありません。記録はこの端末の中だけに保存されます。</p>
+    </div>
+  </section>
+
+  <!-- 見習いの服と色 -->
+  <section id="dress" class="title" hidden>
+    <div class="title-inner">
+      <h2 class="dress-h">見習いの服と色を選ぼう</h2>
+      <div class="dress-preview" id="dress-preview"></div>
+      <div class="dress-row" id="dress-sets"></div>
+      <div class="dress-row" id="dress-hair"></div>
+      <button class="btn primary big" id="btn-dress-ok">この姿で里へ行く</button>
+      <p class="mini">あとから「メニュー → 着がえ」で変えられます。</p>
+    </div>
+  </section>
+
+  <noscript><p style="padding:20px">このゲームを遊ぶには JavaScript を有効にしてください。</p></noscript>
+
+  <script src="data.js?v=1"></script>
+  <script src="art.js?v=1"></script>
+  <script src="chars.js?v=1"></script>
+  <script src="sheet.js?v=1"></script>
+  <script src="rules.js?v=1"></script>
+  <script src="clerk.js?v=1"></script>
+  <script src="iso.js?v=1"></script>
+  <script src="game.js?v=1"></script>
+  <script src="ui.js?v=1"></script>
+  <script src="tutorial.js?v=1"></script>
+</body>
+</html>

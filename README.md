@@ -7,6 +7,7 @@
 - **https://tamehiro3.github.io/ のトップページ**(公開中ゲームの紹介・ランディング)
 - **ads.txt の正式な置き場所**(AdSenseはドメイン直下 `tamehiro3.github.io/ads.txt` しか読まないため、ここに置く)
 - **プライバシーポリシー**(`privacy.html`・AdSense審査の必須要件)
+- **ニンジャ里ライフ(試作版)の置き場所**(`ninja-sato-life/` → https://tamehiro3.github.io/ninja-sato-life/ )。ほかの2本のゲームは別リポジトリですが、このゲームはこのリポジトリの中にあります。中身と作り直し方は [`ninja-sato-life/README.md`](ninja-sato-life/README.md)
 
 ## AdSense の状況と残りの手順
 
@@ -17,6 +18,7 @@
 - `privacy.html` … 第三者配信・Cookie・オプトアウト(aboutads.info)の記載あり
 - `robots.txt` / `sitemap.xml` … 審査クローラー向け
 - 遊び方ページ(`/ninja-mission-kobo/about.html`・`/shinobi-nazomeguri/about.html`)… ゲーム画面はJSで描画され文字が少ないため、審査で「有用性の低いコンテンツ」と判定されないよう文章ページを追加
+- ニンジャ里ライフ(2026-09-27 追加)… 審査コードは遊び方ページ(`/ninja-sato-life/about.html`)だけ。ゲーム画面(`/ninja-sato-life/`)には広告のコードを入れていません(トップページの紹介「プレイ画面に広告は表示しません」と合わせるため。広告を出すなら紹介文と事実台帳も直す)
 
 残りの手順(AdSense管理画面での作業):
 

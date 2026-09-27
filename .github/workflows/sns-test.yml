@@ -1,4 +1,5 @@
 # SNS ツールのテストと在庫の再検品（SNSには何も送らない）
+# サイトのページ（index.html・privacy.html）が変わったときも、事実台帳とのずれを確かめるために走る
 name: SNS テスト
 
 on:
@@ -7,11 +8,15 @@ on:
       - "_marketing/**"
       - ".github/workflows/sns-*.yml"
       - ".github/ISSUE_TEMPLATE/sns-draft.yml"
+      - "index.html"
+      - "privacy.html"
   pull_request:
     paths:
       - "_marketing/**"
       - ".github/workflows/sns-*.yml"
       - ".github/ISSUE_TEMPLATE/sns-draft.yml"
+      - "index.html"
+      - "privacy.html"
   workflow_dispatch:
 
 permissions:

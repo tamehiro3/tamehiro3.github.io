@@ -70,8 +70,20 @@ def fal_voice_id(ep: Path, cfg: dict) -> str:
                                float(os.environ.get("VOICE_REF_SECONDS", 90)))
 
 
+# クローン声は「エーアイ」をカナのまま渡すと「え〜〜あい」と間延びするので、英字で渡す
+FAL_READ = {"エーアイ": "AI", "エイアイ": "AI"}
+
+
+def fal_text(text: str) -> str:
+    for k, v in FAL_READ.items():
+        text = text.replace(k, v)
+    return text
+
+
 def fal_tts(text: str, cfg: dict, voice_id: str) -> np.ndarray:
     import fal_api
+
+    text = fal_text(text)
 
     with tempfile.TemporaryDirectory() as d:
         wav = fal_api.tts(text, voice_id, Path(d) / "a.wav", model=cfg.get("fal_model", fal_api.TTS_MODEL),

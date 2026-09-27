@@ -2,6 +2,7 @@
 
 設計の全体像は [BLUEPRINT.md](BLUEPRINT.md)、点検の記録は [GUNBAI_REVIEW.md](GUNBAI_REVIEW.md) にあります。
 ここは「毎週どう使うか」と「最初の設定」だけをまとめています。
+**はじめての設定を順番どおりに進めるときは [SETUP.md](SETUP.md)（あなたの作業の手順書）を見てください。**
 
 ## 毎週やること（日曜・15分）
 

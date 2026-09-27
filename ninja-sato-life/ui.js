@@ -410,12 +410,18 @@
     var ds = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
     return new Response(ds).text().then(function (t) { return JSON.parse(t); });
   };
+  // コピーできない端末では、コードの文字を選んだ状態にする（長押しでコピー）
+  function copyText(text) {
+    var fallback = function () { var ta = document.querySelector('#modal textarea.code'); if (ta) { ta.focus(); ta.select(); } G.toast('コピーできませんでした。選んだ文字を長押ししてコピーしてください', 3200); };
+    try { if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(function () { G.toast('コピーしました'); }, fallback); return; } } catch (e) { }
+    fallback();
+  }
   function shareMine() {
     var S = G.S;
     G.encode(R.shareData(S)).then(function (code) {
       var url = location.origin + location.pathname + '#visit=' + code;
       G.modal('<h3>自分の里の見学コード</h3><p class="muted">相手が里Lv3なら、このリンクかコードで見学できます。</p><textarea class="code" readonly>' + esc(url) + '</textarea>', [
-        { label: 'コピー', keep: true, fn: function () { if (navigator.clipboard) navigator.clipboard.writeText(url).then(function () { G.toast('コピーしました'); }); } },
+        { label: 'コピー', keep: true, fn: function () { copyText(url); } },
         { label: '共有', keep: true, fn: function () { if (navigator.share) navigator.share({ title: 'ニンジャ里ライフ：' + S.village.name, url: url }).catch(function () { }); else G.toast('この端末では共有ボタンが使えません'); } },
         { label: 'とじる', cls: 'primary' }]);
     });
@@ -598,7 +604,7 @@
     $('#set-vol').oninput = function (e) { st.volume = +e.target.value; G.save(); };
     document.querySelectorAll('input[name=clerk]').forEach(function (r) { r.onchange = function () { st.clerkMode = r.value; G.save(); }; });
     $('#set-ai').onchange = function (e) { var v = e.target.value.trim(); st.aiEndpoint = /^https:\/\//.test(v) ? v : ''; G.save(); };
-    $('#set-reset').onclick = function () { G.confirm('里のデータをすべて消して、最初からやり直します。元に戻せません。', function () { localStorage.removeItem('nsl_save_v1'); localStorage.removeItem('nsl_save_v1_bak'); location.reload(); }, '消してやり直す'); };
+    $('#set-reset').onclick = function () { G.confirm('里のデータをすべて消して、最初からやり直します。元に戻せません。', function () { try { localStorage.removeItem('nsl_save_v1'); localStorage.removeItem('nsl_save_v1_bak'); } catch (e) { } location.reload(); }, '消してやり直す'); };
   }
   function logPanel(body) {
     var S = G.S, m = R.metrics(S);
@@ -615,7 +621,7 @@
     var S = G.S;
     body.innerHTML = '<p>別の端末に里を引っ越すための「引き継ぎコード」です。購入の記録（里コインの買い物）も入っているので、新しい端末で「購入の復元」ができます。</p>';
     var out = document.createElement('button'); out.className = 'btn'; out.textContent = '引き継ぎコードをつくる';
-    out.onclick = function () { G.encode(S).then(function (code) { G.modal('<h3>引き継ぎコード</h3><p class="muted">他人には見せないでください（里のすべてが入っています）。</p><textarea class="code" readonly>' + esc(code) + '</textarea>', [{ label: 'コピー', keep: true, fn: function () { navigator.clipboard && navigator.clipboard.writeText(code).then(function () { G.toast('コピーしました'); }); } }, { label: 'とじる', cls: 'primary' }]); }); };
+    out.onclick = function () { G.encode(S).then(function (code) { G.modal('<h3>引き継ぎコード</h3><p class="muted">他人には見せないでください（里のすべてが入っています）。</p><textarea class="code" readonly>' + esc(code) + '</textarea>', [{ label: 'コピー', keep: true, fn: function () { copyText(code); } }, { label: 'とじる', cls: 'primary' }]); }); };
     var inn = document.createElement('button'); inn.className = 'btn'; inn.textContent = 'コードを読みこむ';
     inn.onclick = function () {
       G.modal('<h3>引き継ぎコードを読みこむ</h3><p class="muted">いまの里は上書きされます。</p><textarea class="code" id="mv-in"></textarea>', [{ label: 'やめる', cls: 'ghost' }, { label: '読みこむ', cls: 'red', fn: function () {

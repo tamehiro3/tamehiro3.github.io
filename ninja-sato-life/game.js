@@ -27,7 +27,7 @@
         var prev = localStorage.getItem(SAVE);
         if (prev) { try { JSON.parse(prev); localStorage.setItem(BAK, prev); } catch (e) { } }
         localStorage.setItem(SAVE, JSON.stringify(G.S));
-      } catch (e) { G.toast && G.toast('保存できませんでした（端末の空き容量を確認してください）'); }
+      } catch (e) { if (!G._warnedSave) { G._warnedSave = true; G.toast && G.toast('この端末では記録を保存できません（プライベートブラウズや空き容量を確認してください）', 3600); } }
     };
     if (now) run(); else saveTimer = setTimeout(run, 250);
   };

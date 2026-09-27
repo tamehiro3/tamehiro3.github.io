@@ -15,7 +15,7 @@ button { font-family: inherit; color: inherit; }
 #world.placing { cursor: crosshair; }
 
 /* ボタン */
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 42px; padding: 8px 14px; border: 2px solid var(--ink); border-radius: 12px; background: var(--paper); font-weight: 700; font-size: 15px; cursor: pointer; text-decoration: none; box-shadow: 0 2px 0 var(--ink); transition: transform .06s; user-select: none; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 42px; padding: 8px 14px; border: 2px solid var(--ink); border-radius: 12px; background: var(--paper); color: var(--ink); font-weight: 700; font-size: 15px; cursor: pointer; text-decoration: none; box-shadow: 0 2px 0 var(--ink); transition: transform .06s; user-select: none; }
 .btn:active { transform: translateY(2px); box-shadow: 0 0 0 var(--ink); }
 .btn.primary { background: var(--green); color: #fff; }
 .btn.red { background: var(--red); color: #fff; }

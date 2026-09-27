@@ -1,0 +1,28 @@
+# SNS X画像の疎通確認: 小さな単色画像を1枚だけXにアップロードして、画像投稿が使えるかを確かめる
+# - 投稿は作らない（アップロードした画像は使われないまま期限切れになる）
+# - 成功したら _marketing/sns/config.json の x.images_enabled を true にして判断ログに記録
+# - 料金: 画像アップロード1回分（料金表に行がなく未確認。保守的に$0.015程度と見積もり）
+name: SNS X画像の疎通確認
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PYTHONDONTWRITEBYTECODE: "1"
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - name: 画像アップロードの疎通確認
+        env:
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET: ${{ secrets.X_API_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
+        run: python3 _marketing/sns/tool/sns.py x-media-check

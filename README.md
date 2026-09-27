@@ -31,3 +31,13 @@
 ## 更新方法
 
 ファイルを編集したら `★サイトを公開する.bat` をダブルクリック。
+
+## SNS自動投稿（Typeless × GitHub）
+
+Typelessで話した下書きを GitHub の Issue に置くと、機械検品 → 承認 → 毎日1本の自動投稿まで回る仕組みを `_marketing/` に置いています(`_` で始まるフォルダなので公開サイトには出ません)。
+
+- はじめての設定（あなたの作業の手順書）: [`_marketing/SETUP.md`](_marketing/SETUP.md)
+- 使い方: [`_marketing/README.md`](_marketing/README.md)
+- 設計図と進め方: [`_marketing/BLUEPRINT.md`](_marketing/BLUEPRINT.md)
+- 軍配の点検記録: [`_marketing/GUNBAI_REVIEW.md`](_marketing/GUNBAI_REVIEW.md)
+- 本番スイッチ: `_marketing/sns/config.json` の `mode`(初期値 `dry-run` = 投稿しない)

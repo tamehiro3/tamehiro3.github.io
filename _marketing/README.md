@@ -15,9 +15,16 @@
 
 > ジャンルやリンク先が違う投稿は、Issue を分けてください（1つの Issue の中は同じジャンル・同じリンク先になります）。
 
+## 週刊メルマガを送る（日曜・15分）
+
+1. 日曜の夜に届く「週次改善」Issue の **6. 週刊メルマガの下書き** を開く
+2. 「あなたの一言」と「答え」を書く（Typelessで話して貼る）
+3. Substack で新しい投稿を作って貼り、送信する（自動送信はしません。Substack の規約で自動投稿が禁止されているため）
+4. 下書きの下にある「送る前のチェック」に印を付ける
+
 ## 画像を付けるとき（Canva）
 
-1. Canva で画像を作り、**PNG か JPG** で書き出してスマホやPCに保存する（Blueskyは1MBまで。大きいときは JPG・品質80）
+1. Canva で画像を作り、**PNG か JPG（幅1440px）** で書き出してスマホやPCに保存する
 2. 「SNS下書き」Issue の **「添付画像」** 欄に貼る（スマホは欄の下の添付ボタン、PCはドラッグ＆ドロップ）。画像は1枚、投稿文は1本だけ
 3. **「画像の説明」** 欄に、画像の中の文字をそのまま全部 Typeless で読み上げる（文字以外は短く絵の説明を）。これが代替テキストになり、機械検品もこの文で行います
 4. 検品コメントで、画像の大きさ・文字認識（OCR）の結果・指摘を確認し、「画像」のチェックも入れて「承認」
@@ -37,7 +44,8 @@ Canva と GitHub をつないだ Claude のセッションで、こう頼みま�
 
 手順の中身は `.claude/skills/sns-canva-draft/SKILL.md` にあります。
 
-- **Xが主戦場のときは、最初に Actions の「SNS X画像の疎通確認」を実行**してください（投稿はされません）。成功したら `_marketing/sns/config.json` の `"images_enabled": false` を `true` にします。失敗した場合、Xでは画像つき投稿は使えません（Blueskyに切り替えるか、手動で投稿）
+- Threads は画像を公開リポジトリのURLから取り込みます。リポジトリを非公開にすると画像つき投稿は止まります
+- Xに戻した場合は、最初に Actions の「SNS X画像の疎通確認」を実行し、成功したら `x.images_enabled` を `true` にします
 
 ## 最初の設定（1回だけ）
 
@@ -54,29 +62,36 @@ Canva と GitHub をつないだ Claude のセッションで、こう頼みま�
 
 Typeless は音声をクラウドで文章にします。子どもの名前や学校名は話さないでください。
 
-### 3. 主戦場の認証情報を登録する
+### 3. Threads の鍵を登録する（主戦場）
 
-GitHub のこのリポジトリで **Settings → Secrets and variables → Actions → New repository secret** から登録します。
-値はここ（GitHub の Secrets）にだけ置き、ファイルには書きません。
+鍵は GitHub の **Settings → Secrets and variables → Actions → New repository secret** にだけ置きます。ファイルやチャットには貼りません（Claude にも見せないでください）。
 
-**X の場合**（従量課金。先にクレジットの購入が必要）
-1. X の開発者ポータル（developer.x.com）でアプリを作る
-2. アプリの権限を **Read and write** にする（権限を変えたら、アクセストークンを作り直す）
-3. 次の4つを Secrets に登録する
+1. Meta for Developers（developers.facebook.com）でアプリを作り、用途に「Threads API」を選ぶ。権限は `threads_basic` と `threads_content_publish`
+2. アプリの役割（App roles）→ テスター → **Threadsテスター** に自分の Threads アカウントを追加し、Threads アプリの 設定 → アカウント → ウェブサイトのアクセス許可 で招待を承認する（自分専用なので、アプリ審査は申請しない）
+3. ユーザートークンの生成ツールで自分のアカウントの鍵を作る。**長期の鍵（60日）** にする（短期の鍵しか出ないときは、公式ドキュメントの手順で長期の鍵に交換）
+4. Secrets に登録する
 
 | Secret の名前 | 中身 |
 |---|---|
-| `X_API_KEY` | API Key（Consumer Key） |
-| `X_API_SECRET` | API Key Secret（Consumer Secret） |
-| `X_ACCESS_TOKEN` | Access Token |
-| `X_ACCESS_TOKEN_SECRET` | Access Token Secret |
+| `THREADS_ACCESS_TOKEN` | 長期の鍵（必須） |
+| `THREADS_USER_ID` | Threads のユーザーID（任意。なければ毎回読み取る） |
 
-**Bluesky の場合**（無料）
-1. Bluesky アプリの 設定 → プライバシーとセキュリティ → **アプリパスワード** で新しく作る（ログイン用のパスワードは使わない）
-2. `BSKY_HANDLE`（例: `yourname.bsky.social`）と `BSKY_APP_PASSWORD` を Secrets に登録する
-3. `_marketing/sns/config.json` の `channel` を `bluesky` にする
+5. `_marketing/sns/config.json` の `threads.token_issued_on` に、鍵を作った日（例: `"2026-09-27"`）を書く
+6. Actions → **SNS Threadsの疎通確認** → Run workflow。✅ と自分のアカウント名が出れば完了（投稿はされません）
 
-画面の名前は変わることがあります。見つからないときは各サービスの公式ヘルプで確認してください。
+画面の名前は変わることがあります。見つからないときは Meta の公式ドキュメントで確認してください。
+X や Bluesky に戻す場合は、`channel` を `x` か `bluesky` にして、それぞれの鍵（`X_API_KEY` など、`BSKY_HANDLE` など）を登録します。
+
+#### Threads の鍵を作り直す（50日ごと）
+
+Threads の鍵は60日で切れ、作り直すと古い鍵は使えなくなります。期限の10日前に `[SNS警報] Threadsの鍵` のIssueが届くので、手順3〜6をやり直します。期限が切れると、投稿は止まります（壊れた投稿は出ません）。
+
+### 3b. Substack（週刊メルマガ・受け皿）
+
+1. Substack で「週刊しのびの謎」を開設する（無料購読のみ）
+2. そのURLを `config.json` の `links` の `"メルマガ"` と `newsletter.substack_url` に入れる。未設定のうちは、リンク先「メルマガ」を選ぶと承認できません
+3. Threads のプロフィールのリンクをメルマガにし、「謎の答え合わせは週刊メルマガで」という固定投稿を1本置く（手作業）
+4. 送信者・問い合わせ先・住所の表示（特定電子メール法）を `newsletter` に入れる。個人の住所をどう載せるかは専門家に確認してください
 
 ### 4. 試運転（ドライラン）
 
@@ -100,6 +115,7 @@ GitHub のこのリポジトリで **Settings → Secrets and variables → Acti
 | `[SNS警報] 送信中のまま` | 投稿されたか分からない。自動投稿は止まっている | SNSを確認し、投稿済みなら `sending/` のファイルを `posted/` へ、未投稿なら `queue/` へ移す |
 | `[SNS警報] 予算` | 今月のX API推定額が上限に届く | 上限を上げるか、翌月まで待つか（本人判断・判断ログに記入） |
 | `[SNS警報] 認証情報が未設定` | Secrets が足りない | 手順3をやり直す |
+| `[SNS警報] Threadsの鍵` | 鍵の期限が近い（残り10日）か、切れた | 「Threads の鍵を作り直す」の手順で更新する |
 | `[SNS警報] 保留` | 承認済みの投稿が、ルール変更後の再検品で不合格 | `held/` の投稿を直して出し直すか、そのまま捨てる |
 
 ファイルを別のフォルダへ移すには、GitHub の画面でそのファイルを編集し、ファイル名の欄でフォルダ部分（例: `sending/`）を書き換えて保存します。

@@ -1,0 +1,25 @@
+# SNS Threadsの疎通確認: 鍵が使えるか（プロフィールを1回読むだけ）と、鍵の期限までの日数を表示する
+# - 投稿はしない。鍵そのものはログに出さない
+# - 初回設定のとき、鍵を作り直したときに手動で実行する
+name: SNS Threadsの疎通確認
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PYTHONDONTWRITEBYTECODE: "1"
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - name: Threadsの鍵を確かめる
+        env:
+          THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+          THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
+        run: python3 _marketing/sns/tool/sns.py threads-check

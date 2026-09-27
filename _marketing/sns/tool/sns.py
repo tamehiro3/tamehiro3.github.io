@@ -10,13 +10,15 @@
   python3 sns.py x-media-check              Xへの画像アップロードが通るかだけ確かめる（投稿はしない）
   python3 sns.py canva-draft --text ... --image-url ... --image-desc ...
                                             Canvaの書き出しから下書きIssueの本文を作る（事前検品つき。Claude用）
+  python3 sns.py threads-check              Threadsの鍵が使えるか・期限までの日数を確かめる（投稿はしない）
+  python3 sns.py newsletter                 今週の投稿から週刊メルマガ（Substack）の下書きを作る（送信はしない）
 """
 import argparse
 import json
 import os
 import sys
 import urllib.parse
-from datetime import timedelta, timezone
+from datetime import date, timedelta, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -48,6 +50,8 @@ def resolve_link(cfg, label):
     links = cfg.get("links", {})
     if label not in links:
         return None, f"リンク先「{label}」は config.json の links にありません"
+    if links[label] == "":
+        return None, f"リンク先「{label}」のURLがまだ設定されていません（config.json の links）"
     return links[label], None
 
 
@@ -106,6 +110,10 @@ def inspect_images(cfg, rules, parsed, store, fetch, issue_number=None):
             continue
         if len(data) > max_bytes:
             findings.append(Finding("block", f"画像{n}: {channel} の上限（{max_bytes // 1000}KB）を超えています"))
+        max_width = cfg[channel].get("max_image_width")
+        if max_width and info["width"] > max_width:
+            findings.append(Finding("warn", f"画像{n}: 幅{info['width']}pxは {channel} の目安（{max_width}px）を超えています"
+                                            "（縮小されるか、受け付けられないことがある。Canvaは幅{0}で書き出す）".format(max_width)))
         if info.pop("gps"):
             findings.append(Finding("block", f"画像{n}: 撮影場所（GPSの位置情報）が入っています。"
                                              "位置情報を消した画像か、Canvaで書き出した画像を貼ってください"))
@@ -192,7 +200,11 @@ def render_report(cfg, parsed, results, images=(), store=None):
         preview = r.text.replace("@", "@\u200b").replace("＠", "＠\u200b")  # 引用でメンション通知を飛ばさない
         lines += ["> " + (ln if ln else "　") for ln in preview.split("\n")]
         lines.append("")
-        lines.append(f"- 文字数: X換算 {r.x_length}/{cfg['x']['max_weighted_length']}・Bluesky {r.bsky_length}/{cfg['bluesky']['max_graphemes']}")
+        counts = {"threads": f"Threads {r.threads_length}/{cfg.get('threads', {}).get('max_chars', 500)}",
+                  "x": f"X換算 {r.x_length}/{cfg['x']['max_weighted_length']}",
+                  "bluesky": f"Bluesky {r.bsky_length}/{cfg['bluesky']['max_graphemes']}"}
+        order = [cfg["channel"]] + [c for c in counts if c != cfg["channel"]]
+        lines.append("- 文字数: " + "・".join(counts[c] for c in order if c in counts) + f"（主戦場: {cfg['channel']}）")
         if i == 1:
             lines += _image_lines(images, parsed, store)
         for f in r.findings:
@@ -332,9 +344,34 @@ def image_problems(cfg, store, item):
     return problems
 
 
+def public_media_url(cfg, store, meta):
+    """Threadsが取り込む画像の公開URL（公開リポジトリの生ファイル）。"""
+    base = cfg.get("threads", {}).get("public_media_base")
+    if base:
+        return base.rstrip("/") + "/" + meta["file"]
+    repo = os.environ.get("GITHUB_REPOSITORY")
+    if not repo:
+        raise channels.PostRejected("画像の公開URLを作れません（GITHUB_REPOSITORY も threads.public_media_base もない）")
+    try:
+        rel = store.media.relative_to(REPO_ROOT).as_posix()
+    except ValueError:
+        rel = "_marketing/sns/media"
+    return f"https://raw.githubusercontent.com/{repo}/{os.environ.get('GITHUB_REF_NAME') or 'master'}/{rel}/{meta['file']}"
+
+
 def post_to_channel(cfg, channel, item, creds, store):
     """1本を投稿する。画像のアップロードは投稿の前に行い、失敗したら「未投稿」として扱う。"""
     images = [dict(meta, data=store.load_image(meta)) for meta in item.get("images", [])]
+    if channel == "threads":
+        th = cfg.get("threads", {})
+        image_url = alt = None
+        if images:
+            image_url = public_media_url(cfg, store, images[0])
+            if not channels.url_reachable(image_url):
+                raise channels.PostRejected(f"画像の公開URLに画像がありません（Threadsが取り込めない）: {image_url}")
+            alt = images[0].get("alt") if th.get("alt_text") else None
+        return channels.post_threads(item["text"], creds, th.get("api_base", channels.THREADS_API), image_url, alt,
+                                     th.get("container_wait_seconds", 30))
     if channel == "x":
         media_ids = []
         for img in images:
@@ -351,6 +388,18 @@ def post_to_channel(cfg, channel, item, creds, store):
                                  bs.get("langs", ["ja"]), images)
 
 
+def threads_token_status(cfg, today):
+    """(残り日数 or None, 文言)。鍵を作った日から数える（Threadsの鍵は60日で切れる）。"""
+    th = cfg.get("threads", {})
+    issued = th.get("token_issued_on")
+    if not issued:
+        return None, "Threadsの鍵を作った日が未設定です（config.json の threads.token_issued_on）"
+    left = (date.fromisoformat(issued) + timedelta(days=th.get("token_valid_days", 60)) - today).days
+    if left < 0:
+        return left, f"Threadsの鍵の期限が切れています（{-left}日前）。作り直して Secrets と token_issued_on を更新してください"
+    return left, f"Threadsの鍵の期限まであと{left}日"
+
+
 def cmd_post():
     cfg, rules, store = load_json("config.json"), load_json("rules.json"), Store(SNS_ROOT)
     mode = cfg.get("mode", "dry-run")
@@ -364,9 +413,21 @@ def cmd_post():
     if mode == "paused":
         print("一時停止中（config.json の mode: paused）。何もしない")
         return 0
-    if channel not in ("x", "bluesky"):
-        alert("[SNS警報] 設定", "[SNS警報] 設定: channel が不正", f"config.json の channel は x か bluesky（現在: {channel}）")
+    if channel not in ("threads", "x", "bluesky"):
+        alert("[SNS警報] 設定", "[SNS警報] 設定: channel が不正", f"config.json の channel は threads / x / bluesky（現在: {channel}）")
         return 1
+    if channel == "threads":
+        left, note = threads_token_status(cfg, now.date())
+        print(note)
+        warn_days = cfg.get("threads", {}).get("token_warn_days", 10)
+        if left is not None and left < 0:
+            alert("[SNS警報] Threadsの鍵", "[SNS警報] Threadsの鍵の期限が切れています", note + "\n\n手順は `_marketing/README.md` の「Threadsの鍵を作り直す」。")
+            return 1
+        if left is None or left <= warn_days:
+            alert("[SNS警報] Threadsの鍵", f"[SNS警報] Threadsの鍵: {note}",
+                  note + "\n\n手順は `_marketing/README.md` の「Threadsの鍵を作り直す」。更新するまで投稿は続けます。")
+        elif live:
+            gh.close_issues("[SNS警報] Threadsの鍵", ALERT_LABEL, "Threadsの鍵が更新されました。")
 
     stuck = store.items(store.sending)
     if stuck:
@@ -420,7 +481,8 @@ def cmd_post():
 
     pics = "".join(f"\n[画像] {m['file']}（代替テキスト: {m.get('alt', '')[:40]}）" for m in item.get("images", []))
     print(f"--- 投稿予定: {item['id']}（リンク: {item.get('link_label')} / 推定 ${cost:.3f}）---\n{item['text']}{pics}\n---")
-    creds, missing = (channels.x_credentials if channel == "x" else channels.bluesky_credentials)(os.environ)
+    creds, missing = {"threads": channels.threads_credentials, "x": channels.x_credentials,
+                      "bluesky": channels.bluesky_credentials}[channel](os.environ)
     if not live:
         print(f"[dry-run] 投稿しない。在庫は投稿後 {remaining} 本の見込み。"
               f"認証情報: {'未設定 ' + ', '.join(missing) if missing else 'すべて設定済み'}")
@@ -484,7 +546,9 @@ def cmd_weekly():
         f"- 投稿本数: {len(week)} / 目標7（主戦場: {cfg['channel']}、mode: `{cfg['mode']}`）",
         f"- ジャンル内訳: {'、'.join(f'{k} {v}' for k, v in genres.items()) or 'なし'}",
         f"- リンク付き: {links}本（目安: 週2本）",
-        f"- 今月のX API推定額: ${store.month_spend(f'{now:%Y-%m}'):.3f} / 上限 ${cfg['x']['monthly_budget_usd']:.2f}",
+        (f"- 今月のX API推定額: ${store.month_spend(f'{now:%Y-%m}'):.3f} / 上限 ${cfg['x']['monthly_budget_usd']:.2f}"
+         if cfg["channel"] == "x" else f"- {threads_token_status(cfg, now.date())[1]}" if cfg["channel"] == "threads"
+         else "- 費用: なし"),
         f"- 在庫: {len(store.items(store.queue))}本 / 送信中のまま: {len(store.items(store.sending))} / 保留: {len(store.items(store.held))}",
         "",
         "## 2. 手で写す数字（SNSのアナリティクス画面から。取れない項目は「未計測」）",
@@ -503,10 +567,86 @@ def cmd_weekly():
         "- ",
         "",
         "> 「実績がゼロだった」のか「計測が壊れている」のかを先に区別する。数字には必ず出典を書く（軍配 kaizen §2）。",
+        "",
+        "## 6. 週刊メルマガの下書き（Substackに貼って、あなたが送る）",
+        "",
+        "<details><summary>下書きを開く</summary>",
+        "",
+        "```",
+        newsletter_draft(cfg, week, start, now.date()),
+        "```",
+        "",
+        "</details>",
+        "",
+        "送る前のチェック（自動送信はしません。Substackの規約で自動投稿は禁止されているため）",
+        "- [ ] 「あなたの一言」を自分の言葉で書いた（Typelessで話して貼る）",
+        "- [ ] 謎の答えを書いた",
+        "- [ ] 数字・実績は事実台帳（`_marketing/OFFER_FACTS.md`）にあるものだけ",
+        "- [ ] 送信者・問い合わせ先・配信停止・住所の表示がある（特定電子メール法。住所の載せ方は要確認）",
     ])
     gh.upsert_issue(title, title, body, WEEKLY_LABEL)
     print(body)
     return 0
+
+
+def newsletter_draft(cfg, week, start, end):
+    """今週の投稿から週刊メルマガの下書き（貼り付け用のプレーンテキスト）を作る。
+
+    本人の一言と謎の答えは空欄のまま（原稿は人）。リンクは1つだけ（1通1CTA）。
+    """
+    nl = cfg.get("newsletter", {})
+    links = cfg.get("links", {})
+    strip = lambda t: "\n".join(ln for ln in (t or "").split("\n") if not ln.startswith("http")).strip()  # noqa: E731
+    riddles = [d for d in week if d.get("genre") == "今日の謎"]
+    others = [d for d in week if d.get("genre") != "今日の謎"]
+    cta = next((d.get("link") for d in reversed(week) if d.get("link") and d.get("link") != links.get("メルマガ")), None)
+    cta = cta or links.get("ポータル")
+    out = [f"件名: {nl.get('name', '週刊メルマガ')}（{start:%m/%d}〜{end:%m/%d}）", "",
+           "［あなたの一言：今週の気づき・遊んだ話・作った話を、Typelessで話して貼る］", ""]
+    out.append("■ 今週の謎")
+    if riddles:
+        for i, d in enumerate(riddles, 1):
+            out += [f"{i}. {strip(d['text'])}", f"   答え：［ここに書く］", ""]
+    else:
+        out += ["（今週は謎の投稿がありませんでした）", ""]
+    if others:
+        out.append("■ 今週の投稿から")
+        out += [f"・{strip(d['text'])}" for d in others]
+        out.append("")
+    out += ["■ 遊んでみる", cta or "［リンク］", "",
+            "――――――――",
+            f"送信者：{nl.get('sender_name') or '［送信者の名前］'}",
+            f"お問い合わせ：{nl.get('contact_url') or '［問い合わせ先］'}",
+            "配信停止：このメールの下にある配信停止（Unsubscribe）のリンクから、いつでも止められます",
+            f"住所：{nl.get('address') or '［住所、または住所を載せたページのURL（載せ方は要確認）］'}"]
+    return "\n".join(out)
+
+
+def cmd_newsletter():
+    cfg, store = load_json("config.json"), Store(SNS_ROOT)
+    now = now_jst()
+    start = (now - timedelta(days=6)).date()
+    week = [d for d in store.posted_items() if (d.get("posted_at") or "")[:10] >= start.isoformat()]
+    print(newsletter_draft(cfg, week, start, now.date()))
+    return 0
+
+
+def cmd_threads_check():
+    """Threadsの鍵が使えるか（プロフィールを1回読むだけ）と、期限までの日数を表示する。投稿はしない。"""
+    cfg = load_json("config.json")
+    left, note = threads_token_status(cfg, now_jst().date())
+    print(note)
+    creds, missing = channels.threads_credentials(os.environ)
+    if missing:
+        print("認証情報が未設定です: " + ", ".join(missing))
+        return 1
+    try:
+        me = channels.threads_me(creds, cfg.get("threads", {}).get("api_base", channels.THREADS_API))
+    except channels.PostRejected as e:
+        print(f"❌ Threadsの鍵が使えません（投稿はしていません）\n{e}")
+        return 1
+    print(f"✅ Threadsの鍵は使えます（@{me.get('username', '?')} / ユーザーID {me.get('id', '?')}）")
+    return 0 if (left is None or left >= 0) else 1
 
 
 def cmd_check(text, link_label="なし"):
@@ -521,7 +661,7 @@ def cmd_check(text, link_label="なし"):
 def cmd_lint_queue():
     cfg, rules, store = load_json("config.json"), load_json("rules.json"), Store(SNS_ROOT)
     assert cfg.get("mode") in ("dry-run", "live", "paused"), "config.mode が不正"
-    assert cfg.get("channel") in ("x", "bluesky"), "config.channel が不正"
+    assert cfg.get("channel") in ("threads", "x", "bluesky"), "config.channel が不正"
     bad = 0
     for path in store.items(store.queue):
         item = store.load(path)
@@ -610,6 +750,10 @@ def main(argv):
         return cmd_x_media_check()
     if cmd == "canva-draft":
         return cmd_canva_draft(args)
+    if cmd == "threads-check":
+        return cmd_threads_check()
+    if cmd == "newsletter":
+        return cmd_newsletter()
     print(__doc__)
     return 2
 

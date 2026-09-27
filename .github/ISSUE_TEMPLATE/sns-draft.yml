@@ -14,7 +14,7 @@ body:
     id: text
     attributes:
       label: 投稿文
-      description: Xなら1本あたり全角140字まで（リンクを付けると約128字）。@メンションは使えません。ハッシュタグは2個まで。
+      description: Threadsは1本500字まで（Xなら全角140字）。@メンションは使えません。ハッシュタグはThreadsなら1個まで。
       placeholder: "例）今日の謎。〇〇〇〇（答えはあした）"
     validations:
       required: true
@@ -38,12 +38,13 @@ body:
     id: link
     attributes:
       label: リンク先（1投稿1リンク）
-      description: XのAPI料金はリンク付きだと1本約$0.20（リンクなしの約13倍）。リンク付きは週2本が目安です。
+      description: リンク付きは週2本が目安。「メルマガ」は謎の答え合わせなど、週刊メルマガ（Substack）への案内に使います。
       options:
         - なし
         - にんじゃミッション工房
         - 忍びの謎巡り
         - ポータル
+        - メルマガ
       default: 0
     validations:
       required: true
@@ -51,7 +52,7 @@ body:
     id: image
     attributes:
       label: 添付画像（任意・1枚まで）
-      description: Canvaで作った画像をPNGかJPGで書き出して、ここに貼る（スマホは欄の下の添付ボタン、PCはドラッグ＆ドロップ）。画像を付けるときは、投稿文は1本だけにします。Blueskyは1MBまで（大きいときはJPGの品質80で書き出す）。
+      description: Canvaで作った画像をPNGかJPG（幅1440px）で書き出して、ここに貼る（スマホは欄の下の添付ボタン、PCはドラッグ＆ドロップ）。画像を付けるときは、投稿文は1本だけにします。
   - type: textarea
     id: image_desc
     attributes:

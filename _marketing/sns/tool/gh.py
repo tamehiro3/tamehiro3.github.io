@@ -1,6 +1,6 @@
 """GitHub REST API の最小ラッパー（Issue・コメント・ラベル）。
 
-GITHUB_TOKEN が無い手元実行では、何をするはずだったかを表示するだけ（オフライン）。
+Actions の外（手元）や GITHUB_TOKEN が無いときは、何をするはずだったかを表示するだけ（オフライン）。
 """
 import json
 import os
@@ -22,8 +22,11 @@ def _config():
 
 
 def online():
+    """GitHubに書き込むのは Actions 上で動いているときだけ（手元の試運転で本物のIssueを触らない）。
+    手元で本当に書き込みたいときだけ SNS_GH=1 を付ける。"""
     token, repo, _ = _config()
-    return bool(token and repo)
+    on_actions = os.environ.get("GITHUB_ACTIONS") == "true" or os.environ.get("SNS_GH") == "1"
+    return bool(token and repo and on_actions)
 
 
 def request(method, path, body=None, ok_statuses=()):

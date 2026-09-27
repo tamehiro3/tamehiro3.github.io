@@ -34,7 +34,7 @@ description: しのびのゲーム工房のSNS下書きを、Canvaの画像つ�
 3. `edit-design`（`finalize: "keep_open"`）で `find_and_replace_text`：謎の本文を本人の文面に差し替える。改行は `\n`。タイトルは `update_title` で「今日の謎カード YYYY-MM-DD」などに
 4. 返ってきたサムネイルを本人に見せ、はみ出し・誤字がないか確認してもらう
 5. OKなら `edit-design`（`finalize: "commit"`）で保存。直しがあれば keep_open で直す。やめるなら `cancel`
-6. `export-design`（`format: {"type": "jpg", "quality": 80, "width": 1600}`）→ 書き出しURL（`https://export-download.canva.com/...`）
+6. `export-design`（`format: {"type": "jpg", "quality": 80, "width": 1440}`）→ 書き出しURL（`https://export-download.canva.com/...`）。幅1440はThreadsの目安
 
 ### 3. 事前検品して、Issueの中身を作る
 ```
@@ -62,4 +62,5 @@ GitHub の連携（`issue_write`、method `create`）で作る。
 ## うまくいかないとき
 - 受付のワークフローは `master` にあるものが動く。まだ取り込まれていなければ、Issueを作っても検品されない
 - レポートに「Canvaの画像リンクの期限が切れています」と出たら、`export-design` で書き出し直し、Issue本文の画像URLを新しいものに差し替える（編集すると再検品される）
-- 主戦場がXで、`x.images_enabled` が false のままだと画像つき下書きは止まる（`_marketing/README.md` の疎通確認を参照）
+- 主戦場は Threads（`config.json` の `channel`）。Xに戻した場合、`x.images_enabled` が false のままだと画像つき下書きは止まる
+- リンク先「メルマガ」は、Substack のURLを `config.json` の `links` に入れるまで選べない

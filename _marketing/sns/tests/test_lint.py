@@ -4,7 +4,7 @@ from helpers import FACTS, load
 
 from lint import bsky_length, lint_post, x_weighted_length
 
-CFG = load("config.json")
+CFG = dict(load("config.json"), channel="x")  # この表のテストはXの基準で見る（Threadsは test_threads.py）
 RULES = load("rules.json")
 FACTS_TEXT = FACTS.read_text(encoding="utf-8")
 OK_TEXT = "今日の謎です。ひらがな3文字の生き物で、夜になると光るものはなんでしょう。答えはあしたの夜に。"

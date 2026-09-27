@@ -269,3 +269,13 @@ class ModeTest(FlowBase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class GitHubSafetyTest(unittest.TestCase):
+    def test_local_runs_never_write_to_github(self):
+        import gh
+        env = {"GITHUB_TOKEN": "t", "GITHUB_REPOSITORY": "o/r", "GITHUB_ACTIONS": "", "SNS_GH": ""}
+        with mock.patch.dict(os.environ, env):
+            self.assertFalse(gh.online())
+        with mock.patch.dict(os.environ, dict(env, GITHUB_ACTIONS="true")):
+            self.assertTrue(gh.online())

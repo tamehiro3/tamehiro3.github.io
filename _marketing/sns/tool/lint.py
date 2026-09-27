@@ -38,6 +38,7 @@ class LintResult:
     findings: list = field(default_factory=list)
     x_length: int = 0
     bsky_length: int = 0
+    threads_length: int = 0
 
     @property
     def blocked(self):
@@ -198,6 +199,7 @@ def lint_post(text, link, cfg, rules, facts_text="", existing_texts=()):
     result = LintResult(text=composed)
     result.x_length = x_weighted_length(composed)
     result.bsky_length = bsky_length(composed)
+    result.threads_length = len(unicodedata.normalize("NFC", composed))  # 保守的に数える（絵文字の合成も1字ずつ）
 
     if raw in EMPTY_MARKERS:
         result.add("block", "本文が空です")
@@ -212,23 +214,28 @@ def lint_post(text, link, cfg, rules, facts_text="", existing_texts=()):
         result.add("block", f"Xの文字数オーバー（X換算 {result.x_length}/{x_max}。全角はおよそ{x_max // 2}字まで）")
     if channel == "bluesky" and result.bsky_length > b_max:
         result.add("block", f"Blueskyの文字数オーバー（{result.bsky_length}/{b_max}字）")
+    t_max = cfg.get("threads", {}).get("max_chars", 500)
+    if channel == "threads" and result.threads_length > t_max:
+        result.add("block", f"Threadsの文字数オーバー（{result.threads_length}/{t_max}字）")
 
     urls = URL_RE.findall(composed)
     if len(urls) > 1:
         result.add("block", f"リンクが{len(urls)}個あります（1投稿1リンク）。URLは話さず、リンク先プルダウンで選んでください")
-    prefixes = tuple(cfg.get("allowed_link_prefixes", []))
+    # 設定のリンク先に書いたURL（メルマガなど）は、そのまま許可する
+    prefixes = tuple(cfg.get("allowed_link_prefixes", [])) + tuple(v for v in cfg.get("links", {}).values() if v)
     for url in urls:
         if not url.startswith(prefixes):
             result.add("block", f"許可されていないリンク先: {url}")
 
     tags = HASHTAG_RE.findall(composed)
-    max_tags = cfg.get("max_hashtags", 2)
+    max_tags = cfg.get(channel, {}).get("max_hashtags", cfg.get("max_hashtags", 2))
     if len(tags) > max_tags:
-        result.add("block", f"ハッシュタグが{len(tags)}個（上限{max_tags}。X自動化ルールのハッシュタグ乱用対策）")
+        why = "Threadsのトピックは1投稿1つ" if channel == "threads" else "ハッシュタグ乱用対策"
+        result.add("block", f"ハッシュタグが{len(tags)}個（上限{max_tags}。{why}）")
 
     mentions = MENTION_RE.findall(URL_RE.sub("", composed))
     if mentions:
-        result.add("block", f"メンション {' '.join(mentions)} は自動投稿に使えません（X自動化ルール・誤爆防止）。手動で投稿してください")
+        result.add("block", f"メンション {' '.join(mentions)} は自動投稿に使えません（各SNSの自動化ルール・誤爆防止）。手動で投稿してください")
 
     body = URL_RE.sub("", composed)
     if "**" in body or "__" in body or re.search(r"^#{1,6}\s", body, re.M):

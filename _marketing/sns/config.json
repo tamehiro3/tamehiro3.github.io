@@ -2,12 +2,13 @@
   "_doc": "SNS自動投稿の設定。mode / channel / 予算を変えたら _marketing/ledgers/DECISIONS.md に1行残す。",
   "mode": "dry-run",
   "_mode_doc": "dry-run=投稿せず内容をログに出すだけ / live=本番投稿 / paused=何もしない（緊急停止）",
-  "channel": "x",
-  "_channel_doc": "主戦場は1つだけ（軍配: チャネルは並列に増やさない）。x または bluesky",
+  "channel": "threads",
+  "_channel_doc": "主戦場は1つだけ（軍配: チャネルは並列に増やさない）。threads / x / bluesky。2026-09-27 本人判断で x → threads",
   "owner": "tamehiro3",
   "max_posts_per_day": 1,
   "low_stock_threshold": 7,
   "max_hashtags": 2,
+  "_max_hashtags_doc": "全体の上限。主戦場ごとの上限（threads.max_hashtags など）があればそちらを使う",
   "images": {
     "_doc": "画像つき投稿。1投稿1枚・画像の説明（代替テキスト）必須。OCRの一致率がこれ未満だと要確認",
     "max_per_post": 1,
@@ -17,8 +18,10 @@
     "なし": null,
     "にんじゃミッション工房": "https://tamehiro3.github.io/ninja-mission-kobo/",
     "忍びの謎巡り": "https://tamehiro3.github.io/shinobi-nazomeguri/",
-    "ポータル": "https://tamehiro3.github.io/"
+    "ポータル": "https://tamehiro3.github.io/",
+    "メルマガ": ""
   },
+  "_links_doc": "値が空文字のリンク先は未設定（選ぶと承認できない）。ここに書いたURLはリンク先として自動で許可される",
   "allowed_link_prefixes": [
     "https://tamehiro3.github.io/"
   ],
@@ -44,5 +47,33 @@
     ],
     "max_image_bytes": 1000000,
     "_image_doc": "Blueskyの画像上限は1,000,000バイト（2026-04に2MBへ引き上げとの報道あり・未確認のため保守的に1MB）"
+  },
+  "threads": {
+    "api_base": "https://graph.threads.net/v1.0",
+    "max_chars": 500,
+    "max_hashtags": 1,
+    "_max_hashtags_doc": "Threadsのトピック（ハッシュタグ）は1投稿1つ",
+    "max_image_bytes": 8000000,
+    "max_image_width": 1440,
+    "_image_doc": "JPEG/PNG・8MBまで・幅320〜1440px（Canvaは幅1440で書き出す）。画像は公開URLからThreadsが取り込む",
+    "public_media_base": null,
+    "_public_media_doc": "null なら https://raw.githubusercontent.com/<リポジトリ>/<ブランチ>/_marketing/sns/media/ を使う（公開リポジトリが前提）",
+    "alt_text": false,
+    "_alt_text_doc": "代替テキストをAPIで送れるかは未確認のため初期値オフ（画像の説明は在庫には保存される）",
+    "container_wait_seconds": 30,
+    "token_issued_on": null,
+    "token_valid_days": 60,
+    "token_warn_days": 10,
+    "_token_doc": "Threadsの鍵は60日で切れ、更新すると別の鍵に置き換わる。鍵を作り直してSecretsに入れたら、その日付（YYYY-MM-DD）をここに書く"
+  },
+  "newsletter": {
+    "_doc": "Substackの週刊メルマガ（受け皿）。自動送信はしない（Substackの規約）。週次改善Issueに下書きを作り、本人が貼って送る",
+    "name": "週刊しのびの謎",
+    "substack_url": null,
+    "sender_name": "しのびのゲーム工房（tamehiro3）",
+    "contact_url": "https://github.com/tamehiro3",
+    "address": null,
+    "_address_doc": "特定電子メール法の表示（住所）。住所そのもの、または住所を載せたページのURL。表示のしかたは要確認",
+    "cta_link_label": "今週のおすすめ"
   }
 }

@@ -94,3 +94,13 @@ python tools/analyze.py improve/metrics_ep01.csv   # 投稿後の数字から改
 - フォント M PLUS Rounded 1c（テロップ・図解）と、絵文字画像の元の Noto Color Emoji は SIL Open Font License 1.1
 - waifu2x のモデルは MIT
 - 効果音は `tools/sfx.py` でその場で合成（外部素材なし）
+
+## できた動画を Discord に送る
+
+1. Discord で「チャンネルの編集 → 連携サービス → ウェブフック → 新しいウェブフック → ウェブフックURLをコピー」
+2. その URL を、リポジトリの外のファイル `C:\Users\3mori\SNS\discord_webhook.txt` に1行で保存する（git に上げない・チャットに貼らない）
+3. `python tools/discord_send.py check` で、送れる状態か確かめる（投稿はしない）
+4. 作るついでに送る: `python tools/make.py ep12 ep10 ep14 --engine fal --discord`
+   できている動画だけ送る: `python tools/discord_send.py ep12 ep10 ep14`
+
+無料の Discord は1ファイル10MBまでなので、送る用に圧縮した `out/epXX_discord.mp4`（720p）を作って送る。投稿には元の `epXX.mp4` を使う。

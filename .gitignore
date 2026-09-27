@@ -11,3 +11,9 @@ fal_key*
 # 日本語の名前のキーファイル
 *キー*
 *APIキー*
+
+# Discord の Webhook URL（知っている人は誰でも投稿できる鍵）
+*discord_webhook*
+*Discord Webhook*
+*discord webhook*
+.discord_webhook*

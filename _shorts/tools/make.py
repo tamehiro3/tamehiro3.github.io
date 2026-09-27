@@ -2,6 +2,7 @@
 
   python tools/make.py ep04 ep07 ep05 --engine fal     # クローン声（Windows PC で）
   python tools/make.py ep04 --engine openjtalk          # 仮の声（Linux）
+  python tools/make.py ep12 ep10 ep14 --engine fal --discord   # できたら Discord に送る
 
 途中でエラーが出たらそこで止まり、どのエピソードのどの工程かを表示する。
 最後に、各エピソードの尺・点検の判定・動画の場所をまとめて表示する。
@@ -30,7 +31,12 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("episodes", nargs="+", help="ep04 ep07 ep05 のように順番に")
     ap.add_argument("--engine", choices=["fal", "openjtalk"], default="fal")
+    ap.add_argument("--discord", action="store_true", help="できた動画を Discord に送る（tools/discord_send.py）")
+    ap.add_argument("--limit-mb", type=float, default=10.0, help="Discord の1ファイルの上限（無料は 10MB）")
     a = ap.parse_args()
+    if a.discord:
+        import discord_send
+        discord_send.load_url()          # URL が無ければ、作り始める前に止める
     summary = []
     for ep in a.episodes:
         d = ROOT / "episodes" / ep
@@ -53,6 +59,10 @@ def main():
         for i in issues[:8]:
             print("    " + i)
         print(f"    動画: {ROOT / 'episodes' / ep / 'out' / (ep + '.mp4')}")
+    if a.discord:
+        print("\n=== Discord に送る")
+        note = "（仮の声・確認用）" if a.engine == "openjtalk" else ""
+        discord_send.send([ep for ep, *_ in summary], a.limit_mb, note)
 
 
 if __name__ == "__main__":

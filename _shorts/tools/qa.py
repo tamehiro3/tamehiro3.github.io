@@ -124,7 +124,8 @@ def check_audio(ep, script, tl, final_mp4, rep):
         subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(final_mp4), "-ac", "1", "-ar", str(SR), str(wav)], check=True)
         final, _ = sf.read(wav, dtype="float32")
         asr = None
-        if (Path(__file__).resolve().parent.parent / "assets" / ".fal_key").exists():
+        import fal_api
+        if any(p.exists() for p in fal_api.KEY_CANDIDATES):   # キーがリポジトリの外にあっても使う
             try:
                 asr = fal_transcribe(wav)
             except Exception as e:  # ネットワーク不可など

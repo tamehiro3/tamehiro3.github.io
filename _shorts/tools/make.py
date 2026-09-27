@@ -3,12 +3,14 @@
   python tools/make.py ep04 ep07 ep05 --engine fal     # クローン声（Windows PC で）
   python tools/make.py ep04 --engine openjtalk          # 仮の声（Linux）
   python tools/make.py ep12 ep10 ep14 --engine fal --discord   # できたら Discord に送る
+  python tools/make.py ep12 ep14 --qa-only              # 点検だけやり直す（お金はかからない）
 
 途中でエラーが出たらそこで止まり、どのエピソードのどの工程かを表示する。
 最後に、各エピソードの尺・点検の判定・動画の場所をまとめて表示する。
 """
 import argparse
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -19,7 +21,9 @@ PY = sys.executable
 
 def step(name, args):
     print(f"  - {name} ...", flush=True)
-    r = subprocess.run([PY, *args], cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace")
+    # 子のプロセスにも UTF-8 で出力させる（Windows は既定が cp932 なので、そのままだと文字化けして判定が読めない）
+    env = {**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1"}
+    r = subprocess.run([PY, *args], cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace", env=env)
     if r.returncode != 0:
         print(r.stdout[-2000:])
         print(r.stderr[-3000:])
@@ -31,6 +35,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("episodes", nargs="+", help="ep04 ep07 ep05 のように順番に")
     ap.add_argument("--engine", choices=["fal", "openjtalk"], default="fal")
+    ap.add_argument("--qa-only", action="store_true", help="音声と動画は作り直さず、点検だけやり直す")
     ap.add_argument("--discord", action="store_true", help="できた動画を Discord に送る（tools/discord_send.py）")
     ap.add_argument("--limit-mb", type=float, default=10.0, help="Discord の1ファイルの上限（無料は 10MB）")
     a = ap.parse_args()
@@ -44,9 +49,11 @@ def main():
             raise SystemExit(f"episodes/{ep}/script.json がありません（git pull を忘れていませんか）")
         theme = json.loads((d / "script.json").read_text(encoding="utf-8")).get("theme", "")
         print(f"\n=== {ep}  {theme}", flush=True)
-        step("音声（1文ずつ）", ["tools/tts.py", f"episodes/{ep}", "--engine", a.engine])
-        out = step("動画の書き出し", ["tools/render.py", f"episodes/{ep}"])
-        dur = next((l for l in out.splitlines() if l.startswith("尺")), "")
+        dur = ""
+        if not a.qa_only:
+            step("音声（1文ずつ）", ["tools/tts.py", f"episodes/{ep}", "--engine", a.engine])
+            out = step("動画の書き出し", ["tools/render.py", f"episodes/{ep}"])
+            dur = next((l for l in out.splitlines() if l.startswith("尺")), "")
         qa = step("点検", ["tools/qa.py", f"episodes/{ep}"])
         verdict = next((l.strip("* ") for l in qa.splitlines() if "判定" in l), "判定なし")
         issues = [l for l in qa.splitlines() if l.startswith("- ") and "指摘なし" not in l

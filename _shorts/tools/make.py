@@ -3,6 +3,8 @@
   python tools/make.py ep04 ep07 ep05 --engine fal     # クローン声（Windows PC で）
   python tools/make.py ep04 --engine openjtalk          # 仮の声（Linux）
   python tools/make.py ep12 ep10 ep14 --engine fal --discord   # できたら Discord に送る
+  python tools/make.py ep07 --engine fal --lines 18    # 18文目の音声だけ作り直して、動画と点検をやり直す
+  python tools/make.py ep10 --fit-only                  # 尺が 55〜60 秒から外れたとき：声はそのまま速さだけ整える
   python tools/make.py ep12 ep14 --qa-only              # 点検だけやり直す（お金はかからない）
 
 途中でエラーが出たらそこで止まり、どのエピソードのどの工程かを表示する。
@@ -35,6 +37,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("episodes", nargs="+", help="ep04 ep07 ep05 のように順番に")
     ap.add_argument("--engine", choices=["fal", "openjtalk"], default="fal")
+    ap.add_argument("--lines", type=int, nargs="*", help="音声を作り直す文の番号（例 --lines 18）。ほかの文はそのまま")
+    ap.add_argument("--fit-only", action="store_true", help="音声は作り直さず、尺合わせ→動画→点検だけやる（お金はかからない）")
     ap.add_argument("--qa-only", action="store_true", help="音声と動画は作り直さず、点検だけやり直す")
     ap.add_argument("--discord", action="store_true", help="できた動画を Discord に送る（tools/discord_send.py）")
     ap.add_argument("--limit-mb", type=float, default=10.0, help="Discord の1ファイルの上限（無料は 10MB）")
@@ -51,7 +55,8 @@ def main():
         print(f"\n=== {ep}  {theme}", flush=True)
         dur = ""
         if not a.qa_only:
-            step("音声（1文ずつ）", ["tools/tts.py", f"episodes/{ep}", "--engine", a.engine])
+            only = ["--only", *map(str, a.lines)] if a.lines else (["--fit-only"] if a.fit_only else [])
+            step("音声（1文ずつ）", ["tools/tts.py", f"episodes/{ep}", "--engine", a.engine, *only])
             out = step("動画の書き出し", ["tools/render.py", f"episodes/{ep}"])
             dur = next((l for l in out.splitlines() if l.startswith("尺")), "")
         qa = step("点検", ["tools/qa.py", f"episodes/{ep}"])

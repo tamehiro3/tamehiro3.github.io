@@ -226,12 +226,68 @@ def chunk_bounds(x: np.ndarray, chunks: list[str], cfg: dict) -> list[float]:
     return out
 
 
+# ---------- 尺合わせ ----------
+# クローン声は毎回少しずつ長さが変わる（「えー」を切ったかどうかでも数秒動く）。
+# 全文を作り終えたら動画の尺を見積もり、55.5〜59.5秒から外れていれば、全文の話す速さを
+# 同じ割合で少しだけ変えて収める（音の高さは変えない。変える幅は 0.94〜1.10 倍まで）。
+FIT_MIN, FIT_MAX = 55.5, 59.5
+
+
+def predicted_total(script: dict, timing: dict) -> float:
+    import render as R
+    n = len(script["lines"])
+    heads = sum(1 for i, ln in enumerate(script["lines"], 1) if ln.get("heading") and i > 1)
+    speech = sum(timing[f"{i:02d}"]["dur"] for i in range(1, n + 1))
+    return R.LEAD + speech + R.GAP * (n - 1) + R.SECTION_GAP * heads + R.TAIL
+
+
+def stretch(src: Path, dst: Path, tempo: float) -> np.ndarray:
+    if abs(tempo - 1) < 0.002:
+        x, _ = sf.read(src, dtype="float32")
+    else:
+        with tempfile.TemporaryDirectory() as d:
+            out = Path(d) / "s.wav"
+            subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(src), "-filter:a", f"atempo={tempo:.4f}",
+                            "-ac", "1", "-ar", str(SR), str(out)], check=True)
+            x, _ = sf.read(out, dtype="float32")
+    sf.write(dst, x, SR)
+    return x
+
+
+def fit_length(script: dict, timing: dict, out: Path) -> float:
+    """元の音声（line_XX_raw.wav）から、尺が収まる速さで line_XX.wav を作り直す。戻り値は速さの倍率"""
+    n = len(script["lines"])
+    for i in range(1, n + 1):
+        k = f"{i:02d}"
+        raw = out / f"line_{k}_raw.wav"
+        if not raw.exists():                      # 以前の版で作った文は、今の音声を元として扱う
+            shutil.copy(out / f"line_{k}.wav", raw)
+            timing[k]["raw_dur"], timing[k]["raw_bounds"] = timing[k]["dur"], timing[k]["bounds"]
+        timing[k]["dur"], timing[k]["bounds"] = timing[k]["raw_dur"], timing[k]["raw_bounds"]
+    total = predicted_total(script, timing)
+    speech = sum(timing[f"{i:02d}"]["dur"] for i in range(1, n + 1))
+    tempo = 1.0
+    if total > FIT_MAX:
+        tempo = min(1.10, speech / (speech - (total - (FIT_MAX - 0.3))))
+    elif total < FIT_MIN:
+        tempo = max(0.94, speech / (speech + ((FIT_MIN + 0.3) - total)))
+    for i in range(1, n + 1):
+        k = f"{i:02d}"
+        x = stretch(out / f"line_{k}_raw.wav", out / f"line_{k}.wav", tempo)
+        timing[k]["dur"] = round(len(x) / SR, 3)
+        timing[k]["bounds"] = [round(b / tempo, 3) for b in timing[k]["raw_bounds"]]
+        timing[k]["tempo"] = round(tempo, 4)
+    return tempo
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("episode")
     ap.add_argument("--engine", choices=["openjtalk", "fal"], default=None)
     ap.add_argument("--only", type=int, nargs="*", help="作り直す文の番号（1始まり）")
     ap.add_argument("--no-filler-check", action="store_true", help="頭の「えー」の確認をしない（速いが、残ることがある）")
+    ap.add_argument("--no-fit", action="store_true", help="尺合わせ（話す速さの微調整）をしない")
+    ap.add_argument("--fit-only", action="store_true", help="音声は作らず、今ある音声で尺合わせだけやる（お金はかからない）")
     a = ap.parse_args()
     ep = Path(a.episode).resolve()
     script = json.loads((ep / "script.json").read_text(encoding="utf-8"))
@@ -241,6 +297,11 @@ def main():
     out.mkdir(exist_ok=True)
     timing_path = out / "timing.json"
     timing = json.loads(timing_path.read_text(encoding="utf-8")) if timing_path.exists() else {}
+    if a.fit_only:
+        tempo = fit_length(script, timing, out)
+        timing_path.write_text(encoding="utf-8", data=json.dumps(timing, ensure_ascii=False, indent=1))
+        print(f"尺合わせ: 話す速さ {tempo:.3f} 倍（動画 {predicted_total(script, timing):.1f} 秒の見込み）")
+        return
     if engine == "fal":
         import fal_api
         fal_api.load_key()   # キーが無ければここで止まる
@@ -267,11 +328,19 @@ def main():
                 suspects.append(i)
         x = normalize(trim(x))
         sf.write(out / f"line_{i:02d}.wav", x, SR)
-        timing[f"{i:02d}"] = {"engine": engine, "tts": text, "dur": round(len(x) / SR, 3),
-                              "bounds": chunk_bounds(x, chunks, cfg)}
+        sf.write(out / f"line_{i:02d}_raw.wav", x, SR)
+        bounds = chunk_bounds(x, chunks, cfg)
+        timing[f"{i:02d}"] = {"engine": engine, "tts": text, "dur": round(len(x) / SR, 3), "bounds": bounds,
+                              "raw_dur": round(len(x) / SR, 3), "raw_bounds": bounds}
         if note:
             timing[f"{i:02d}"]["filler"] = note
         print(f"{i:02d} {len(x) / SR:5.2f}s {text}" + (f"  ← {note}" if note else ""), flush=True)
+    n = len(script["lines"])
+    timing = {k: v for k, v in timing.items() if int(k) <= n}      # 文を減らしたときの古い分を消す
+    if not a.no_fit and all(f"{i:02d}" in timing for i in range(1, n + 1)):
+        tempo = fit_length(script, timing, out)
+        if abs(tempo - 1) >= 0.002:
+            print(f"尺合わせ: 話す速さを {tempo:.3f} 倍にしました（動画 {predicted_total(script, timing):.1f} 秒の見込み）")
     timing_path.write_text(encoding="utf-8", data=json.dumps(timing, ensure_ascii=False, indent=1))
     total = sum(v["dur"] for v in timing.values())
     print(f"音声合計 {total:.1f}s（{len(timing)}文）")

@@ -355,7 +355,7 @@
       grid.appendChild(el);
     });
     body.appendChild(grid);
-    body.insertAdjacentHTML('beforeend', '<p class="muted">里に好きな物があると、その忍者が遊びに来ます。会った忍者はキャラクターシート（まえ・ななめ・よこ・うしろ・表情・うごき）を見られます。</p>');
+    body.insertAdjacentHTML('beforeend', '<p class="muted">里に好きな物があると、その忍者が遊びに来ます。会った忍者はキャラクターシート（まえ・ななめ・よこ・うしろ・しぐさ・うごき）を見られます。</p>');
   }
   function zukanDetail(id) {
     var S = G.S, ch = CH.BY_ID[id], m = S.met[id] || {};

@@ -1,0 +1,17 @@
+{
+  "name": "ニンジャ夜明け隊",
+  "short_name": "夜明け隊",
+  "description": "役割のちがう見習い忍者で力を合わせ、夜明けまで里の結界を守る短時間の協力ゲーム（CryptoNinja 非公式ファンゲーム・試作版）。課金・ガチャ・スタミナなし。",
+  "lang": "ja",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#111733",
+  "theme_color": "#1c2344",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

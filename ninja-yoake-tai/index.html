@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <title>ニンジャ夜明け隊 | 役割のちがう忍者で、夜明けまで里を守れ</title>
+  <meta name="description" content="役割のちがう見習い忍者が力を合わせて、夜明けまで里の結界を守る短時間の協力ゲーム（1回約6分・仲間はNPC）。CryptoNinja 非公式ファンゲーム（試作版）。課金・ガチャ・スタミナなし。">
+  <meta name="theme-color" content="#1c2344">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="夜明け隊">
+  <link rel="stylesheet" href="style.css?v=1">
+</head>
+<body>
+  <canvas id="game" aria-label="里の守り"></canvas>
+
+  <!-- 戦闘中の表示 -->
+  <div id="hud" hidden>
+    <div class="hud-top">
+      <div class="ph-box"><b id="ph-name">準備</b><span id="ph-time">1:00</span><div class="dawn" title="夜明けまで"><i id="dawn-bar"></i><em>夜明け</em></div></div>
+      <div class="bar-box" title="里の結界"><span>結界</span><div class="bar barrier"><i id="bar-barrier"></i></div><b id="barrier-num">1000</b></div>
+      <div class="mat-box" title="素材（チームで共有）"><i class="ic-mat"></i><b id="mat-num">6</b></div>
+      <button id="btn-pause" class="icon-btn" aria-label="一時停止">Ⅱ</button>
+    </div>
+    <div id="team" class="team"></div>
+    <div id="boss-bar" class="boss-bar" hidden><span>大だるま</span><div class="bar"><i></i></div></div>
+    <div id="objective" class="objective"></div>
+    <canvas id="minimap" width="150" height="118" aria-hidden="true"></canvas>
+    <div id="banner" class="banner" aria-live="polite"></div>
+    <div id="cutin" class="cutin" hidden><img alt=""><div class="cut-txt"><b></b><span></span><em></em></div></div>
+    <div id="tut" class="tut" hidden></div>
+    <div class="pings">
+      <button data-ping="gather">集合<kbd>1</kbd></button><button data-ping="defend">守る<kbd>2</kbd></button><button data-ping="help">助けて<kbd>3</kbd></button>
+    </div>
+    <div id="picks" class="picks" hidden></div>
+    <div id="ctx" class="ctx"></div>
+    <button id="btn-ready" class="ready-btn" hidden>準備完了<kbd>T</kbd></button>
+    <div class="skills">
+      <button class="sk" id="sk-j0"><span class="nm"></span><span class="cd"></span><kbd>Q</kbd></button>
+      <button class="sk" id="sk-j1"><span class="nm"></span><span class="cd"></span><kbd>E</kbd></button>
+      <button class="sk sp" id="sk-sp"><span class="nm"></span><span class="cd"></span><kbd>R</kbd></button>
+      <button class="sk dodge" id="sk-dodge"><span class="nm">回避</span><span class="cd"></span><kbd>Space</kbd></button>
+    </div>
+    <div id="stick" class="stick"><i></i></div>
+    <div id="downed" class="downed" hidden></div>
+  </div>
+
+  <!-- タイトル -->
+  <section id="scr-title" class="scr title-scr">
+    <div class="title-box">
+      <p class="kicker">CryptoNinja 非公式ファンゲーム・試作版</p>
+      <h1>ニンジャ<span>夜明け隊</span></h1>
+      <p class="lead">役割のちがう見習い忍者で力を合わせ、<br>夜明けまで里の結界を守れ。</p>
+      <div class="title-btns">
+        <button id="btn-start" class="btn primary big">はじめる</button>
+        <button id="btn-continue" class="btn big" hidden>つづきから</button>
+      </div>
+      <p class="note">1回 約6分／仲間は2人のNPC／課金・ガチャ・スタミナなし<br>横向きの画面がおすすめ。PC はキーボードとマウスでも遊べます。</p>
+      <p class="links"><a href="about.html">遊び方・保護者の方へ</a>　<a href="../ninja-sato-life/sheets/">キャラクターシート（39体）</a>　<a href="/">しのびのゲーム工房</a></p>
+    </div>
+  </section>
+
+  <!-- 広場 -->
+  <section id="scr-plaza" class="scr" hidden>
+    <header class="scr-head">
+      <h2>里の広場</h2>
+      <div class="head-right"><span class="tokens" title="修行札"><i class="ic-token"></i><b id="pl-tokens">0</b></span><span id="pl-crest" class="crest-mini"></span></div>
+    </header>
+    <div class="plaza-scene">
+      <div class="mentor-box">
+        <div id="pl-mentor-fig" class="fig big"></div>
+        <div class="bubble"><b id="pl-mentor-name"></b><span id="pl-mentor-line"></span><button id="pl-mentor-next" class="mini">つぎの助言</button></div>
+      </div>
+      <div id="pl-team" class="team-figs"></div>
+    </div>
+    <div class="board">
+      <h3>任務の掲示板</h3>
+      <div id="pl-missions" class="missions"></div>
+    </div>
+    <div class="plaza-btns">
+      <button id="pl-go" class="btn primary big">出撃の準備へ</button>
+      <button data-panel="mentor" class="btn">師匠をえらぶ</button>
+      <button data-panel="train" class="btn">修行</button>
+      <button data-panel="looks" class="btn">外見</button>
+      <button data-panel="roster" class="btn">忍者名鑑</button>
+      <button data-panel="records" class="btn">記録・設定</button>
+    </div>
+    <p class="foot-note">キャラクター：CryptoNinja（CC0・Ninja DAO）。セリフ・役割・忍術はゲームの創作で、公式の設定ではありません。</p>
+  </section>
+
+  <!-- 編成 -->
+  <section id="scr-loadout" class="scr" hidden>
+    <header class="scr-head">
+      <h2>編成</h2>
+      <div class="head-right"><span class="timer" title="自動で出撃するまで"><b id="lo-timer">45</b>秒</span></div>
+    </header>
+    <div id="lo-mission" class="lo-mission"></div>
+    <h3 class="sec">役割 <small>重なってもOK。足りない機能は補給所でおぎなえます</small></h3>
+    <div id="lo-roles" class="roles"></div>
+    <h3 class="sec">忍術 <small>2つえらぶ（目的で分けています）</small></h3>
+    <div id="lo-tabs" class="tabs"></div>
+    <div id="lo-jutsu" class="jutsu-list"></div>
+    <div id="lo-slots" class="slots"></div>
+    <h3 class="sec">仲間と難易度</h3>
+    <div id="lo-buddies" class="buddies"></div>
+    <div id="lo-diff" class="diff"></div>
+    <div class="lo-btns"><button id="lo-back" class="btn">広場へ</button><button id="lo-go" class="btn primary big">出撃！</button></div>
+  </section>
+
+  <!-- 結果 -->
+  <section id="scr-result" class="scr" hidden>
+    <div id="rs-head" class="rs-head"></div>
+    <div id="rs-figs" class="rs-figs"></div>
+    <div id="rs-reward" class="rs-reward"></div>
+    <h3 class="sec">チームの働き <small>ひとつの順位にはしません</small></h3>
+    <div id="rs-contrib" class="contrib"></div>
+    <div id="rs-extra" class="rs-extra"></div>
+    <h3 class="sec">次の任務</h3>
+    <div id="rs-next" class="rs-next"></div>
+    <div class="lo-btns"><button id="rs-plaza" class="btn">広場へ</button><button id="rs-edit" class="btn">編成を変える</button><button id="rs-again" class="btn primary big">もう一度出撃</button></div>
+  </section>
+
+  <!-- パネル（師匠・修行・外見・名鑑・記録・一時停止）-->
+  <div id="panel" class="panel" hidden>
+    <div class="panel-box" role="dialog" aria-modal="true" aria-labelledby="panel-title">
+      <header><h2 id="panel-title"></h2><button class="x" id="panel-close" aria-label="閉じる">×</button></header>
+      <div id="panel-body" class="panel-body"></div>
+    </div>
+  </div>
+  <div id="toast" class="toast" aria-live="polite"></div>
+  <noscript><p style="color:#fff;padding:20px">このゲームは JavaScript を使います。</p></noscript>
+
+  <script src="../ninja-sato-life/art.js?v=2"></script>
+  <script src="../ninja-sato-life/chars.js?v=2"></script>
+  <script src="data.js?v=1"></script>
+  <script src="lines.js?v=1"></script>
+  <script src="ai.js?v=1"></script>
+  <script src="sim.js?v=1"></script>
+  <script src="director.js?v=1"></script>
+  <script src="progress.js?v=1"></script>
+  <script src="render.js?v=1"></script>
+  <script src="input.js?v=1"></script>
+  <script src="audio.js?v=1"></script>
+  <script src="tutorial.js?v=1"></script>
+  <script src="ui.js?v=1"></script>
+  <script src="game.js?v=1"></script>
+</body>
+</html>

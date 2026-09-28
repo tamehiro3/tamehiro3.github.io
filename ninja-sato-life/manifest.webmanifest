@@ -1,0 +1,17 @@
+{
+  "name": "ニンジャ里ライフ",
+  "short_name": "里ライフ",
+  "description": "推しの忍者と、里でくらそう。CryptoNinjaの忍者たちが遊びに来て住みつく、のんびり里づくりゲーム（非公式ファンゲーム）。課金・ガチャ・スタミナなし。",
+  "lang": "ja",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f7f1e5",
+  "theme_color": "#2f4a3a",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -179,6 +179,42 @@ def check_audio(ep, script, tl, final_mp4, rep):
     return issues
 
 
+# ---------------- E. フィラー・AIっぽさ ----------------
+FILLER_ANY = re.compile(r"(?:^|[、。？！\s])(え[ーぇ〜~]+(?:っと|と)?|えっと|ええと|あの[ーぉ〜~]+|う[ーぅ〜~]+ん)(?=[、。？！\s]|$)")
+CAPTION_AI = AI_WORDS + ["いかがでしょうか", "驚くべき", "重要なのは", "ポイントは以下", "以下の通り", "——", "〜しましょう",
+                         "させていただ", "ご紹介します", "まとめると", "という方も多いのでは", "見逃せない"]
+
+
+def check_filler_ai(ep, script, rep):
+    issues = []
+    # 1) 最終音声の文字起こしに、台本に無い「えー」「えっと」「あのー」がないか
+    asr = rep.get("asr", {}).get("text", "")
+    script_text = "".join(plain(l["text"]).replace("／", "") for l in script["lines"])
+    if asr:
+        found = [m.group(1) for m in FILLER_ANY.finditer(asr)]
+        found = [f for f in found if f not in script_text]
+        rep["filler_heard"] = found
+        if found:
+            issues.append(f"音声に口ぐせが {len(found)} 回（{'・'.join(sorted(set(found)))}）")
+    # 2) 読み上げ時に「えー」を取り切れなかった文
+    tp = ep / "audio" / "timing.json"
+    if tp.exists():
+        t = json.loads(tp.read_text(encoding="utf-8"))
+        sus = [k for k, v in t.items() if str(v.get("filler", "")).startswith("要確認")]
+        if sus:
+            issues.append(f"文 {', '.join(sus)} の頭に「えー」が残っているかも（tts.py --only で作り直し可）")
+    # 3) キャプションの AI っぽい言い回し
+    cap = ep / "post" / "captions.md"
+    if cap.exists():
+        blocks = re.findall(r"```\n(.*?)```", cap.read_text(encoding="utf-8"), flags=re.S)
+        body = "\n".join(l for b in blocks for l in b.splitlines() if not l.lstrip().startswith("#"))  # ハッシュタグ行は除く
+        hits = sorted({w for w in CAPTION_AI if w.replace("〜", "") in body})
+        rep["caption_ai_words"] = hits
+        if hits:
+            issues.append(f"キャプションに AI っぽい言い回し: {'・'.join(hits)}")
+    return issues
+
+
 # ---------------- B. 画面 ----------------
 def cmap_of(path):
     if path.endswith(".ttc"):
@@ -393,6 +429,7 @@ def main():
     sections["B 画面（欠け・はみ出し）"] = check_frames(ep, script, tl, final, rep, qa_dir)
     sections["C 音量（声・効果音）"] = check_levels(ep, tl, final, rep)
     sections["D 台本ルール"] = check_script(script, tl, rep)
+    sections["E フィラー・AIっぽさ"] = check_filler_ai(ep, script, rep)
     probe = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "stream=codec_name,width,height,r_frame_rate,sample_rate,channels",
                             "-show_entries", "format=duration,size", "-of", "json", str(final)], capture_output=True, text=True, encoding="utf-8", errors="replace")
     rep["file"] = json.loads(probe.stdout)

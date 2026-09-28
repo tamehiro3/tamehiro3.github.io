@@ -9,6 +9,9 @@ Webhook の URL はコードに書かず、リポジトリの外のファイル�
   python tools/discord_send.py ep12 ep10 ep14        # 動画を送る
   python tools/discord_send.py ep12 --limit-mb 50    # サーバーのブーストで上限が大きいとき
 
+送るのは、点検（qa_report.md）が「通過」で、post/captions.md がある回だけ。
+動画とキャプション（txt）を1つの投稿にまとめ、本文には TikTok 用のキャプションを貼る。
+
 Discord の無料枠は 1ファイル 10MB まで。それを超える動画は、送る用に圧縮した
 episodes/epXX/out/epXX_discord.mp4 を作って送る（投稿用の epXX.mp4 はそのまま）。
 """
@@ -171,15 +174,16 @@ def shrink(src: Path, limit_mb: float) -> Path:
     return dst
 
 
-def post(url: str, message: str, file: Path):
+def post(url: str, message: str, files: list[tuple[str, bytes, str]]):
+    """files は (ファイル名, 中身, Content-Type) の並び"""
     boundary = uuid.uuid4().hex
-    payload = json.dumps({"content": message[:1900], "allowed_mentions": {"parse": []}}, ensure_ascii=False)
-    body = b"".join([
-        f"--{boundary}\r\nContent-Disposition: form-data; name=\"payload_json\"\r\n"
-        f"Content-Type: application/json\r\n\r\n".encode(), payload.encode("utf-8"), b"\r\n",
-        f"--{boundary}\r\nContent-Disposition: form-data; name=\"files[0]\"; filename=\"{file.name}\"\r\n"
-        f"Content-Type: video/mp4\r\n\r\n".encode(), file.read_bytes(), b"\r\n",
-        f"--{boundary}--\r\n".encode()])
+    payload = json.dumps({"content": message[:1990], "allowed_mentions": {"parse": []}}, ensure_ascii=False)
+    parts = [f"--{boundary}\r\nContent-Disposition: form-data; name=\"payload_json\"\r\n"
+             f"Content-Type: application/json\r\n\r\n".encode(), payload.encode("utf-8"), b"\r\n"]
+    for i, (name, data, ctype) in enumerate(files):
+        parts += [f"--{boundary}\r\nContent-Disposition: form-data; name=\"files[{i}]\"; filename=\"{name}\"\r\n"
+                  f"Content-Type: {ctype}\r\n\r\n".encode(), data, b"\r\n"]
+    body = b"".join(parts + [f"--{boundary}--\r\n".encode()])
     req = urllib.request.Request(url + "?wait=true", data=body, method="POST",
                                  headers={"Content-Type": f"multipart/form-data; boundary={boundary}", "User-Agent": UA})
     try:
@@ -187,37 +191,81 @@ def post(url: str, message: str, file: Path):
             return json.loads(r.read().decode("utf-8"))
     except urllib.error.HTTPError as e:
         if e.code == 413:
-            raise SystemExit(f"{file.name} が大きすぎて Discord に断られました。--limit-mb を小さくしてください")
+            raise SystemExit("ファイルが大きすぎて Discord に断られました。--limit-mb を小さくしてください")
         raise SystemExit(f"Discord への送信に失敗しました（HTTP {e.code}）: {e.read()[:300].decode('utf-8', 'replace')}")
+
+
+def verdict(ep: str) -> str:
+    qa = ROOT / "episodes" / ep / "out" / "qa" / "qa_report.md"
+    if not qa.exists():
+        return ""
+    return next((l.strip("#* ") for l in qa.read_text(encoding="utf-8").splitlines() if "判定" in l), "")
+
+
+def issues(ep: str) -> list[str]:
+    qa = ROOT / "episodes" / ep / "out" / "qa" / "qa_report.md"
+    if not qa.exists():
+        return []
+    lines = qa.read_text(encoding="utf-8").split("## 数値")[0].splitlines()
+    return [l[2:] for l in lines if l.startswith("- ") and l != "- 指摘なし"]
+
+
+def tiktok_caption(ep: str) -> str:
+    cap = ROOT / "episodes" / ep / "post" / "captions.md"
+    if not cap.exists():
+        return ""
+    m = re.search(r"## TikTok\s*```\n(.*?)```", cap.read_text(encoding="utf-8"), flags=re.S)
+    return m.group(1).strip() if m else ""
 
 
 def message_for(ep: str, note: str = "") -> str:
     d = ROOT / "episodes" / ep
     s = json.loads((d / "script.json").read_text(encoding="utf-8"))
     first = re.sub(r"[【】／]", "", s["lines"][0]["text"])
-    lines = [f"**{ep}**　{first}", s.get("theme", "")]
-    qa = d / "out" / "qa" / "qa_report.md"
-    if qa.exists():
-        v = next((l.strip("#* ") for l in qa.read_text(encoding="utf-8").splitlines() if "判定" in l), "")
-        if v:
-            lines.append(v if v.startswith("判定") else f"点検: {v}")
-    if (d / "post" / "captions.md").exists():
-        lines.append(f"キャプション: _shorts/episodes/{ep}/post/captions.md")
+    head = [f"**{ep}**　{first}", s.get("theme", "")]
+    v = verdict(ep)
+    if v:
+        head.append(v if v.startswith("判定") else f"点検: {v}")
     if note:
-        lines.append(note)
-    return "\n".join(l for l in lines if l)
+        head.append(note)
+    head.append("キャプション一式（TikTok・Instagram・YouTube）は添付の txt。下は TikTok 用：")
+    msg = "\n".join(l for l in head if l)
+    cap = tiktok_caption(ep)
+    room = 1990 - len(msg) - 12
+    if cap:
+        msg += "\n```\n" + (cap if len(cap) <= room else cap[:room - 1] + "…") + "\n```"
+    return msg
 
 
-def send(episodes, limit_mb=10.0, note=""):
+def send(episodes, limit_mb=10.0, note="", force=False):
+    """点検が「通過」で、キャプションがある回だけ送る（force で点検を無視）"""
     url = load_url()
+    sent, skipped = [], []
     for ep in episodes:
-        src = ROOT / "episodes" / ep / "out" / f"{ep}.mp4"
+        d = ROOT / "episodes" / ep
+        src = d / "out" / f"{ep}.mp4"
+        cap = d / "post" / "captions.md"
         if not src.exists():
-            raise SystemExit(f"{src} がありません。先に python tools/make.py {ep} で作ってください")
+            skipped.append((ep, f"動画がない（python tools/make.py {ep} で作る）"))
+            continue
+        if not cap.exists():
+            skipped.append((ep, "キャプションがない（episodes/{}/post/captions.md）".format(ep)))
+            continue
+        v = verdict(ep)
+        if not force and "通過" not in v:
+            why = "；".join(issues(ep)[:3]) or "点検の結果がない（make.py で点検まで実行する）"
+            skipped.append((ep, f"点検が通っていない: {why}"))
+            continue
         f = shrink(src, limit_mb)
         extra = f"（Discord 用に圧縮: {f.stat().st_size / 1e6:.1f}MB。投稿には元の {src.name} を使う）" if f != src else ""
-        post(url, message_for(ep, note + extra), f)
-        print(f"送りました: {ep}（{f.name}, {f.stat().st_size / 1e6:.1f}MB）", flush=True)
+        post(url, message_for(ep, note + extra),
+             [(f.name, f.read_bytes(), "video/mp4"),
+              (f"{ep}_captions.txt", cap.read_bytes(), "text/plain; charset=utf-8")])
+        sent.append(ep)
+        print(f"送りました: {ep}（{f.name} {f.stat().st_size / 1e6:.1f}MB ＋ キャプション）", flush=True)
+    for ep, why in skipped:
+        print(f"送っていません: {ep} … {why}", flush=True)
+    return sent, skipped
 
 
 def main():
@@ -226,13 +274,14 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("episodes", nargs="+", help="setup / check / ep12 ep10 ...")
     ap.add_argument("--limit-mb", type=float, default=10.0, help="Discord の1ファイルの上限（無料は 10）")
+    ap.add_argument("--force", action="store_true", help="点検が通っていなくても送る")
     a = ap.parse_args()
     if a.episodes == ["check"]:
         check()
     elif a.episodes == ["setup"]:
         setup()
     else:
-        send(a.episodes, a.limit_mb)
+        send(a.episodes, a.limit_mb, force=a.force)
 
 
 if __name__ == "__main__":

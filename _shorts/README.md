@@ -103,4 +103,7 @@ python tools/analyze.py improve/metrics_ep01.csv   # 投稿後の数字から改
 4. 作るついでに送る: `python tools/make.py ep12 ep10 ep14 --engine fal --discord`
    できている動画だけ送る: `python tools/discord_send.py ep12 ep10 ep14`
 
+送るのは点検が「通過」で、`post/captions.md` がある回だけ。動画とキャプション（txt）を1つの投稿にまとめ、本文に TikTok 用キャプションを貼る。
+点検には「E フィラー・AIっぽさ」（文字起こしに残った「えー」「えっと」、キャプションの AI っぽい言い回し）も入っている。
+
 無料の Discord は1ファイル10MBまでなので、送る用に圧縮した `out/epXX_discord.mp4`（720p）を作って送る。投稿には元の `epXX.mp4` を使う。

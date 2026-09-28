@@ -1,0 +1,231 @@
+{
+ "id": "ep19",
+ "theme": "3メガバンクの普通預金金利が11/2から0.5%に（34年ぶり）。100万円で1年いくらか・税金も",
+ "style": "studio",
+ "series": "AI初心者の時短ワザ",
+ "voice": {
+  "engine": "openjtalk",
+  "speed": 1.15,
+  "pitch": 2.5,
+  "intonation": 1.5,
+  "fal_model": "fal-ai/minimax/speech-02-hd",
+  "fal_speed": 1.0,
+  "emotion": "happy"
+ },
+ "sources": [
+  "https://www.nikkei.com/article/DGXZQOUB184EB0Y6A910C2000000/",
+  "https://www.jiji.com/jc/article?k=2026091801052&g=eco",
+  "https://news.yahoo.co.jp/articles/0ac21c1c895fb36436487652b6c17cc6594d6404"
+ ],
+ "lines": [
+  {
+   "text": "普通預金0.5%、／100万円で【いくら増える？】",
+   "tts": "普通預金れいてんごパーセント、／ひゃくまんえんでいくら増える？",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🏦",
+    "text": "普通預金0.5%\n【100万円でいくら？】",
+    "size": 84
+   }
+  },
+  {
+   "text": "答えは1年で、税引き後／【約4,000円】なんよ",
+   "tts": "答えはいちねんで、税引き後／やくよんせんえんなんよ",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "💰",
+    "text": "1年で\n【約4,000円】",
+    "size": 104,
+    "sub": "税引き後の目安"
+   }
+  },
+  {
+   "text": "三菱UFJ・三井住友・みずほが、／【金利を上げる】",
+   "tts": "みつびしユーエフジェー、みついすみとも、みずほが、／金利を上げる",
+   "heading": "何が変わる？",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "🏦",
+    "text": "3メガバンクが\n【金利アップ】",
+    "size": 96
+   }
+  },
+  {
+   "text": "今の0.4%から、／【0.5%】になるんよ",
+   "tts": "今のれいてんよんパーセントから、／れいてんごパーセントになるんよ",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "list",
+    "title": "普通預金の金利",
+    "items": [
+     "いま【0.4%】",
+     "11月2日から【0.5%】"
+    ],
+    "show": 2,
+    "hl": 1
+   }
+  },
+  {
+   "text": "新しい金利が始まるのは、／【11月2日】から",
+   "tts": "新しい金利が始まるのは、／じゅういちがつふつかから",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "🗓️",
+    "text": "【11月2日】から",
+    "size": 110
+   }
+  },
+  {
+   "text": "この水準は、なんと／【34年ぶり】",
+   "tts": "この水準は、なんと／さんじゅうよねんぶり",
+   "shot": "wide",
+   "pose": "pose06",
+   "visual": {
+    "type": "big",
+    "emoji": "📈",
+    "text": "【34年ぶり】の\n水準",
+    "size": 100
+   }
+  },
+  {
+   "text": "ゆうちょも、【11月9日】から／0.5%に上がる",
+   "tts": "ゆうちょも、じゅういちがつここのかから／れいてんごパーセントに上がる",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "📮",
+    "text": "ゆうちょも\n【11月9日】から",
+    "size": 96
+   }
+  },
+  {
+   "text": "100万円なら、1年の利息は／【5,000円】",
+   "tts": "ひゃくまんえんなら、いちねんの利息は／ごせんえん",
+   "heading": "計算すると",
+   "shot": "wide",
+   "pose": "pose09",
+   "visual": {
+    "type": "big",
+    "emoji": "🧮",
+    "text": "100万円 × 0.5%\n【＝5,000円】",
+    "size": 88
+   }
+  },
+  {
+   "text": "でも利息からは、／【約20%】の税金が引かれる",
+   "tts": "でも利息からは、／やくにじゅっパーセントの税金が引かれる",
+   "shot": "close",
+   "pose": "pose05",
+   "visual": {
+    "type": "big",
+    "emoji": "🧾",
+    "text": "利息から\n【約20%】引かれる",
+    "size": 92,
+    "sub": "20.315%"
+   }
+  },
+  {
+   "text": "だから手元に来るのは、／【約4,000円】",
+   "tts": "だから手元に来るのは、／やくよんせんえん",
+   "shot": "wide",
+   "pose": "pose10",
+   "visual": {
+    "type": "big",
+    "emoji": "💰",
+    "text": "手取りは\n【約4,000円】",
+    "size": 100
+   }
+  },
+  {
+   "text": "手続きはいらん。／【自動で】新しい金利になる",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "✅",
+    "text": "手続き不要\n【自動で適用】",
+    "size": 92
+   }
+  },
+  {
+   "text": "ただ、物価も上がってる。／【比べる目】が大事",
+   "heading": "注意！",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "⚖️",
+    "text": "金利と\n【物価】を比べる",
+    "size": 96
+   }
+  },
+  {
+   "text": "金利が上がると、／【ローン】も上がりやすい",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "🏠",
+    "text": "【ローン金利】も\n上がりやすい",
+    "size": 92
+   }
+  },
+  {
+   "text": "どこに預けるかは、／【自分で比べて】決めてな",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "big",
+    "emoji": "🔍",
+    "text": "預け先は\n【自分で比べる】",
+    "size": 96
+   }
+  },
+  {
+   "text": "「0.5%」を聞いたら、／【税引き後】で考える",
+   "tts": "れいてんごパーセントを聞いたら、／税引き後で考える",
+   "heading": "まとめ",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "🧠",
+    "text": "【税引き後】で\n考える",
+    "size": 100
+   }
+  },
+  {
+   "text": "銀行に預けてる家族に、／【送ってあげて】",
+   "shot": "wide",
+   "pose": "pose02",
+   "visual": {
+    "type": "cta",
+    "emoji": "📩",
+    "text": "家族にも\n【送ってあげて】",
+    "size": 100,
+    "bounce": true
+   }
+  },
+  {
+   "text": "じゃあもう一回、／最初の質問に戻るね",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🏦",
+    "text": "普通預金0.5%\n【100万円でいくら？】",
+    "size": 84
+   }
+  }
+ ]
+}

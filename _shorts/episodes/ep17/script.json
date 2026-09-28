@@ -1,0 +1,246 @@
+{
+ "id": "ep17",
+ "theme": "電気・ガス料金の補助は9月使用分で終了。10月使用分（11月の請求）から値引きがなくなる",
+ "style": "studio",
+ "series": "AI初心者の時短ワザ",
+ "voice": {
+  "engine": "openjtalk",
+  "speed": 1.15,
+  "pitch": 2.5,
+  "intonation": 1.5,
+  "fal_model": "fal-ai/minimax/speech-02-hd",
+  "fal_speed": 1.0,
+  "emotion": "happy"
+ },
+ "sources": [
+  "https://selectra.jp/energy/news/electricity-subsidy-end-october-2026",
+  "https://enechange.jp/articles/electricity-subsidy",
+  "https://hojyokin-portal.jp/columns/denki_gas_hojyo"
+ ],
+ "lines": [
+  {
+   "text": "11月の電気代、急に高なる／【理由】知ってる？",
+   "tts": "じゅういちがつの電気代、急に高なる／理由知ってる？",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "💡",
+    "text": "11月の電気代\n【高くなる？】",
+    "size": 96
+   }
+  },
+  {
+   "text": "答えは、国の【補助】が／9月の分で終わるから",
+   "tts": "答えは、国の補助が／くがつの分で終わるから",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "☝️",
+    "text": "国の補助が\n【9月使用分で終了】",
+    "size": 84
+   }
+  },
+  {
+   "text": "7月から9月に使った分は、／【値引き】されてたんよ",
+   "tts": "しちがつからくがつに使った分は、／値引きされてたんよ",
+   "heading": "何が変わる？",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "🧾",
+    "text": "7〜9月使用分は\n【値引きあり】",
+    "size": 92
+   }
+  },
+  {
+   "text": "9月に使った分は、電気が／1kWhあたり【3.5円】引き",
+   "tts": "くがつに使った分は、電気が／いちキロワットアワーあたりさんてんごえん引き",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "list",
+    "title": "9月使用分の値引き",
+    "items": [
+     "電気 1kWhあたり【3.5円】",
+     "都市ガス 1立方mあたり【14円】"
+    ],
+    "show": 1,
+    "hl": 0
+   }
+  },
+  {
+   "text": "都市ガスは、1立方メートル／あたり【14円】引き",
+   "tts": "都市ガスは、いちりっぽうメートル／あたりじゅうよえん引き",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "list",
+    "title": "9月使用分の値引き",
+    "items": [
+     "電気 1kWhあたり【3.5円】",
+     "都市ガス 1立方mあたり【14円】"
+    ],
+    "show": 2,
+    "hl": 1
+   }
+  },
+  {
+   "text": "10月に使う分からは、／この値引きが【なくなる】",
+   "tts": "じゅうがつに使う分からは、／この値引きがなくなる",
+   "shot": "wide",
+   "pose": "pose06",
+   "visual": {
+    "type": "big",
+    "emoji": "✂️",
+    "text": "10月使用分から\n【値引きなし】",
+    "size": 92
+   }
+  },
+  {
+   "text": "単価は同じでも、／【請求額は上がる】しくみ",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "📈",
+    "text": "単価は同じ\n【請求は上がる】",
+    "size": 96
+   }
+  },
+  {
+   "text": "9月分の請求は10月に来て、／まだ【安い】ままなんよ",
+   "tts": "くがつ分の請求はじゅうがつに来て、／まだ安いままなんよ",
+   "heading": "いつから？",
+   "shot": "wide",
+   "pose": "pose09",
+   "visual": {
+    "type": "big",
+    "emoji": "🗓️",
+    "text": "10月の請求は\n【まだ値引きあり】",
+    "size": 88
+   }
+  },
+  {
+   "text": "差が出るのは、／【11月の請求】から",
+   "tts": "差が出るのは、／じゅういちがつの請求から",
+   "shot": "close",
+   "pose": "pose05",
+   "visual": {
+    "type": "big",
+    "emoji": "📩",
+    "text": "差が出るのは\n【11月の請求】",
+    "size": 96
+   }
+  },
+  {
+   "text": "たとえば月260kWh使う家なら、／【約900円】の差",
+   "tts": "たとえばつきにひゃくろくじゅうキロワットアワー使う家なら、／やくきゅうひゃくえんの差",
+   "shot": "wide",
+   "pose": "pose10",
+   "visual": {
+    "type": "big",
+    "emoji": "💸",
+    "text": "月260kWhなら\n【約900円】",
+    "size": 96,
+    "sub": "3.5円×260kWhで計算した目安"
+   }
+  },
+  {
+   "text": "冬は暖房で使う量が増えるから、／【差も大きく】なる",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "❄️",
+    "text": "冬は\n【差がもっと大きく】",
+    "size": 92
+   }
+  },
+  {
+   "text": "補助の続きは、／【まだ発表されてない】んよ",
+   "heading": "注意！",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "🔍",
+    "text": "続けるかは\n【未発表】",
+    "size": 100,
+    "sub": "9月末時点"
+   }
+  },
+  {
+   "text": "続くと決まる可能性もあるから、／【ニュースは確認】してな",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "📰",
+    "text": "【ニュース】を\n確認",
+    "size": 100
+   }
+  },
+  {
+   "text": "まず、【先月の検針票】の／使用量を見てみて",
+   "heading": "今できること",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "big",
+    "emoji": "🧾",
+    "text": "【検針票】の\n使用量を見る",
+    "size": 96
+   }
+  },
+  {
+   "text": "使用量がわかれば、／増える額も【計算できる】",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "🧮",
+    "text": "使用量 × 3.5円\n【＝増える額】",
+    "size": 88
+   }
+  },
+  {
+   "text": "11月に慌てんように、／【先に知っとく】のが大事",
+   "tts": "じゅういちがつに慌てんように、／先に知っとくのが大事",
+   "heading": "まとめ",
+   "shot": "wide",
+   "pose": "pose06",
+   "visual": {
+    "type": "big",
+    "emoji": "😌",
+    "text": "【先に知る】だけで\n慌てない",
+    "size": 92
+   }
+  },
+  {
+   "text": "家計を見てる家族に、／【送ってあげて】",
+   "shot": "close",
+   "pose": "pose02",
+   "visual": {
+    "type": "cta",
+    "emoji": "📩",
+    "text": "家族にも\n【送ってあげて】",
+    "size": 100,
+    "bounce": true
+   }
+  },
+  {
+   "text": "じゃあもう一回、／最初の質問に戻るね",
+   "shot": "wide",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "💡",
+    "text": "11月の電気代\n【高くなる？】",
+    "size": 96
+   }
+  }
+ ]
+}

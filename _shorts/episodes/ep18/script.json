@@ -1,0 +1,256 @@
+{
+ "id": "ep18",
+ "theme": "MetaのAIエージェント「Muse」日本上陸前に知っておくこと：任せる範囲＝渡す権限",
+ "style": "studio",
+ "series": "AI初心者の時短ワザ",
+ "voice": {
+  "engine": "openjtalk",
+  "speed": 1.15,
+  "pitch": 2.5,
+  "intonation": 1.5,
+  "fal_model": "fal-ai/minimax/speech-02-hd",
+  "fal_speed": 1.0,
+  "emotion": "happy"
+ },
+ "sources": [
+  "https://ledge.ai/articles/amazon_blocks_meta_muse_shopping",
+  "https://www.techno-edge.net/article/2026/09/22/5512.html",
+  "https://smartscope.blog/blog/meta-muse-personal-agent-japan-2026/",
+  "https://about.fb.com/ja/news/2026/09/introducing-muse-personal-ai-agent/"
+ ],
+ "lines": [
+  {
+   "text": "AIに買い物まで任せて、／【ほんまに大丈夫？】",
+   "tts": "エーアイに買い物まで任せて、／ほんまに大丈夫？",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🛒",
+    "text": "AIに買い物まで\n【任せて大丈夫？】",
+    "size": 88
+   }
+  },
+  {
+   "text": "アメリカで、Metaの【Muse】が／話題になってるんよ",
+   "tts": "アメリカで、メタのミューズが／話題になってるんよ",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "🤖",
+    "text": "Metaの\n【Muse】",
+    "size": 110
+   }
+  },
+  {
+   "text": "予約や買い物を、／AIが【代わりにやる】アプリ",
+   "heading": "Museって？",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "📱",
+    "text": "予約・買い物を\n【AIが代行】",
+    "size": 96
+   },
+   "tts": "予約や買い物を、／エーアイが代わりにやるアプリ"
+  },
+  {
+   "text": "日本での開始日は、／【まだ決まってない】",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "big",
+    "emoji": "🗓️",
+    "text": "日本での開始は\n【未定】",
+    "size": 100,
+    "sub": "9月末時点"
+   }
+  },
+  {
+   "text": "でも先に、【知っておくこと】が／あるんよ",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "☝️",
+    "text": "始まる前に\n【知っておくこと】",
+    "size": 88
+   }
+  },
+  {
+   "text": "アメリカの【Amazon】が、／Museをしめ出した",
+   "tts": "アメリカのアマゾンが、／ミューズをしめ出した",
+   "heading": "何があった？",
+   "shot": "wide",
+   "pose": "pose06",
+   "visual": {
+    "type": "big",
+    "emoji": "🚫",
+    "text": "Amazonが\n【Museをブロック】",
+    "size": 92,
+    "sub": "米国・9月20日から"
+   }
+  },
+  {
+   "text": "AIだと名乗らずに、／【サイトに入る】のが問題に",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "🎭",
+    "text": "AIと名乗らず\n【サイトに入る】",
+    "size": 92
+   },
+   "tts": "エーアイだと名乗らずに、／サイトに入るのが問題に"
+  },
+  {
+   "text": "【ログイン情報】の扱いも、／心配されてるんよ",
+   "shot": "wide",
+   "pose": "pose09",
+   "visual": {
+    "type": "big",
+    "emoji": "🔐",
+    "text": "【ログイン情報】の\n扱いが心配",
+    "size": 92
+   }
+  },
+  {
+   "text": "AIができることは、／【渡した鍵】の分だけ",
+   "heading": "考え方",
+   "shot": "close",
+   "pose": "pose05",
+   "visual": {
+    "type": "list",
+    "title": "AIに渡す鍵",
+    "items": [
+     "【メール】",
+     "【カレンダー】",
+     "【支払い】"
+    ],
+    "show": 0,
+    "hl": null
+   },
+   "tts": "エーアイができることは、／渡した鍵の分だけ"
+  },
+  {
+   "text": "メールの鍵を渡すと、／【中身を読める】",
+   "shot": "wide",
+   "pose": "pose10",
+   "visual": {
+    "type": "list",
+    "title": "AIに渡す鍵",
+    "items": [
+     "【メール】",
+     "【カレンダー】",
+     "【支払い】"
+    ],
+    "show": 1,
+    "hl": 0
+   }
+  },
+  {
+   "text": "予定の鍵なら、／【予定を入れられる】",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "list",
+    "title": "AIに渡す鍵",
+    "items": [
+     "【メール】",
+     "【カレンダー】",
+     "【支払い】"
+    ],
+    "show": 2,
+    "hl": 1
+   }
+  },
+  {
+   "text": "支払いの鍵は、／【お金が動く】いちばん重い鍵",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "list",
+    "title": "AIに渡す鍵",
+    "items": [
+     "【メール】",
+     "【カレンダー】",
+     "【支払い】"
+    ],
+    "show": 3,
+    "hl": 2
+   }
+  },
+  {
+   "text": "使うなら、支払いの鍵は／【最後に渡す】のがええ",
+   "heading": "使うなら",
+   "shot": "close",
+   "pose": "expr_angry",
+   "visual": {
+    "type": "big",
+    "emoji": "🔑",
+    "text": "支払いの鍵は\n【最後に】",
+    "size": 100
+   }
+  },
+  {
+   "text": "最初は、【調べもの】だけ／任せるところから",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "big",
+    "emoji": "🔍",
+    "text": "最初は\n【調べものだけ】",
+    "size": 96
+   }
+  },
+  {
+   "text": "任せた記録を、／【ときどき見直す】のも大事",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "👀",
+    "text": "任せた記録を\n【見直す】",
+    "size": 96
+   }
+  },
+  {
+   "text": "便利さと怖さは、／【渡す鍵の数】で決まるんよ",
+   "heading": "まとめ",
+   "shot": "wide",
+   "pose": "pose06",
+   "visual": {
+    "type": "big",
+    "emoji": "⚖️",
+    "text": "便利さと怖さは\n【鍵の数】で決まる",
+    "size": 84
+   }
+  },
+  {
+   "text": "新しいAIが好きな友だちに、／【送ってあげて】",
+   "shot": "close",
+   "pose": "pose02",
+   "visual": {
+    "type": "cta",
+    "emoji": "📩",
+    "text": "友だちにも\n【送ってあげて】",
+    "size": 100,
+    "bounce": true
+   },
+   "tts": "新しいエーアイが好きな友だちに、／送ってあげて"
+  },
+  {
+   "text": "じゃあもう一回、／最初の質問に戻るね",
+   "shot": "wide",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🛒",
+    "text": "AIに買い物まで\n【任せて大丈夫？】",
+    "size": 88
+   }
+  }
+ ]
+}

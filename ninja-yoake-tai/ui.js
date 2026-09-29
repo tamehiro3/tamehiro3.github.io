@@ -321,8 +321,13 @@
       try { var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([data], { type: 'application/json' })); a.download = 'yoake-tai-log.json'; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500); }
       catch (e) { toast('書き出しできませんでした'); }
     };
-    $('rec-reset').onclick = function () { if (root.confirm('記録・修行札・外見をすべて消して、はじめからにしますか？')) { G.resetAll(); } };
+    $('rec-reset').onclick = function () { ask(body, '記録・修行札・外見をすべて消して、はじめからにしますか？', 'すべて消す', function () { G.resetAll(); }, function () { pRecords(body); }); };
     function row(label, key) { return '<div class="set-row"><span>' + label + '</span><input type="checkbox" data-set="' + key + '"' + (P.settings[key] ? ' checked' : '') + '></div>'; }
+  }
+  // 確かめる（ブラウザの confirm は、アプリ内の表示や一部の端末で出ないので、パネルの中で聞く）
+  function ask(body, msg, okLabel, onOk, onBack) {
+    body.innerHTML = '<p style="font-size:16px;font-weight:700">' + esc(msg) + '</p><div class="pause-btns"><button class="btn" id="ask-no" style="background:var(--night)">もどる</button><button class="btn" id="ask-ok" style="background:#8a2a2a">' + esc(okLabel) + '</button></div>';
+    $('ask-no').onclick = onBack; $('ask-ok').onclick = onOk;
   }
   function modeName(k) { return { rule: 'ルールの提案', rotation: '固定ローテーション', ai: 'AIの提案', normal: '通常任務', weekly: '週の任務', tutorial: '最初の任務' }[k] || k; }
   function pPause(body) {
@@ -336,7 +341,7 @@
     Array.prototype.forEach.call(body.querySelectorAll('input[data-set]'), function (i) { i.onchange = function () { P.settings[i.getAttribute('data-set')] = i.checked; G.applySettings(); G.save(); }; });
     $('ps-resume').onclick = closePanel;
     $('ps-help').onclick = function () { panel('help', 'pause'); };
-    var q = $('ps-quit'); if (q) q.onclick = function () { if (root.confirm('出撃をやめますか？（負けとして記録されます）')) { closePanel(); G.quitMatch(); } };
+    var q = $('ps-quit'); if (q) q.onclick = function () { ask(body, '出撃をやめますか？（負けとして記録されます）', 'やめる', function () { closePanel(); G.quitMatch(); }, function () { pPause(body); }); };
     var sk = $('ps-skip'); if (sk) sk.onclick = function () { closePanel(); G.skipTutorial(); };
   }
   function pHelp(body, from) {

@@ -326,6 +326,7 @@
     G.applySettings();
     document.getElementById('btn-start').onclick = function () { AU.unlock(); AU.play('click'); G.startTutorial(); };
     document.getElementById('btn-continue').onclick = function () { AU.unlock(); AU.play('click'); G.toPlaza(); };
+    document.getElementById('btn-help').onclick = function () { AU.unlock(); UI.panel('help'); };
     document.getElementById('pl-go').onclick = function () { AU.play('click'); G.toLoadout(); };
     document.getElementById('lo-back').onclick = function () { G.toPlaza(); };
     document.getElementById('lo-go').onclick = function () { AU.unlock(); G.startMatch(); };

@@ -45,7 +45,7 @@ kbd { display: none; font-family: inherit; font-size: 10px; background: rgba(0,0
 .title-box h1 { margin: 0; font-size: clamp(38px, 9vw, 72px); letter-spacing: .08em; line-height: 1.1; text-shadow: 0 4px 0 #0b0f24, 0 0 30px rgba(255,200,120,.35); }
 .title-box h1 span { display: block; color: var(--gold); font-size: .9em; }
 .lead { font-size: 17px; line-height: 1.7; margin: 14px 0 20px; }
-.title-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.title-btns { display: flex; gap: 12px; justify-content: center; align-items: center; flex-wrap: wrap; }
 .note { font-size: 12.5px; color: #c8cce0; line-height: 1.7; margin-top: 18px; }
 .links { font-size: 13px; margin-top: 8px; }
 .links a, .scr a { color: #ffd98a; }

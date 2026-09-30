@@ -41,3 +41,7 @@ Typelessで話した下書きを GitHub の Issue に置くと、機械検品 �
 - 設計図と進め方: [`_marketing/BLUEPRINT.md`](_marketing/BLUEPRINT.md)
 - 軍配の点検記録: [`_marketing/GUNBAI_REVIEW.md`](_marketing/GUNBAI_REVIEW.md)
 - 本番スイッチ: `_marketing/sns/config.json` の `mode`(初期値 `dry-run` = 投稿しない)
+
+## 次のゲームの設計図（Roblox版・企画段階）
+
+- [`_design/roblox-koka-scroll-wars/BLUEPRINT.md`](_design/roblox-koka-scroll-wars/BLUEPRINT.md) — 「巻物争奪・甲賀の街」(仮題「忍びの蔵と結びの術」)。盗る・守る型にAI要素（術合わせ・推理・課題カード）を乗せた設計。コードはまだなく、着手前の確認項目が15章にある

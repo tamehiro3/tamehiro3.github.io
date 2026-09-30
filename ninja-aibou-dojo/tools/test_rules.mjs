@@ -272,6 +272,13 @@ section('データ');
   let posesOk = true;
   C.CHARS.forEach(c => ['attack', 'rescue', 'search', 'retreat', 'down', 'cheer'].forEach(p => { const svg = A.render(c.art, { yaw: -50, pose: p, frame: 1, expr: p === 'down' ? 'tired' : undefined }); if (svg.indexOf('NaN') >= 0) posesOk = false; }));
   ok(posesOk, '39体すべて、修行の動き（6つ）を描ける');
+  // 絵柄：既定はかっこいい系（約5頭身）。かわいい系（ちびキャラ）にも切りかえられる
+  const cool = A.render(C.BY_ID.jin.art, { yaw: 0 }), cute = A.render(C.BY_ID.jin.art, { yaw: 0, style: 'cute' });
+  ok(A.style === 'cool' && cool !== cute && A.builds('cool').normal.hs < 0.5 && A.builds('cute').normal.hr === 50, '絵柄の既定はかっこいい系で、かわいい系（ちびキャラ）にも切りかえられる');
+  let bothOk = true;
+  C.CHARS.forEach(c => ['stand', 'walk', 'happy', 'surprised', 'serious'].forEach(p => ['cool', 'cute'].forEach(st => { const svg = A.render(c.art, { yaw: -38, pose: p, frame: 1, style: st }); if (svg.indexOf('NaN') >= 0 || svg.indexOf('undefined') >= 0) bothOk = false; })));
+  ok(bothOk, '39体すべて、どちらの絵柄でも立ち・歩き・表情を描ける');
+  ok(C.CHARS.every(c => /^[\d.]+ [\d.]+ [\d.]+ [\d.]+$/.test(A.faceBox(c.art))), '顔のアップ（会話・名鑑・アイコン）の枠を39体とも決められる');
 }
 
 console.log(`\n結果: ${pass} 件合格 / ${fail} 件不合格`);

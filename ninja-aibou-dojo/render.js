@@ -36,7 +36,9 @@
     pending++;
     var pw = Math.round(ph * 200 / 240);
     var svg;
-    try { svg = A.render(defFn(), { yaw: o.yaw, pose: o.pose, frame: o.frame, expr: o.expr, w: pw, h: ph, shadow: false, prop: false, companions: false }); }
+    // 小さく描くときは線を太めに（背の高い絵柄は線が細く見えやすい）
+    var lwk = Math.max(1, Math.min(1.9, 98 / Math.max(1, hpx)));
+    try { svg = A.render(defFn(), { yaw: o.yaw, pose: o.pose, frame: o.frame, expr: o.expr, w: pw, h: ph, shadow: false, prop: false, companions: false, lw: lwk }); }
     catch (err) { pending--; return last[key] || null; }
     var img = new Image();
     img.onload = function () {
@@ -50,7 +52,7 @@
   };
   // 顔（DOM 用の SVG）
   R.faceSvg = function (def, expr, yaw) {
-    try { return A.render(def, { yaw: yaw == null ? -20 : yaw, pose: 'stand', expr: expr || 'normal', viewBox: '28 12 144 144', w: 144, h: 144, shadow: false, prop: false, companions: false }); } catch (e) { return ''; }
+    try { return A.render(def, { yaw: yaw == null ? -20 : yaw, pose: 'stand', expr: expr || 'normal', viewBox: A.faceBox(def, { size: 58, up: 0.52 }), w: 144, h: 144, shadow: false, prop: false, companions: false, lw: 1.2 }); } catch (e) { return ''; }
   };
   R.bodySvg = function (def, o) {
     o = o || {};

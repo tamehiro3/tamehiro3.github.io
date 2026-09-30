@@ -1,10 +1,11 @@
-/* ニンジャ相棒道場 — キャラクターシート（1536×1410 の1枚SVG）
- * 見本（狐白｜キャラクターシート・ゲーム用アレンジ案）と同じ並びに、このゲームで使う「修行のうごき」の段を足したもの：
- *   上：まえ／ななめ／よこ／うしろ ＋ 右端に色見本
- *   中左：しぐさ（ふつう・うれしい・びっくり・しんけん）
+/* ニンジャ相棒道場 — キャラクターシート（1枚のSVG）
+ * かっこいい版（既定・1536×1680）：
+ *   上：黒い帯に名前（筆文字）とクランの印。三面図（まえ／ななめ／よこ／うしろ）＋ 右端に色見本
+ *   中左：表情（ふつう・うれしい・びっくり・しんけん）の顔のアップ
  *   中右：うごき・擬態（あるく・かくれる（擬態））
  *   下：修行のうごき（こうげき・きゅうじょ・しらべる・さがる・へとへと・わーい）
  *   いちばん下：CryptoNinja ファンゲーム制作資料
+ * かわいい版（style: 'cute'。1536×1410）は、見本（狐白｜キャラクターシート・ゲーム用アレンジ案）と同じ並び。
  * 描画は art.js（NinjaArt）。ブラウザでも Node でも動く。ninja-sato-life/sheet.js をもとにした。
  */
 (function (root) {
@@ -24,7 +25,7 @@
   }
   // キャラ1体を (x,y,w,h) の枠に置く
   function fig(def, x, y, w, h, opt) {
-    var inner = A.render(def, Object.assign({ raw: true }, opt || {}));
+    var inner = A.render(def, Object.assign({ raw: true, style: 'cute' }, opt || {}));
     return '<svg x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" viewBox="' + (opt && opt.vb || '0 0 200 240') + '" overflow="visible">' + inner + '</svg>';
   }
   // 絵の具のにじんだような色見本
@@ -99,7 +100,7 @@
 
   // ch: { name, num, en, clan, jutsu, weapon, birthday, palette, art }（公式39体）
   //     相棒のときは { name, info, palette, art, partner: true }
-  function sheetSvg(ch, opt) {
+  function sheetSvgCute(ch, opt) {
     opt = opt || {};
     var uid = 'sh' + (++seq);
     var def = ch.art;
@@ -180,7 +181,217 @@
     return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" width="' + (opt.w || W) + '" height="' + (opt.h || H) + '">' + (font ? '<style>' + font + '</style>' : '') + o + '</svg>';
   }
 
-  var api = { sheetSvg: sheetSvg, W: W, H: H };
+  /* ================= かっこいい版 ================= */
+  var CW = 1536, CH = 1680;
+  var SUMI = '#141418', SHU = '#c8302c', KIN = '#c9a46a', GRAY = '#4a4850', PAPER2 = '#eeebe5';
+  var FONT_B = "'Yuji Boku','Yuji Syuku','Hiragino Mincho ProN','Yu Mincho',serif";
+  var FONT_G = "'Zen Kaku Gothic New','Hiragino Sans','Yu Gothic','Meiryo',sans-serif";
+  function TG(x, y, s, size, o) { // 角ゴシック
+    o = o || {};
+    return '<text x="' + x + '" y="' + y + '" font-size="' + size + '" fill="' + (o.col || SUMI) + '" font-family="' + (o.font || FONT_G) + '" font-weight="' + (o.w || 700) + '"' +
+      (o.anchor ? ' text-anchor="' + o.anchor + '"' : '') + (o.ls ? ' letter-spacing="' + o.ls + '"' : '') + '>' + esc(s) + '</text>';
+  }
+  function figC(def, x, y, w, h, vb, opt) {
+    var inner = A.render(def, Object.assign({ raw: true, style: 'cool' }, opt || {}));
+    return '<svg x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" viewBox="' + vb + '">' + inner + '</svg>';
+  }
+  // 見出し：朱の四角＋太字
+  function secTitle(x, y, s, sub) {
+    return '<rect x="' + x + '" y="' + (y - 26) + '" width="10" height="28" fill="' + SHU + '"/>' + TG(x + 22, y, s, 32, { w: 900, ls: 2 }) + (sub ? TG(x + 22 + s.length * 34 + 24, y - 2, sub, 18, { w: 500, col: '#6a6670' }) : '');
+  }
+  // 筆で描いた円（円相）
+  function enso(cx, cy, r, col, seed) {
+    var o = '', n = 64;
+    var pts = [], ws = [];
+    for (var i = 0; i <= n; i++) {
+      var t = i / n, a = -Math.PI * 0.62 + t * Math.PI * 1.86;
+      var rr = r * (1 + 0.02 * Math.sin(seed + t * 9));
+      pts.push({ x: cx + Math.cos(a) * rr, y: cy + Math.sin(a) * rr });
+      ws.push(34 * Math.pow(Math.sin(Math.PI * Math.min(1, t * 1.15)), 0.6) + 2);
+    }
+    // 筆の太さ：点列から幅つきの形を作る
+    var L = [], R = [];
+    for (i = 0; i <= n; i++) {
+      var a0 = pts[Math.max(0, i - 1)], b0 = pts[Math.min(n, i + 1)], dx = b0.x - a0.x, dy = b0.y - a0.y, l = Math.hypot(dx, dy) || 1;
+      L.push({ x: pts[i].x - dy / l * ws[i] / 2, y: pts[i].y + dx / l * ws[i] / 2 }); R.push({ x: pts[i].x + dy / l * ws[i] / 2, y: pts[i].y - dx / l * ws[i] / 2 });
+    }
+    o += '<path d="' + U.smoothD(L.concat(R.reverse()), true, 0.8) + '" fill="' + col + '"/>';
+    return o;
+  }
+  // クランの印（朱の角印・縦書き）
+  function seal(x, y, sz, text) {
+    var chars = String(text || '').replace(/\s/g, '').split('').slice(0, 3), n = chars.length || 1;
+    var o = '<rect x="' + x + '" y="' + y + '" width="' + sz + '" height="' + sz + '" rx="8" fill="' + SHU + '"/>';
+    o += '<rect x="' + (x + 5) + '" y="' + (y + 5) + '" width="' + (sz - 10) + '" height="' + (sz - 10) + '" rx="5" fill="none" stroke="#f6e9e2" stroke-width="2" opacity=".85"/>';
+    var fs = n === 1 ? sz * 0.56 : n === 2 ? sz * 0.36 : sz * 0.26;
+    chars.forEach(function (c, i) { o += '<text x="' + (x + sz / 2) + '" y="' + (y + sz / 2 + (i - (n - 1) / 2) * fs * 1.02 + fs * 0.36) + '" font-size="' + fs + '" fill="#fbf3ee" text-anchor="middle" font-family="' + FONT_B + '">' + esc(c) + '</text>'; });
+    return o;
+  }
+  function swatch(x, y, col) {
+    return '<rect x="' + x + '" y="' + y + '" width="46" height="46" rx="6" fill="' + col + '" stroke="' + SUMI + '" stroke-width="2"/>' +
+      '<path d="M' + (x + 4) + ' ' + (y + 40) + 'L' + (x + 40) + ' ' + (y + 4) + '" stroke="#ffffff" stroke-width="3" opacity=".12"/>';
+  }
+  function speedLinesC(x, y) {
+    return '<g stroke="' + GRAY + '" stroke-width="4" stroke-linecap="round" opacity=".7"><path d="M' + x + ' ' + y + 'h54"/><path d="M' + (x + 16) + ' ' + (y + 20) + 'h38"/><path d="M' + (x - 8) + ' ' + (y + 40) + 'h46"/></g>';
+  }
+  function dustC(x, y) {
+    var o = '';
+    [[0, 0, 10], [-18, 5, 7], [-32, 10, 5]].forEach(function (d) { o += U.sp(U.ellD(x + d[0], y + d[1], d[2], d[2] * 0.8), '#d6d0c6', { w: 2, sc: '#a8a094' }); });
+    return o;
+  }
+  // 竹柄の布と木の枠（擬態）
+  function bambooC(x, y, w, h, uid) {
+    var o = '<defs><clipPath id="' + uid + 'bc"><path d="M' + x + ' ' + y + 'h' + w + 'l-5 ' + h + 'q-' + (w / 2) + ' 12 -' + (w - 10) + ' 0Z"/></clipPath></defs>';
+    o += '<g clip-path="url(#' + uid + 'bc)"><rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + (h + 14) + '" fill="#aebf8e"/>';
+    for (var i = 0; i < 6; i++) {
+      var bx = x + 12 + i * (w - 24) / 5;
+      o += '<rect x="' + (bx - 8) + '" y="' + y + '" width="16" height="' + (h + 14) + '" fill="#86a062"/>';
+      for (var j = 1; j < 7; j++) { var ny = y + j * h / 7 + (i % 2) * 16; o += '<path d="M' + (bx - 9) + ' ' + ny + 'h18" stroke="#667f44" stroke-width="3"/>'; }
+      o += '<path d="M' + (bx + 8) + ' ' + (y + 50 + i * 13) + 'q14 -7 21 5q-12 2 -21 -5Z" fill="#6f8f4a"/>';
+    }
+    o += '</g>';
+    o += '<path d="M' + x + ' ' + y + 'h' + w + 'l-5 ' + h + 'q-' + (w / 2) + ' 12 -' + (w - 10) + ' 0Z" fill="none" stroke="' + U.OUT + '" stroke-width="3" stroke-linejoin="round"/>';
+    return o;
+  }
+  function frameC(x, y, w, h) {
+    var col = '#b9925a';
+    return '<g stroke="' + U.OUT + '" stroke-width="3" stroke-linejoin="round">' +
+      '<rect x="' + (x - 9) + '" y="' + (y - 16) + '" width="12" height="' + (h + 18) + '" rx="3" fill="' + col + '"/>' +
+      '<rect x="' + (x + w - 3) + '" y="' + (y - 16) + '" width="12" height="' + (h + 18) + '" rx="3" fill="' + col + '"/>' +
+      '<rect x="' + (x - 24) + '" y="' + (y - 22) + '" width="' + (w + 48) + '" height="12" rx="4" fill="' + col + '"/></g>';
+  }
+  function grassC(x, y, n) {
+    var o = '';
+    for (var i = 0; i < n; i++) {
+      var gx = x + i * 15 + (i % 3) * 3, h = 16 + (i * 7) % 12;
+      o += '<path d="M' + gx + ' ' + y + 'q-3 ' + (-h * 0.6) + ' -8 ' + (-h) + 'M' + (gx + 4) + ' ' + y + 'q1 ' + (-h * 0.7) + ' 3 ' + (-h - 4) + 'M' + (gx + 8) + ' ' + y + 'q4 ' + (-h * 0.5) + ' 10 ' + (-h + 2) + '" stroke="#5b8a3a" stroke-width="3.2" fill="none" stroke-linecap="round"/>';
+    }
+    return o;
+  }
+  // 修行のうごきの小道具（背の高い体に合わせた大きさ）
+  function dummyC(x, y) { // 木人（打ちこみ台）
+    var o = '<g stroke="' + U.OUT + '" stroke-width="3" stroke-linejoin="round">';
+    o += '<rect x="' + (x - 26) + '" y="' + (y - 12) + '" width="52" height="12" rx="3" fill="#7a5230"/>';
+    o += '<rect x="' + (x - 13) + '" y="' + (y - 196) + '" width="26" height="186" rx="11" fill="#b98a55"/>';
+    o += '<circle cx="' + x + '" cy="' + (y - 212) + '" r="19" fill="#c99a62"/>';
+    o += '<path d="M' + (x - 13) + ' ' + (y - 150) + 'l-26 -8M' + (x + 13) + ' ' + (y - 150) + 'l26 -8M' + (x - 13) + ' ' + (y - 104) + 'l-22 6" stroke-width="9" stroke="#8a5a30" stroke-linecap="round"/></g>';
+    o += '<path d="M' + (x - 8) + ' ' + (y - 130) + 'l16 0M' + x + ' ' + (y - 138) + 'l0 16" stroke="' + SHU + '" stroke-width="3.4"/>';
+    o += '<path d="M' + (x - 9) + ' ' + (y - 60) + 'h18M' + (x - 9) + ' ' + (y - 40) + 'h18" stroke="#8a5a30" stroke-width="2.4"/>';
+    return o;
+  }
+  function chestC(x, y) {
+    return '<g stroke="' + U.OUT + '" stroke-width="3" stroke-linejoin="round"><rect x="' + (x - 30) + '" y="' + (y - 34) + '" width="60" height="34" rx="4" fill="#9a5f2e"/>' +
+      '<path d="M' + (x - 30) + ' ' + (y - 34) + 'q30 -24 60 0Z" fill="#b57236"/><rect x="' + (x - 6) + '" y="' + (y - 28) + '" width="12" height="13" fill="#e2bd62"/></g>' +
+      '<path d="M' + (x - 30) + ' ' + (y - 20) + 'h60" stroke="#6e4220" stroke-width="3"/>';
+  }
+  function makibishiC(x, y) {
+    var o = '<ellipse cx="' + x + '" cy="' + y + '" rx="48" ry="11" fill="#cfc5d8" opacity=".8"/>';
+    [[-28, -1], [-8, 4], [14, -3], [32, 3], [2, -7]].forEach(function (d) { o += '<path d="M' + (x + d[0]) + ' ' + (y + d[1] - 8) + 'l5 8l-10 0Z" fill="#5a5a64" stroke="' + U.OUT + '" stroke-width="1.6" stroke-linejoin="round"/>'; });
+    return o;
+  }
+
+  function sheetSvgCool(ch, opt) {
+    opt = opt || {};
+    var uid = 'sc' + (++seq), def = ch.art, o = '';
+    var vbFull = function (w, h) { var vw = 224 * w / h; return (100 - vw / 2).toFixed(1) + ' 16 ' + vw.toFixed(1) + ' 224'; };
+    o += '<rect width="' + CW + '" height="' + CH + '" fill="' + PAPER2 + '"/>';
+    o += '<filter id="' + uid + 'n"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" seed="' + (parseInt(ch.num, 10) || 7) + '"/><feColorMatrix values="0 0 0 0 .2  0 0 0 0 .2  0 0 0 0 .22  0 0 0 .06 0"/></filter>';
+    o += '<rect width="' + CW + '" height="' + CH + '" filter="url(#' + uid + 'n)"/>';
+    // ---- 黒い帯の見出し
+    o += '<rect width="' + CW + '" height="128" fill="' + SUMI + '"/><rect y="128" width="' + CW + '" height="5" fill="' + SHU + '"/>';
+    o += '<rect x="36" y="26" width="9" height="76" fill="' + SHU + '"/>';
+    var nm = ch.name, nsz = nm.length > 4 ? 66 : 80;
+    o += '<text x="64" y="' + (nm.length > 4 ? 94 : 100) + '" font-size="' + nsz + '" fill="#f7f3ec" font-family="' + FONT_B + '">' + esc(nm) + '</text>';
+    var nameW = nm.length * nsz * 1.0 + 8;
+    o += '<path d="M' + (64 + nameW + 18) + ' 40v58" stroke="#8a8690" stroke-width="2.5"/>';
+    o += TG(64 + nameW + 42, 88, 'キャラクターシート', 36, { w: 900, col: '#ece7de', ls: 5 });
+    o += TG(64 + nameW + 44, 114, 'CHARACTER SHEET', 13, { w: 700, col: '#8a8690', ls: 6 });
+    o += TG(CW - 150, 62, 'ニンジャ相棒道場', 20, { anchor: 'end', w: 700, col: KIN, ls: 3 });
+    o += TG(CW - 150, 92, ch.partner ? 'ゲーム独自の相棒' : 'CryptoNinja 39', 14, { anchor: 'end', w: 700, col: '#8a8690', ls: 3 });
+    o += seal(CW - 128, 22, 86, ch.partner ? '相棒' : ch.clan);
+    // ---- 情報の行
+    var tag = ch.partner ? '相棒（ゲーム独自）' : 'ゲーム用アレンジ案', tagW = tag.length * 20 + 28;
+    o += '<rect x="40" y="152" width="' + tagW + '" height="34" rx="3" fill="' + SUMI + '"/>' + TG(40 + tagW / 2, 176, tag, 20, { anchor: 'middle', w: 700, col: '#f4f0e8' });
+    var info = ch.partner ? (ch.info || '') : ('#' + ch.num + ' ' + ch.en + '　／　' + ch.clan + '　／　忍術：' + ch.jutsu + '　／　武器：' + ch.weapon + '　／　誕生日：' + ch.birthday);
+    o += TG(40 + tagW + 20, 176, info, 20, { w: 500, col: '#3a3840' });
+    // ---- 三面図
+    var views = [['まえ', 0], ['ななめ', -38], ['よこ', -90], ['うしろ', 180]];
+    var fw = 350, fh = 455, top = 206;
+    o += enso(24 + fw / 2, top + 190, 176, '#dcd6cc', parseInt(ch.num, 10) || 3);
+    views.forEach(function (v, i) {
+      var x = 24 + i * fw;
+      o += figC(def, x, top, fw, fh, vbFull(fw, fh), { yaw: v[1], pose: 'stand' });
+      o += TG(x + fw / 2, top + fh + 34, v[0], 26, { anchor: 'middle', w: 700, ls: 4 });
+      o += '<rect x="' + (x + fw / 2 - 18) + '" y="' + (top + fh + 44) + '" width="36" height="3" fill="' + SHU + '"/>';
+    });
+    // 色見本
+    o += TG(1492, 222, '色', 20, { anchor: 'middle', w: 900, col: GRAY });
+    (ch.palette || []).slice(0, 8).forEach(function (col, i) { o += swatch(1469, 236 + i * 56, col); });
+    o += '<path d="M36 ' + (top + fh + 70) + 'H1500" stroke="' + SUMI + '" stroke-width="2.5"/>';
+    // ---- 表情（顔のアップ）
+    var y2 = top + fh + 118;
+    o += secTitle(40, y2, '表情');
+    var faces = [['ふつう', 'normal', -12], ['うれしい', 'happy', -22], ['びっくり', 'surprised', 0], ['しんけん', 'serious', 16]];
+    var fbox = A.faceBox(def, { size: 56, up: 0.55, style: 'cool' });
+    faces.forEach(function (f, i) {
+      var x = 40 + i * 206, y = y2 + 22;
+      o += '<rect x="' + x + '" y="' + y + '" width="188" height="188" rx="4" fill="#f8f6f2" stroke="' + SUMI + '" stroke-width="2.5"/>';
+      o += '<svg x="' + (x + 2) + '" y="' + (y + 2) + '" width="184" height="184" viewBox="' + fbox + '">' + A.render(def, { raw: true, style: 'cool', yaw: f[2], pose: 'stand', expr: f[1], shadow: false, prop: false, companions: false }) + '</svg>';
+      o += TG(x + 94, y + 222, f[0], 24, { anchor: 'middle', w: 700, ls: 2 });
+    });
+    // ---- うごき・擬態
+    o += '<path d="M872 ' + (y2 - 30) + 'V' + (y2 + 312) + '" stroke="' + SUMI + '" stroke-width="2.5"/>';
+    o += secTitle(900, y2, 'うごき・擬態');
+    var mw = 220, mh = 286, my = y2 + 6;
+    o += speedLinesC(906, my + 120) + dustC(1000, my + mh - 16);
+    o += figC(def, 928, my, mw, mh, vbFull(mw, mh), { yaw: 52, pose: 'walk', frame: 1, prop: false, companions: false });
+    o += TG(928 + mw / 2, y2 + 312, 'あるく', 24, { anchor: 'middle', w: 700, ls: 2 });
+    var cx0 = 1262, cy0 = my + 28, cw = 214, chh = mh - 40;
+    o += frameC(cx0, cy0, cw, chh);
+    o += figC(def, 1142, my, mw, mh, vbFull(mw, mh), { yaw: -24, pose: 'surprised', expr: 'surprised', prop: false, companions: false, shadow: false });
+    o += bambooC(cx0, cy0, cw, chh, uid);
+    o += grassC(1176, my + mh - 8, 5) + grassC(1430, my + mh - 8, 4);
+    o += '<g stroke="#e0801c" stroke-width="4" stroke-linecap="round"><path d="M1190 ' + (my + 60) + 'l-12 -8M1186 ' + (my + 74) + 'l-14 2M1194 ' + (my + 48) + 'l-6 -12"/></g>';
+    o += TG(1370, y2 + 312, 'かくれる（擬態）', 24, { anchor: 'middle', w: 700, ls: 2 });
+    // ---- 修行のうごき
+    var y3 = y2 + 384;
+    o += '<path d="M36 ' + (y3 - 46) + 'H1500" stroke="' + SUMI + '" stroke-width="2.5"/>';
+    o += secTitle(40, y3, '修行のうごき', '相棒道場で使う6つの動き（相棒・見習い・里の忍者に共通）');
+    var acts = [
+      ['こうげき', 'attack', -70, 'swing', 'serious', 1],
+      ['きゅうじょ', 'rescue', -60, 'care', 'normal', null],
+      ['しらべる', 'search', -60, 'search', 'normal', null],
+      ['さがる', 'retreat', 60, 'dash', 'surprised', null],
+      ['へとへと', 'down', -30, 'dizzy', 'tired', null],
+      ['わーい', 'cheer', 0, 'cheer', 'happy', null]
+    ];
+    var aw = 247, ah = 340, ay = y3 + 12, ground = ay + (232 - 16) * ah / 224;
+    acts.forEach(function (a, i) {
+      var x = 26 + i * aw, dx = a[1] === 'attack' ? 34 : 0;
+      if (a[1] === 'attack') o += dummyC(x + 42, ground);
+      if (a[1] === 'search') o += chestC(x + 206, ground);
+      if (a[1] === 'retreat') o += makibishiC(x + 190, ground);
+      o += figC(def, x + dx, ay, aw, ah, vbFull(aw, ah), { yaw: a[2], pose: a[1], fx: a[3], expr: a[4], frame: a[5], prop: false, companions: false });
+      o += TG(x + dx + aw / 2, ground + 44, a[0], 24, { anchor: 'middle', w: 700, ls: 2 });
+    });
+    // ---- フッター
+    var yf = CH - 58;
+    o += '<path d="M36 ' + yf + 'H1500" stroke="' + SUMI + '" stroke-width="2"/>';
+    o += TG(768, yf + 38, 'CryptoNinja ファンゲーム制作資料', 21, { anchor: 'middle', w: 700, ls: 3 });
+    o += TG(1500, yf + 38, ch.partner ? '相棒はこのゲーム独自のキャラクター（公式ではありません）' : '非公式・キャラクターは CC0（Ninja DAO）', 14, { anchor: 'end', w: 500, col: '#7a7680' });
+    var font = opt.fontFace || '';
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + CW + ' ' + CH + '" width="' + (opt.w || CW) + '" height="' + (opt.h || CH) + '">' + (font ? '<style>' + font + '</style>' : '') + o + '</svg>';
+  }
+
+  // ch: { name, num, en, clan, jutsu, weapon, birthday, palette, art }（公式39体）
+  //     相棒のときは { name, info, palette, art, partner: true }
+  function sheetSvg(ch, opt) {
+    opt = opt || {};
+    return (opt.style || A.style) === 'cute' ? sheetSvgCute(ch, opt) : sheetSvgCool(ch, opt);
+  }
+  function size(style) { return (style || A.style) === 'cute' ? { W: W, H: H } : { W: CW, H: CH }; }
+
+  var api = { sheetSvg: sheetSvg, size: size, W: CW, H: CH, CUTE: { W: W, H: H } };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   root.NinjaSheet = api;
 })(typeof window !== 'undefined' ? window : globalThis);

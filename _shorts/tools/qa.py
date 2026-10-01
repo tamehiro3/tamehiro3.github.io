@@ -113,6 +113,56 @@ def norm(s):
     return re.sub(r"[、。！？!?「」『』…\s]", "", s)
 
 
+# ---- 文字起こしとの照合用：表記ゆれ（漢字/かな/数字/英字）をならして「読み」で比べる ----
+_JT = None
+YOMI_WORDS = {"%": "パーセント", "％": "パーセント", "AI": "エーアイ", "NISA": "ニーサ", "SBI": "エスビーアイ",
+              "ChatGPT": "チャットジーピーティー", "OpenAI": "オープンエーアイ", "iDeCo": "イデコ", "UFJ": "ユーエフジェー"}
+_D = "レイ イチ ニ サン ヨン ゴ ロク ナナ ハチ キュウ".split()
+
+
+def _num_kana(m):
+    t = m.group(0).replace(",", "")
+    if "." in t:
+        a, b = t.split(".", 1)
+        return _int_kana(int(a)) + "テン" + "".join(_D[int(c)] for c in b)
+    return _int_kana(int(t))
+
+
+def _int_kana(n):
+    if n == 0:
+        return "ゼロ"
+    out = ""
+    for unit, name in ((10 ** 8, "オク"), (10 ** 4, "マン")):
+        if n >= unit:
+            out += _int_kana(n // unit) + name
+            n %= unit
+    for unit, name in ((1000, "セン"), (100, "ヒャク"), (10, "ジュウ")):
+        if n >= unit:
+            k = n // unit
+            out += ("" if k == 1 else _D[k]) + name
+            n %= unit
+    return out + (_D[n] if n else "")
+
+
+def yomi(s):
+    """文を読み（カタカナ）にそろえる。数字・％・英字の略語もカナに。長音と記号は落とす"""
+    global _JT
+    import unicodedata
+    s = unicodedata.normalize("NFKC", plain(s).replace("／", ""))
+    for k, v in YOMI_WORDS.items():
+        s = s.replace(k, v)
+    s = re.sub(r"\d[\d,]*(?:\.\d+)?", _num_kana, s)
+    try:
+        if _JT is None:
+            from janome.tokenizer import Tokenizer
+            _JT = Tokenizer()
+        s = "".join(t.reading if t.reading not in ("*", "") else t.surface for t in _JT.tokenize(s))
+    except ImportError:
+        pass
+    s = "".join(chr(ord(c) + 0x60) if "ぁ" <= c <= "ゖ" else c for c in s)
+    return re.sub(r"[ー、。！？!?「」『』…・,.\s]", "", s)
+
+
 def check_audio(ep, script, tl, final_mp4, rep):
     lines = tl["lines"]
     timing = json.loads((ep / "audio" / "timing.json").read_text(encoding="utf-8"))
@@ -168,9 +218,28 @@ def check_audio(ep, script, tl, final_mp4, rep):
     if asr:
         full = norm("".join(r["script"] for r in rows))
         got = norm(asr.get("text", ""))
-        ratio = SequenceMatcher(None, full, got).ratio()
-        rep["asr"] = {"engine": "fal-ai/whisper", "text": asr.get("text", ""), "match_ratio": round(ratio, 3)}
-        if ratio < 0.9:
+        r_text = SequenceMatcher(None, full, got).ratio()
+        # 読みでも比べる（「ゼロカン」と「ゼロ缶」、「0%」と「ゼロパーセント」のような表記ゆれは減点しない）
+        script_yomi = "".join(yomi(r["tts"] or r["script"]) for r in rows)
+        got_yomi = yomi(asr.get("text", ""))
+        r_yomi = SequenceMatcher(None, script_yomi, got_yomi, autojunk=False).ratio()
+        ratio = max(r_text, r_yomi)
+        # 文ごとに、文字起こしの中にどれだけ見つかるか（言い落とし・言い間違いの場所を出す）
+        weak = []
+        for r in rows:
+            y = yomi(r["tts"] or r["script"])
+            if len(y) < 4:
+                continue
+            sm = SequenceMatcher(None, y, got_yomi, autojunk=False)
+            cover = sum(b.size for b in sm.get_matching_blocks() if b.size >= 3) / len(y)   # 3文字以上続く一致だけ数える
+            if cover < 0.6:
+                weak.append((r["i"], round(cover, 2), r["script"]))
+        rep["asr"] = {"engine": "fal-ai/whisper", "text": asr.get("text", ""), "match_ratio": round(ratio, 3),
+                      "match_text": round(r_text, 3), "match_yomi": round(r_yomi, 3), "weak_lines": weak}
+        if weak:
+            where = "、".join(f"{i:02d}「{t[:12]}」" for i, _, t in weak[:4])
+            issues.append(f"音声から聞き取れない文がある: {where}（言い落とし・聞き取りにくい発音。tts.py --only で作り直し）")
+        elif ratio < 0.9:
             issues.append(f"文字起こしと台本の一致率が低い（{ratio:.2f}）")
     else:
         rep["asr"] = {"engine": None, "note": "Whisper 等の文字起こしモデルをこの環境で入手できなかったため未実施。"

@@ -1,0 +1,242 @@
+{
+ "id": "ep20",
+ "theme": "SBI証券のこどもNISA専用ファンド「ゼロカン」：信託報酬0%、18歳で通常NISAに移っても0%のまま",
+ "style": "studio",
+ "series": "AI初心者の時短ワザ",
+ "voice": {
+  "engine": "openjtalk",
+  "speed": 1.15,
+  "pitch": 2.5,
+  "intonation": 1.5,
+  "fal_model": "fal-ai/minimax/speech-02-hd",
+  "fal_speed": 1.0,
+  "emotion": "happy"
+ },
+ "sources": [
+  "https://www.watch.impress.co.jp/docs/news/2144946.html",
+  "https://prtimes.jp/main/html/rd/p/000000951.000007957.html",
+  "https://news.yahoo.co.jp/expert/articles/0acbaee23bfee9b7fdc201d4e48642368a31b07f",
+  "https://www.nikkei.com/article/DGXZQOUB29A3O0Z20C26A9000000/"
+ ],
+ "lines": [
+  {
+   "text": "こどもNISAの手数料、／【ゼロ】になるって知ってた？",
+   "tts": "こどもニーサの手数料、／ゼロになるって知ってた？",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🤔",
+    "text": "こどもNISA\n手数料【ゼロ】？",
+    "size": 96
+   }
+  },
+  {
+   "text": "SBI証券から、専用の／【ゼロカン】が出るんよ",
+   "tts": "エスビーアイ証券から、専用の／ゼロカンが出るんよ",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "🏦",
+    "text": "【ゼロカン】",
+    "size": 120,
+    "sub": "SBI証券・こどもNISA専用ファンド"
+   }
+  },
+  {
+   "text": "ポイントは、／【2つ】だけ覚えといて",
+   "tts": "ポイントは、／ふたつだけ覚えといて",
+   "heading": "ポイント",
+   "shot": "close",
+   "pose": "pose01",
+   "se": "ding",
+   "se_at": 0.4,
+   "visual": {
+    "type": "list",
+    "title": "ゼロカンの【2つ】",
+    "items": [
+     "信託報酬【0%】",
+     "18歳以降も【0%のまま】"
+    ],
+    "show": 0,
+    "hl": null
+   }
+  },
+  {
+   "text": "1つ目、毎年かかる手数料の／【信託報酬が0%】",
+   "tts": "ひとつめ、毎年かかる手数料の／しんたくほうしゅうがゼロパーセント",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "list",
+    "title": "ゼロカンの【2つ】",
+    "items": [
+     "信託報酬【0%】",
+     "18歳以降も【0%のまま】"
+    ],
+    "show": 1,
+    "hl": 0
+   }
+  },
+  {
+   "text": "持ってる間ずっと引かれる／【コスト】がないんよ",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "💸",
+    "text": "持ってる間の\n【コストなし】",
+    "size": 100
+   }
+  },
+  {
+   "text": "2つ目、こどもNISAが終わっても／【0%が続く】",
+   "tts": "ふたつめ、こどもニーサが終わっても／ゼロパーセントが続く",
+   "shot": "wide",
+   "pose": "pose06",
+   "visual": {
+    "type": "list",
+    "title": "ゼロカンの【2つ】",
+    "items": [
+     "信託報酬【0%】",
+     "18歳以降も【0%のまま】"
+    ],
+    "show": 2,
+    "hl": 1
+   }
+  },
+  {
+   "text": "18歳で大人のNISAに移っても、／【0%のまま】やで",
+   "tts": "じゅうはっさいで大人のニーサに移っても、／ゼロパーセントのままやで",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "🔁",
+    "text": "18歳で大人のNISAへ\n【0%のまま】",
+    "size": 84
+   }
+  },
+  {
+   "text": "中身は、世界中の株に／【まとめて投資】するタイプ",
+   "heading": "どんな中身？",
+   "shot": "wide",
+   "pose": "pose09",
+   "visual": {
+    "type": "big",
+    "emoji": "🌏",
+    "text": "世界中の株に\n【まとめて投資】",
+    "size": 92,
+    "sub": "全世界株式のインデックスファンド"
+   }
+  },
+  {
+   "text": "こどもNISAが始まるのは、／【来年1月】から",
+   "tts": "こどもニーサが始まるのは、／らいねんいちがつから",
+   "shot": "close",
+   "pose": "pose05",
+   "visual": {
+    "type": "big",
+    "emoji": "🗓️",
+    "text": "こどもNISAは\n【2027年1月】から",
+    "size": 92,
+    "sub": "ファンドの設定は11月17日"
+   }
+  },
+  {
+   "text": "ただ、積み立てで買えるのは／【こどもNISAの間だけ】",
+   "tts": "ただ、積み立てで買えるのは／こどもニーサの間だけ",
+   "heading": "注意！",
+   "shot": "wide",
+   "pose": "pose10",
+   "visual": {
+    "type": "big",
+    "emoji": "⚠️",
+    "text": "積み立てで買えるのは\n【こどもNISAの間だけ】",
+    "size": 80
+   }
+  },
+  {
+   "text": "大人になってからは、／【持ち続ける】使い方になるんよ",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "🔒",
+    "text": "大人になったら\n【持ち続ける】",
+    "size": 96
+   }
+  },
+  {
+   "text": "それと手数料ゼロでも、／【元本割れ】はあるで",
+   "shot": "wide",
+   "pose": "expr_angry",
+   "visual": {
+    "type": "big",
+    "emoji": "📉",
+    "text": "手数料ゼロでも\n【元本割れはある】",
+    "size": 88
+   }
+  },
+  {
+   "text": "ほかの安いファンドとの差は、／【約2万円】という試算も",
+   "tts": "ほかの安いファンドとの差は、／やくにまんえんという試算も",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "🧮",
+    "text": "18年で差は\n【約2万円】",
+    "size": 100,
+    "sub": "月1万円・18年の専門家の試算"
+   }
+  },
+  {
+   "text": "だから「ゼロ」だけで、／【飛びつかん】でな",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "🔍",
+    "text": "「ゼロ」だけで\n【飛びつかない】",
+    "size": 92
+   }
+  },
+  {
+   "text": "口座をどこで作るかも含めて、／【自分で比べて】決めてな",
+   "heading": "まとめ",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "⚖️",
+    "text": "口座も中身も\n【自分で比べる】",
+    "size": 92
+   }
+  },
+  {
+   "text": "子育て中の友だちに、／【送ってあげて】",
+   "shot": "wide",
+   "pose": "pose02",
+   "visual": {
+    "type": "cta",
+    "emoji": "📩",
+    "text": "友だちにも\n【送ってあげて】",
+    "size": 100,
+    "bounce": true
+   }
+  },
+  {
+   "text": "じゃあもう一回、／最初の質問に戻るね",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🤔",
+    "text": "こどもNISA\n手数料【ゼロ】？",
+    "size": 96
+   }
+  }
+ ]
+}

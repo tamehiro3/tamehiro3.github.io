@@ -9,7 +9,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.dirname(HERE);
 globalThis.NinjaArt = require(path.join(ROOT, 'art.js'));
 const C = require(path.join(ROOT, 'chars.js'));
-const { W, H } = require(path.join(ROOT, 'sheet.js')).size('cool');
+const { W, H } = require(path.join(ROOT, 'sheet.js')).size('official');
 const TW = 480, TH = Math.round(H * TW / W);
 const L = require(path.join(ROOT, 'lines.js'));
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -20,8 +20,8 @@ const html = `<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>キャラクターシート（道場版）39体＋相棒 | ニンジャ相棒道場</title>
-  <meta name="description" content="ニンジャ相棒道場に登場する CryptoNinja 39体と、ゲーム独自の相棒のキャラクターシート（かっこいい系・約5頭身。三面図・色見本・表情4種・あるく・かくれる・修行のうごき6種）。ゲーム用アレンジ案。">
+  <title>キャラクターシート（公式イラストに忠実な絵柄）39体＋相棒 | ニンジャ相棒道場</title>
+  <meta name="description" content="ニンジャ相棒道場に登場する CryptoNinja 39体と、ゲーム独自の相棒のキャラクターシート。公式イラスト（CC0）に忠実な絵柄（約2.7頭身）で、公式イラストと同じ向きの絵・見た目のポイント・色・三面図・表情4種・あるく・かくれる・修行のうごき6種をまとめています。">
   <meta name="theme-color" content="#141418">
   <link rel="icon" href="../icons/icon-192.png">
   <style>
@@ -50,15 +50,16 @@ const html = `<!DOCTYPE html>
 <body>
 <header>
   <h1>キャラクターシート（道場版）</h1>
-  <p>ニンジャ相棒道場 ゲーム用アレンジ案 ／ CryptoNinja 39体＋相棒</p>
+  <p>ニンジャ相棒道場 公式イラストに忠実な絵柄 ／ CryptoNinja 39体＋相棒</p>
 </header>
 <main>
   <p class="lead">
-    ゲームに登場する CryptoNinja 39体と、ゲーム独自の相棒のキャラクターシートです。絵柄はかっこいい系（約5頭身・切れ長の目）。1枚に「三面図（まえ・ななめ・よこ・うしろ）」「色見本」「表情（ふつう・うれしい・びっくり・しんけん）」「うごき・擬態（あるく・かくれる）」に加えて、
-    このゲームで使う「修行のうごき（こうげき・きゅうじょ・しらべる・さがる・へとへと・わーい）」をまとめています。
+    ゲームに登場する CryptoNinja 39体と、ゲーム独自の相棒のキャラクターシートです。絵柄は公式イラストに忠実な描き方（約2.7頭身・大きな丸い頭・低い位置の大きな目・短く広い袖の着物）。
+    1枚の上の段に「公式イラスト（CC0）」と「同じ向き・同じ切りとりで描いたこのシートの絵」を並べ、公式イラストから読みとった「見た目のポイント」と色をそえています。
+    その下に「三面図（まえ・ななめ・よこ・うしろ）」「表情（ふつう・うれしい・びっくり・しんけん）」「うごき・擬態（あるく・かくれる）」と、このゲームで使う「修行のうごき（こうげき・きゅうじょ・しらべる・さがる・へとへと・わーい）」をまとめています。
     画像をタップすると大きなサイズ（${W}×${H}）が開きます。ゲームの中の師匠・仲間・相棒も、同じ描き方で動いています。
   </p>
-  <p class="lead" style="font-size:.85rem;color:#6b6555">公式イラスト（Ninja DAO・CC0）を参考にゲーム用に描き起こしたアレンジ案で、公式の設定画ではありません。相棒はこのゲーム独自のキャラクターで、見た目と呼び名はゲームの最初に選びます（この一覧の相棒は一例）。</p>
+  <p class="lead" style="font-size:.85rem;color:#6b6555">シートの絵は公式イラスト（Ninja DAO・CC0）に合わせてゲーム用に描き起こしたもので、公式の設定画ではありません。シートの左上の絵だけが公式イラストです。相棒はこのゲーム独自のキャラクターで、見た目と呼び名はゲームの最初に選びます（この一覧の相棒は一例）。</p>
   <a class="back" href="../">▶ ニンジャ相棒道場を開く</a>
   <h2>相棒（ゲーム独自）</h2>
   <div class="grid">

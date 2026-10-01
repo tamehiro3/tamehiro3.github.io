@@ -1,6 +1,6 @@
 /* ニンジャ相棒道場 — オフライン用（一度読みこめば、オフラインでも標準の修行・指導・物語が動く） */
-var CACHE = 'nad-v2';
-var CORE = ['./', 'index.html', 'style.css?v=2', 'data.js?v=2', 'art.js?v=2', 'chars.js?v=2', 'lines.js?v=2', 'policy.js?v=2', 'sim.js?v=2', 'story.js?v=2', 'sheet.js?v=2', 'render.js?v=2', 'game.js?v=2', 'ui.js?v=2', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png', 'about.html'];
+var CACHE = 'nad-v3';
+var CORE = ['./', 'index.html', 'style.css?v=3', 'data.js?v=3', 'art.js?v=3', 'chars.js?v=3', 'lines.js?v=3', 'policy.js?v=3', 'sim.js?v=3', 'story.js?v=3', 'sheet.js?v=3', 'render.js?v=3', 'game.js?v=3', 'ui.js?v=3', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png', 'about.html'];
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(CORE); }).then(function () { return self.skipWaiting(); }));
 });

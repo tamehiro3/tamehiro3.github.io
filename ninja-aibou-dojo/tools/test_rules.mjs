@@ -272,13 +272,19 @@ section('データ');
   let posesOk = true;
   C.CHARS.forEach(c => ['attack', 'rescue', 'search', 'retreat', 'down', 'cheer'].forEach(p => { const svg = A.render(c.art, { yaw: -50, pose: p, frame: 1, expr: p === 'down' ? 'tired' : undefined }); if (svg.indexOf('NaN') >= 0) posesOk = false; }));
   ok(posesOk, '39体すべて、修行の動き（6つ）を描ける');
-  // 絵柄：既定はかっこいい系（約5頭身）。かわいい系（ちびキャラ）にも切りかえられる
-  const cool = A.render(C.BY_ID.jin.art, { yaw: 0 }), cute = A.render(C.BY_ID.jin.art, { yaw: 0, style: 'cute' });
-  ok(A.style === 'cool' && cool !== cute && A.builds('cool').normal.hs < 0.5 && A.builds('cute').normal.hr === 50, '絵柄の既定はかっこいい系で、かわいい系（ちびキャラ）にも切りかえられる');
+  // 絵柄：既定は公式イラストに忠実な絵柄（約2.7頭身）。かっこいい系（約5頭身）・かわいい系（ちびキャラ）にも切りかえられる
+  const off = A.render(C.BY_ID.jin.art, { yaw: 0 }), cool = A.render(C.BY_ID.jin.art, { yaw: 0, style: 'cool' }), cute = A.render(C.BY_ID.jin.art, { yaw: 0, style: 'cute' });
+  ok(A.style === 'official' && off !== cool && off !== cute && cool !== cute && A.builds('official').normal.hs > 0.7 && A.builds('cool').normal.hs < 0.5 && A.builds('cute').normal.hr === 50, '絵柄の既定は公式イラストに忠実な絵柄で、かっこいい系・かわいい系にも切りかえられる');
   let bothOk = true;
-  C.CHARS.forEach(c => ['stand', 'walk', 'happy', 'surprised', 'serious'].forEach(p => ['cool', 'cute'].forEach(st => { const svg = A.render(c.art, { yaw: -38, pose: p, frame: 1, style: st }); if (svg.indexOf('NaN') >= 0 || svg.indexOf('undefined') >= 0) bothOk = false; })));
-  ok(bothOk, '39体すべて、どちらの絵柄でも立ち・歩き・表情を描ける');
-  ok(C.CHARS.every(c => /^[\d.]+ [\d.]+ [\d.]+ [\d.]+$/.test(A.faceBox(c.art))), '顔のアップ（会話・名鑑・アイコン）の枠を39体とも決められる');
+  C.CHARS.forEach(c => ['stand', 'walk', 'happy', 'surprised', 'serious'].forEach(p => ['official', 'cool', 'cute'].forEach(st => { const svg = A.render(c.art, { yaw: -38, pose: p, frame: 1, style: st }); if (svg.indexOf('NaN') >= 0 || svg.indexOf('undefined') >= 0) bothOk = false; })));
+  ok(bothOk, '39体すべて、3つの絵柄で立ち・歩き・表情を描ける');
+  const NUM = '-?[\\d.]+', BOX = new RegExp('^' + [NUM, NUM, NUM, NUM].join(' ') + '$');
+  ok(C.CHARS.every(c => ['official', 'cool', 'cute'].every(st => BOX.test(A.faceBox(c.art, { style: st })))), '顔のアップ（会話・名鑑・アイコン）の枠を39体とも決められる');
+  // キャラクターシート：公式イラストと、見た目のポイント
+  ok(C.CHARS.every(c => Array.isArray(c.look) && c.look.length >= 3 && c.look.every(t => typeof t === 'string' && t.length > 3)), '39体すべて、キャラクターシートにのせる「見た目のポイント」がある');
+  const Sh = require(path.join(ROOT, 'sheet.js'));
+  const sv = Sh.sheetSvg(C.BY_ID.kohaku, { officialHref: 'x.jpg', officialBg: '#2a4a7a' });
+  ok(sv.indexOf('<image href="x.jpg"') >= 0 && sv.indexOf('公式イラスト（CryptoNinja・CC0）') >= 0 && sv.indexOf('NaN') < 0 && Sh.size().H === Sh.H, 'キャラクターシートに公式イラスト（CC0）が入り、同じ向きの絵と並ぶ');
 }
 
 console.log(`\n結果: ${pass} 件合格 / ${fail} 件不合格`);

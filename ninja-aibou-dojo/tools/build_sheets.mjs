@@ -6,8 +6,9 @@
 //   CHROME          … Chromium の実行ファイル
 //   SHEET_FONT_DIR  … フォントの置き場所。名前は筆文字（YujiBoku.ttf）、見出しは角ゴシック（ZenKakuGothicNew-700/900.ttf）、
 //                     小物の字は丸ゴシック（ZenMaruGothic-500/700/900.ttf）。どれも Google Fonts（SIL OFL）
-//   SHEET_STYLE     … cute にすると、かわいい版（ちびキャラ・1536×1410）で作る
-// 出力：ninja-aibou-dojo/sheets/<id>.jpg（かっこいい版は 1536×1680）と sheets/thumb/<id>.jpg（幅480）
+//   SHEET_STYLE     … cool にすると、かっこいい版（約5頭身・1536×1680）、cute にすると、かわいい版（ちびキャラ・1536×1410）で作る
+//   OFFICIAL_ART    … 公式イラスト（CC0）の置き場所。省略時は ninja-sato-life/img/art（<id>.jpg）
+// 出力：ninja-aibou-dojo/sheets/<id>.jpg（既定の公式に忠実な版は 1536×2110）と sheets/thumb/<id>.jpg（幅480）
 import { createRequire } from 'module';
 import path from 'path';
 import fs from 'fs';
@@ -20,11 +21,14 @@ const { chromium } = require(process.env.PLAYWRIGHT_CORE || 'playwright-core');
 const NinjaArt = require(path.join(ROOT, 'art.js'));
 globalThis.NinjaArt = NinjaArt;
 const C = require(path.join(ROOT, 'chars.js'));
-const STYLE = process.env.SHEET_STYLE === 'cute' ? 'cute' : 'cool';
+const STYLE = ['cute', 'cool'].includes(process.env.SHEET_STYLE) ? process.env.SHEET_STYLE : 'official';
 NinjaArt.style = STYLE;
 const S = require(path.join(ROOT, 'sheet.js'));
 const { W, H } = S.size(STYLE);
-const sheetSvg = ch => S.sheetSvg(ch, { style: STYLE });
+const ART_DIR = process.env.OFFICIAL_ART || path.join(ROOT, '..', 'ninja-sato-life', 'img', 'art');
+// 公式イラストは data URI でシートに入れる。背景色は左上のすみの色（同じ向きの絵の背景にも使う）
+const official = {};
+const sheetSvg = ch => S.sheetSvg(ch, Object.assign({ style: STYLE }, official[ch.id] || {}));
 
 // 相棒の見本（タイトル画面・遊び方ページで使う既定の姿）
 const PARTNER_SAMPLE = { outfit: 'ai', hair: 'buns', hairColor: 'cha', acc: 'scarf' };
@@ -48,6 +52,23 @@ const TW = 480, TH = Math.round(H * TW / W);
 
 const browser = await chromium.launch({ executablePath: process.env.CHROME || undefined, args: ['--no-sandbox', '--allow-file-access-from-files'] });
 const page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 1 });
+if (STYLE === 'official') {
+  for (const ch of C.CHARS) {
+    const f = path.join(ART_DIR, ch.id + '.jpg');
+    if (!fs.existsSync(f)) { console.warn('公式イラストがありません: ' + f); continue; }
+    const uri = 'data:image/jpeg;base64,' + fs.readFileSync(f).toString('base64');
+    const bg = await page.evaluate(async (uri) => {
+      const img = new Image(); img.src = uri; await img.decode();
+      const cv = document.createElement('canvas'); cv.width = img.width; cv.height = img.height;
+      const g = cv.getContext('2d'); g.drawImage(img, 0, 0);
+      const d = g.getImageData(2, 2, 8, 8).data; let r = 0, gg = 0, b = 0;
+      for (let i = 0; i < d.length; i += 4) { r += d[i]; gg += d[i + 1]; b += d[i + 2]; }
+      const n = d.length / 4, h = v => Math.round(v / n).toString(16).padStart(2, '0');
+      return '#' + h(r) + h(gg) + h(b);
+    }, uri);
+    official[ch.id] = { officialHref: uri, officialBg: bg };
+  }
+}
 let n = 0;
 for (const ch of C.CHARS.concat([partner])) {
   if (only.length && !only.includes(ch.id)) continue;

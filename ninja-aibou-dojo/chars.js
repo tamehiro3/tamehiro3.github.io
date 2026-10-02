@@ -484,12 +484,20 @@
     sasagane: ['紫の縞の角のようなまげと、金のかんざし', '白い顔に赤いひし形の印、ハートの目', '黒いうちかけと紫の着物、金の帯に黒い蜘蛛', '長いきせる']
   };
 
+  // ---- 原型（公式イラスト）の顔の範囲（360×360 の座標）。既定の枠（x100 y30 180×180）で合わないキャラだけ ----
+  var FACE = {
+    ganzi: { x: 100, y: 48, w: 180, h: 180 },
+    izuna: { x: 84, y: 40, w: 180, h: 180 },
+    shiba: { x: 100, y: 40, w: 180, h: 180 }
+  };
+
   // ---- まとめる ----
   var CHARS = ROSTER.map(function (r) {
     var o = {}, k;
     for (k in r) o[k] = r[k];
     o.art = ART[r.id];
     o.look = LOOK[r.id] || [];
+    if (FACE[r.id]) o.faceBox = FACE[r.id];
     return o;
   });
   var BY_ID = {};

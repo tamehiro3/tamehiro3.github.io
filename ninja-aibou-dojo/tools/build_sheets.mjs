@@ -7,8 +7,9 @@
 //   SHEET_FONT_DIR  … フォントの置き場所。名前は筆文字（YujiBoku.ttf）、見出しは角ゴシック（ZenKakuGothicNew-700/900.ttf）、
 //                     小物の字は丸ゴシック（ZenMaruGothic-500/700/900.ttf）。どれも Google Fonts（SIL OFL）
 //   SHEET_STYLE     … cool にすると、かっこいい版（約5頭身・1536×1680）、cute にすると、かわいい版（ちびキャラ・1536×1410）で作る
-//   OFFICIAL_ART    … 公式イラスト（CC0）の置き場所。省略時は ninja-sato-life/img/art（<id>.jpg）
-// 出力：ninja-aibou-dojo/sheets/<id>.jpg（既定の公式に忠実な版は 1536×2110）と sheets/thumb/<id>.jpg（幅480）
+//   OFFICIAL_ART    … 原型（公式イラスト・CC0）の置き場所。省略時は ninja-aibou-dojo/img/official（高画質化した <id>.jpg）、
+//                     なければ ninja-sato-life/img/art（元の 360×360）
+// 出力：ninja-aibou-dojo/sheets/<id>.jpg（既定の原型版は 1536×1860）と sheets/thumb/<id>.jpg（幅480）
 import { createRequire } from 'module';
 import path from 'path';
 import fs from 'fs';
@@ -25,8 +26,8 @@ const STYLE = ['cute', 'cool'].includes(process.env.SHEET_STYLE) ? process.env.S
 NinjaArt.style = STYLE;
 const S = require(path.join(ROOT, 'sheet.js'));
 const { W, H } = S.size(STYLE);
-const ART_DIR = process.env.OFFICIAL_ART || path.join(ROOT, '..', 'ninja-sato-life', 'img', 'art');
-// 公式イラストは data URI でシートに入れる。背景色は左上のすみの色（同じ向きの絵の背景にも使う）
+const ART_DIRS = process.env.OFFICIAL_ART ? [process.env.OFFICIAL_ART] : [path.join(ROOT, 'img', 'official'), path.join(ROOT, '..', 'ninja-sato-life', 'img', 'art')];
+// 原型（公式イラスト）は data URI でシートに入れる。背景色は左上のすみの色（顔のアップの背景にも使う）
 const official = {};
 const sheetSvg = ch => S.sheetSvg(ch, Object.assign({ style: STYLE }, official[ch.id] || {}));
 
@@ -54,8 +55,8 @@ const browser = await chromium.launch({ executablePath: process.env.CHROME || un
 const page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 1 });
 if (STYLE === 'official') {
   for (const ch of C.CHARS) {
-    const f = path.join(ART_DIR, ch.id + '.jpg');
-    if (!fs.existsSync(f)) { console.warn('公式イラストがありません: ' + f); continue; }
+    const f = ART_DIRS.map(d => path.join(d, ch.id + '.jpg')).find(p => fs.existsSync(p));
+    if (!f) { console.warn('公式イラストがありません: ' + ch.id); continue; }
     const uri = 'data:image/jpeg;base64,' + fs.readFileSync(f).toString('base64');
     const bg = await page.evaluate(async (uri) => {
       const img = new Image(); img.src = uri; await img.decode();

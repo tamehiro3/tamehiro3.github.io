@@ -1,7 +1,7 @@
 /* ニンジャ相棒道場 — キャラクターシート（1枚のSVG）
- * 公式に忠実な版（既定・1536×2110）：
- *   上：公式イラスト（CC0）と、同じ向き・同じ切りとりで描いたこのシートの絵を並べ、見た目のポイントと色を添える
- *   中：三面図（まえ／ななめ／よこ／うしろ）、表情4種、あるく・かくれる（擬態）、修行のうごき6種
+ * 原型版（既定・1536×1860）：
+ *   上：原型＝公式イラスト（CC0）を大きく。顔のアップ・色・見た目のポイント・公式の紹介を添える
+ *   下：ゲームの中の姿（原型をもとに簡略化して描いた絵）：三面図（まえ／ななめ／よこ／うしろ）・あるく・修行のうごき6種
  * かっこいい版（style: 'cool'・1536×1680）：
  *   上：黒い帯に名前（筆文字）とクランの印。三面図（まえ／ななめ／よこ／うしろ）＋ 右端に色見本
  *   中左：表情（ふつう・うれしい・びっくり・しんけん）の顔のアップ
@@ -386,11 +386,11 @@
     return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + CW + ' ' + CH + '" width="' + (opt.w || CW) + '" height="' + (opt.h || CH) + '">' + (font ? '<style>' + font + '</style>' : '') + o + '</svg>';
   }
 
-  /* ================= 公式に忠実な版（既定・1536×2110） ================= */
-  // 上：公式イラスト（CC0）と、同じ向き・同じ切りとりで描いたこのシートの絵を並べる。右に「見た目のポイント」と色
-  // 中：三面図（まえ・ななめ・よこ・うしろ）／表情・うごき・擬態／修行のうごき
-  var OW = 1536, OH = 2110;
-  // 文字数で折り返す（行頭に句読点・閉じかっこを置かない）
+  /* ================= 原型版（既定・1536×1860） ================= */
+  // 主役は原型＝公式イラスト（CC0）。大きく見せ、顔のアップ・色・見た目のポイント・公式の紹介を添える。
+  // 下の段は、ゲームの中で動かすために原型をもとに描いた簡略な絵（三面図・あるく・修行のうごき）
+  var OW = 1536, OH = 1860;
+  // 文字数で折り返す（行頭に句読点・閉じかっこ、行末に開きかっこを置かない）
   function wrapJa(s, n) {
     var out = [], line = '', NO_HEAD = '、。）」』・ー', NO_TAIL = '（「『';
     String(s).split('').forEach(function (c) {
@@ -409,17 +409,20 @@
     return '<svg x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" viewBox="' + vb + '" overflow="visible">' + inner + '</svg>';
   }
   // 相棒の見本：えらべる装束の色を小さく並べる
-  function partnerPicks(x, y, sz) {
+  function partnerPicks(x, y, w, h) {
     var C2 = root.NAD_CHARS || (typeof require !== 'undefined' ? require('./chars.js') : null), o = '';
     if (!C2) return '';
     var hairs = ['short', 'pony', 'bob', 'buns', 'spiky', 'pony'], cols = ['kuro', 'cha', 'kuri', 'gin', 'kuro', 'cha'], accs = ['none', 'scarf', 'plate', 'none', 'mask', 'plate'];
+    var cw = w / 6;
     C2.PARTNER_OUTFITS.forEach(function (st, i) {
-      var cx = x + (i % 3) * sz / 3, cy = y + Math.floor(i / 3) * sz / 2;
-      o += figO(C2.partnerArt({ outfit: st.id, hair: hairs[i], hairColor: cols[i], acc: accs[i] }), cx, cy + 4, sz / 3, sz / 2 - 30, '-8 -10 216 252', { yaw: 10, pose: 'stand', shadow: false, prop: false });
-      o += TG(cx + sz / 6, cy + sz / 2 - 10, st.name, 17, { anchor: 'middle', w: 700, col: '#4a4850' });
+      var cx = x + i * cw;
+      o += figO(C2.partnerArt({ outfit: st.id, hair: hairs[i], hairColor: cols[i], acc: accs[i] }), cx, y, cw, h - 26, '-8 -10 216 252', { yaw: 10, pose: 'stand', shadow: false, prop: false });
+      o += TG(cx + cw / 2, y + h - 4, st.name, 16, { anchor: 'middle', w: 700, col: '#4a4850' });
     });
     return o;
   }
+  // 公式イラストの上の顔の範囲（360×360 の座標）。ほとんど同じ構図なので既定の枠で足り、合わないキャラだけ直す
+  var FACE_BOX = { x: 100, y: 30, w: 180, h: 180 };
   function sheetSvgOff(ch, opt) {
     opt = opt || {};
     var uid = 'so' + (++seq), def = ch.art, o = '';
@@ -440,89 +443,75 @@
     o += TG(OW - 150, 92, ch.partner ? 'ゲーム独自の相棒' : 'CryptoNinja 39', 14, { anchor: 'end', w: 700, col: '#8a8690', ls: 3 });
     o += seal(OW - 128, 22, 86, ch.partner ? '相棒' : ch.clan);
     // ---- 情報の行
-    var tag = ch.partner ? '相棒（ゲーム独自）' : '公式イラストに忠実', tagW = tag.length * 20 + 28;
+    var tag = ch.partner ? '相棒（ゲーム独自）' : '原型：公式イラスト', tagW = tag.length * 20 + 28;
     o += '<rect x="40" y="152" width="' + tagW + '" height="34" rx="3" fill="' + (ch.partner ? SUMI : SHU) + '"/>' + TG(40 + tagW / 2, 176, tag, 20, { anchor: 'middle', w: 700, col: '#f8f4ec' });
-    var info = ch.partner ? (ch.info || '') : ('#' + ch.num + ' ' + ch.en + '　／　' + ch.clan + '　／　忍術：' + ch.jutsu + '　／　武器：' + ch.weapon + '　／　誕生日：' + ch.birthday);
+    var info = ch.partner ? (ch.info || '') : ('#' + ch.num + ' ' + ch.en + '　／　' + ch.clan + '（' + (ch.clanEn || '') + '）　／　忍術：' + ch.jutsu + '　／　武器：' + ch.weapon + '　／　誕生日：' + ch.birthday);
     o += TG(40 + tagW + 20, 176, info, 20, { w: 500, col: '#3a3840' });
-    // ---- 公式イラストと、同じ向きの絵
-    var py = 214, ps = 430, ax = 40, bx = 492;
-    var bg = opt.officialBg || '#d8d3ca';
-    o += '<clipPath id="' + uid + 'pa"><rect x="' + ax + '" y="' + py + '" width="' + ps + '" height="' + ps + '" rx="6"/></clipPath><clipPath id="' + uid + 'pb"><rect x="' + bx + '" y="' + py + '" width="' + ps + '" height="' + ps + '" rx="6"/></clipPath>';
-    if (ch.partner) {
-      o += '<rect x="' + ax + '" y="' + py + '" width="' + ps + '" height="' + ps + '" rx="6" fill="#e3ded5"/>' + partnerPicks(ax, py, ps);
-    } else {
-      var href = opt.officialHref || ('../ninja-sato-life/img/art/' + (ch.id || '') + '.jpg');
-      o += '<g clip-path="url(#' + uid + 'pa)"><rect x="' + ax + '" y="' + py + '" width="' + ps + '" height="' + ps + '" fill="' + bg + '"/><image href="' + esc(href) + '" x="' + ax + '" y="' + py + '" width="' + ps + '" height="' + ps + '" preserveAspectRatio="xMidYMid slice"/></g>';
-    }
-    o += '<rect x="' + ax + '" y="' + py + '" width="' + ps + '" height="' + ps + '" rx="6" fill="none" stroke="' + SUMI + '" stroke-width="3"/>';
-    // 公式イラストと同じ切りとり：公式の (190,200) が絵の空間の (100, 98.2) に重なる。倍率 0.56
-    var kc = 0.56, vbC = [100 - 190 * kc, 232 - 133.8 - 200 * kc, 360 * kc, 360 * kc].map(function (v) { return v.toFixed(2); }).join(' ');
-    o += '<g clip-path="url(#' + uid + 'pb)"><rect x="' + bx + '" y="' + py + '" width="' + ps + '" height="' + ps + '" fill="' + (ch.partner ? '#c9d3dc' : bg) + '"/>' +
-      '<svg x="' + bx + '" y="' + py + '" width="' + ps + '" height="' + ps + '" viewBox="' + vbC + '">' + A.render(def, { raw: true, style: 'official', yaw: 14, pose: 'stand', shadow: false }) + '</svg></g>';
-    o += '<rect x="' + bx + '" y="' + py + '" width="' + ps + '" height="' + ps + '" rx="6" fill="none" stroke="' + SUMI + '" stroke-width="3"/>';
-    if (!ch.partner) o += '<path d="M' + (ax + ps + 6) + ' ' + (py + ps / 2 - 16) + 'l20 16l-20 16" fill="none" stroke="' + SHU + '" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>';
-    o += TG(ax + ps / 2, py + ps + 34, ch.partner ? 'えらべる装束（6色）' : '公式イラスト（CryptoNinja・CC0）', 21, { anchor: 'middle', w: 700, ls: 1 });
-    o += TG(bx + ps / 2, py + ps + 34, ch.partner ? 'このシートの絵（見本）' : 'このシートの絵（同じ向き）', 21, { anchor: 'middle', w: 700, ls: 1 });
-    // ---- 見た目のポイントと色
-    var cx0 = 958, cw0 = OW - 36 - cx0;
-    o += secTitle(cx0, py + 22, '見た目のポイント');
-    o += TG(cx0 + 22, py + 52, ch.partner ? 'このゲーム独自の相棒' : '公式イラストから読みとった、そのキャラらしさ', 16, { w: 500, col: '#6a6670' });
-    var ly = py + 96, pts = ch.look && ch.look.length ? ch.look : (ch.partner ? ['見習いの装束（たすき・鉢巻き・背中の木刀）', '公式の39体と同じ描き方（約2.7頭身）', '外見は装束6色×髪型5×髪の色4×小物4から選ぶ', '呼び名と話し方も、ゲームの最初に選ぶ'] : []);
-    pts.slice(0, 5).forEach(function (t) {
-      var lines = wrapJa(t, 23);
-      o += '<rect x="' + cx0 + '" y="' + (ly - 17) + '" width="12" height="12" fill="' + SHU + '" transform="rotate(45 ' + (cx0 + 6) + ' ' + (ly - 11) + ')"/>';
-      lines.forEach(function (ln, j) { o += TG(cx0 + 26, ly + j * 30, ln, 22, { w: 700, col: '#26242a' }); });
-      ly += lines.length * 30 + 14;
-    });
-    var sy0 = py + ps - 112;
-    o += TG(cx0, sy0 - 14, '色', 20, { w: 900, col: GRAY });
+    // ---- 原型（大きく）
+    var mx = 40, my = 212, ms = 740, bg = opt.officialBg || '#d8d3ca';
+    var href = opt.officialHref || ('../ninja-sato-life/img/art/' + (ch.id || '') + '.jpg');
+    var kc = 0.56, vbC = [100 - 190 * kc, 232 - 133.8 - 200 * kc, 360 * kc, 360 * kc].map(function (v) { return v.toFixed(2); }).join(' '); // 公式イラストと同じ切りとり
+    var artIn = function (vb) { // 原型を (0,0)-(360,360) に置いた中身
+      return ch.partner ? '<svg x="0" y="0" width="360" height="360" viewBox="' + vbC + '">' + A.render(def, { raw: true, style: 'official', yaw: 14, pose: 'stand', shadow: false }) + '</svg>'
+        : '<image href="' + esc(href) + '" x="0" y="0" width="360" height="360" preserveAspectRatio="none"/>';
+    };
+    o += '<clipPath id="' + uid + 'pm"><rect x="' + mx + '" y="' + my + '" width="' + ms + '" height="' + ms + '" rx="8"/></clipPath>';
+    o += '<g clip-path="url(#' + uid + 'pm)"><rect x="' + mx + '" y="' + my + '" width="' + ms + '" height="' + ms + '" fill="' + (ch.partner ? '#c9d3dc' : bg) + '"/>' +
+      '<svg x="' + mx + '" y="' + my + '" width="' + ms + '" height="' + ms + '" viewBox="0 0 360 360">' + artIn() + '</svg></g>';
+    o += '<rect x="' + mx + '" y="' + my + '" width="' + ms + '" height="' + ms + '" rx="8" fill="none" stroke="' + SUMI + '" stroke-width="3"/>';
+    o += TG(mx + 16, my + ms + 34, ch.partner ? '相棒（見本）　このゲーム独自のキャラクター' : '原型　公式イラスト（CryptoNinja・CC0）', 22, { w: 900, ls: 1 });
+    if (!ch.partner) o += TG(mx + ms - 8, my + ms + 34, '元の画像を高画質化して拡大', 15, { anchor: 'end', w: 500, col: '#6a6670' });
+    // ---- 右の列：顔のアップ・色・見た目のポイント・公式の紹介
+    var rx = 812, rw = OW - 40 - rx, fs = 300;
+    var fb = ch.faceBox || FACE_BOX;
+    var fvb = ch.partner ? A.faceBox(def, { size: 56, style: 'official' }) : (fb.x + ' ' + fb.y + ' ' + fb.w + ' ' + fb.h);
+    o += '<clipPath id="' + uid + 'pf"><rect x="' + rx + '" y="' + my + '" width="' + fs + '" height="' + fs + '" rx="6"/></clipPath>';
+    o += '<g clip-path="url(#' + uid + 'pf)"><rect x="' + rx + '" y="' + my + '" width="' + fs + '" height="' + fs + '" fill="' + (ch.partner ? '#c9d3dc' : bg) + '"/>' +
+      '<svg x="' + rx + '" y="' + my + '" width="' + fs + '" height="' + fs + '" viewBox="' + fvb + '">' +
+      (ch.partner ? A.render(def, { raw: true, style: 'official', yaw: -12, pose: 'stand', shadow: false, prop: false, companions: false }) : artIn()) + '</svg></g>';
+    o += '<rect x="' + rx + '" y="' + my + '" width="' + fs + '" height="' + fs + '" rx="6" fill="none" stroke="' + SUMI + '" stroke-width="3"/>';
+    o += '<rect x="' + rx + '" y="' + my + '" width="132" height="34" rx="6" fill="' + SUMI + '"/>' + TG(rx + 66, my + 24, '顔のアップ', 18, { anchor: 'middle', w: 700, col: '#f8f4ec', ls: 2 });
+    // 色
+    var cx0 = rx + fs + 32;
+    o += secTitle(cx0, my + 26, '色');
     (ch.palette || []).slice(0, 8).forEach(function (col, i) {
-      var sx = cx0 + (i % 4) * (cw0 / 4), syy = sy0 + Math.floor(i / 4) * 56;
-      o += swatch(sx, syy, col) + TG(sx + 54, syy + 29, String(col).toUpperCase(), 14, { w: 500, col: '#4a4850' });
+      var sx = cx0 + (i % 2) * 176, syy = my + 50 + Math.floor(i / 2) * 60;
+      o += swatch(sx, syy, col) + TG(sx + 56, syy + 30, String(col).toUpperCase(), 16, { w: 500, col: '#3a3840' });
     });
-    o += '<path d="M36 706H1500" stroke="' + SUMI + '" stroke-width="2.5"/>';
-    // ---- 三面図
-    var y1 = 752;
-    o += secTitle(40, y1, '三面図', 'まえ・ななめ・よこ・うしろ（約2.7頭身）');
-    var views = [['まえ', 0], ['ななめ', -38], ['よこ', -90], ['うしろ', 180]];
-    var fw = 365, fh = 400, top = y1 + 14;
-    o += enso(38 + fw / 2, top + fh * 0.44, 168, '#dcd6cc', parseInt(ch.num, 10) || 3);
-    views.forEach(function (v, i) {
-      var x = 38 + i * fw;
-      o += figO(def, x, top, fw, fh, vbFull(fw, fh), { yaw: v[1], pose: 'stand' });
-      o += TG(x + fw / 2, top + fh + 32, v[0], 26, { anchor: 'middle', w: 700, ls: 4 });
-      o += '<rect x="' + (x + fw / 2 - 18) + '" y="' + (top + fh + 42) + '" width="36" height="3" fill="' + SHU + '"/>';
+    // 見た目のポイント
+    var py = my + fs + 62;
+    o += secTitle(rx, py, '見た目のポイント');
+    o += TG(rx + 22, py + 30, ch.partner ? 'このゲーム独自の相棒' : '原型（公式イラスト）から読みとった、そのキャラらしさ', 16, { w: 500, col: '#6a6670' });
+    var ly = py + 74, pts = ch.look && ch.look.length ? ch.look : (ch.partner ? ['見習いの装束（たすき・鉢巻き・背中の木刀）', '公式の39体と同じ描き方（約2.7頭身）', '外見は装束6色×髪型5×髪の色4×小物4から選ぶ', '呼び名と話し方も、ゲームの最初に選ぶ'] : []);
+    pts.slice(0, 5).forEach(function (t) {
+      var lines = wrapJa(t, 28);
+      o += '<rect x="' + rx + '" y="' + (ly - 17) + '" width="12" height="12" fill="' + SHU + '" transform="rotate(45 ' + (rx + 6) + ' ' + (ly - 11) + ')"/>';
+      lines.forEach(function (ln, j) { o += TG(rx + 26, ly + j * 30, ln, 22, { w: 700, col: '#26242a' }); });
+      ly += lines.length * 30 + 12;
     });
-    o += '<path d="M36 ' + (top + fh + 66) + 'H1500" stroke="' + SUMI + '" stroke-width="2.5"/>';
-    // ---- 表情（顔のアップ）
-    var y2 = top + fh + 112;
-    o += secTitle(40, y2, '表情');
-    var faces = [['ふつう', 'normal', -12], ['うれしい', 'happy', -22], ['びっくり', 'surprised', 0], ['しんけん', 'serious', 16]];
-    var fbox = A.faceBox(def, { size: 56, style: 'official' });
-    faces.forEach(function (f, i) {
-      var x = 40 + i * 206, y = y2 + 22;
-      o += '<rect x="' + x + '" y="' + y + '" width="188" height="188" rx="4" fill="#f8f6f2" stroke="' + SUMI + '" stroke-width="2.5"/>';
-      o += '<svg x="' + (x + 2) + '" y="' + (y + 2) + '" width="184" height="184" viewBox="' + fbox + '">' + A.render(def, { raw: true, style: 'official', yaw: f[2], pose: 'stand', expr: f[1], shadow: false, prop: false, companions: false }) + '</svg>';
-      o += TG(x + 94, y + 222, f[0], 24, { anchor: 'middle', w: 700, ls: 2 });
+    // 公式の紹介（相棒はえらべる装束）
+    var by = Math.max(ly + 26, my + ms - 150);
+    if (ch.partner) {
+      o += secTitle(rx, by, 'えらべる装束（6色）');
+      o += partnerPicks(rx, by + 12, rw, my + ms - by - 6);
+    } else if (ch.bio) {
+      o += secTitle(rx, by, '公式の紹介');
+      wrapJa(ch.bio, 30).slice(0, 4).forEach(function (ln, j) { o += TG(rx + 4, by + 40 + j * 30, ln, 20, { w: 500, col: '#3a3840' }); });
+    }
+    o += '<path d="M36 ' + (my + ms + 62) + 'H1500" stroke="' + SUMI + '" stroke-width="2.5"/>';
+    // ---- ゲームの中の姿（原型をもとに描いた、動かすための簡略な絵）
+    var y1 = my + ms + 112;
+    o += secTitle(40, y1, 'ゲームの中の姿', '原型をもとに、ゲームで動かせるように簡略化して描いた絵（約2.7頭身）');
+    var row1 = [['まえ', 'stand', 0], ['ななめ', 'stand', -38], ['よこ', 'stand', -90], ['うしろ', 'stand', 180], ['あるく', 'walk', 52]];
+    var cw1 = 292, ch1 = 300, t1 = y1 + 14;
+    row1.forEach(function (v, i) {
+      var x = 40 + i * cw1;
+      if (v[1] === 'walk') o += speedLinesC(x + 4, t1 + 150) + dustC(x + 94, t1 + ch1 - 16);
+      o += figO(def, x, t1, cw1, ch1, vbFull(cw1, ch1), { yaw: v[2], pose: v[1], frame: 1, prop: v[1] === 'stand', companions: v[1] === 'stand' });
+      o += TG(x + cw1 / 2, t1 + ch1 + 30, v[0], 22, { anchor: 'middle', w: 700, ls: 3 });
     });
-    // ---- うごき・擬態
-    o += '<path d="M872 ' + (y2 - 30) + 'V' + (y2 + 312) + '" stroke="' + SUMI + '" stroke-width="2.5"/>';
-    o += secTitle(900, y2, 'うごき・擬態');
-    var mw = 230, mh = 286, my = y2 + 6;
-    o += speedLinesC(906, my + 130) + dustC(1000, my + mh - 18);
-    o += figO(def, 924, my, mw, mh, vbFull(mw, mh), { yaw: 52, pose: 'walk', frame: 1, prop: false, companions: false });
-    o += TG(924 + mw / 2, y2 + 312, 'あるく', 24, { anchor: 'middle', w: 700, ls: 2 });
-    var hx0 = 1262, hy0 = my + 34, hw = 214, hh = mh - 46;
-    o += frameC(hx0, hy0, hw, hh);
-    o += figO(def, 1138, my, mw, mh, vbFull(mw, mh), { yaw: -24, pose: 'surprised', expr: 'surprised', prop: false, companions: false, shadow: false });
-    o += bambooC(hx0, hy0, hw, hh, uid);
-    o += grassC(1176, my + mh - 8, 5) + grassC(1430, my + mh - 8, 4);
-    o += '<g stroke="#e0801c" stroke-width="4" stroke-linecap="round"><path d="M1190 ' + (my + 70) + 'l-12 -8M1186 ' + (my + 84) + 'l-14 2M1194 ' + (my + 58) + 'l-6 -12"/></g>';
-    o += TG(1370, y2 + 312, 'かくれる（擬態）', 24, { anchor: 'middle', w: 700, ls: 2 });
-    // ---- 修行のうごき
-    var y3 = y2 + 384;
-    o += '<path d="M36 ' + (y3 - 46) + 'H1500" stroke="' + SUMI + '" stroke-width="2.5"/>';
-    o += secTitle(40, y3, '修行のうごき', '相棒道場で使う6つの動き（相棒・見習い・里の忍者に共通）');
+    var y2 = t1 + ch1 + 74;
+    o += TG(40, y2 + 6, '修行のうごき', 22, { w: 900, ls: 2 }) + TG(196, y2 + 4, '相棒道場で使う6つの動き', 16, { w: 500, col: '#6a6670' });
     var acts = [
       ['こうげき', 'attack', -70, 'swing', 'serious', 1],
       ['きゅうじょ', 'rescue', -60, 'care', 'normal', null],
@@ -531,14 +520,14 @@
       ['へとへと', 'down', -30, 'dizzy', 'tired', null],
       ['わーい', 'cheer', 0, 'cheer', 'happy', null]
     ];
-    var aw = 247, ah = 300, ay = y3 + 16, ground = ay + (232 + 12) * ah / vbH;
+    var aw = 245, ah = 270, ay = y2 + 14, ground = ay + (232 + 12) * ah / vbH;
     acts.forEach(function (a, i) {
-      var x = 26 + i * aw, dx = a[1] === 'attack' ? 34 : 0;
-      if (a[1] === 'attack') o += dummyC(x + 42, ground);
-      if (a[1] === 'search') o += chestC(x + 206, ground);
-      if (a[1] === 'retreat') o += makibishiC(x + 190, ground);
+      var x = 28 + i * aw, dx = a[1] === 'attack' ? 30 : 0;
+      if (a[1] === 'attack') o += '<g transform="translate(' + (x + 40) + ' ' + ground + ') scale(.82) translate(' + (-(x + 40)) + ' ' + (-ground) + ')">' + dummyC(x + 40, ground) + '</g>';
+      if (a[1] === 'search') o += chestC(x + 204, ground);
+      if (a[1] === 'retreat') o += makibishiC(x + 188, ground);
       o += figO(def, x + dx, ay, aw, ah, vbFull(aw, ah), { yaw: a[2], pose: a[1], fx: a[3], expr: a[4], frame: a[5], prop: false, companions: false });
-      o += TG(x + dx + aw / 2, ground + 42, a[0], 24, { anchor: 'middle', w: 700, ls: 2 });
+      o += TG(x + dx + aw / 2, ground + 36, a[0], 20, { anchor: 'middle', w: 700, ls: 2 });
     });
     // ---- フッター
     var yf = OH - 58;
@@ -551,7 +540,7 @@
 
   // ch: { name, num, en, clan, jutsu, weapon, birthday, palette, art, look }（公式39体）
   //     相棒のときは { name, info, palette, art, partner: true }
-  // opt: { style, officialHref（公式イラストの URL か data URI）, officialBg（公式イラストの背景色）}
+  // opt: { style, officialHref（公式イラスト（高画質化したもの）の URL か data URI）, officialBg（公式イラストの背景色）}
   function sheetSvg(ch, opt) {
     opt = opt || {};
     var st = opt.style || A.style;

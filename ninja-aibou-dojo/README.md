@@ -34,20 +34,22 @@ python3 -m http.server 8765
 | `lines.js` | 39体のセリフ（師匠としての課題・評価・助言、救助役・護衛役・応援・作戦のひとこと） |
 | `chars.js` | 39体の公式データと見た目（`ninja-sato-life/chars.js` と同じ定義に、公式イラストに合わせた上書き `off` を足したもの）、シートにのせる「見た目のポイント」（`LOOK`・公式イラストから読みとったもの）、相棒の見た目（装束6色×髪型5×髪の色4×小物4）・呼び名16・話し方4 |
 | `art.js` | 人物の絵（SVG）。絵柄は3つ：公式イラストに忠実な絵柄（既定。約2.7頭身・大きな丸い頭・低い位置の大きな目・箱形の着物と短く広い袖・手甲・結び目のある帯。狐面・鬼の面・柴犬・ゴリラ・三毛猫なども公式に合わせて描く）、かっこいい系（`style: 'cool'`。約5頭身）、かわいい系（`style: 'cute'`。`ninja-sato-life/art.js` と同じちびキャラ）。修行の動き（攻撃・救助・調べる・下がる・へとへと・わーい）と「へとへと」の表情を足してある |
-| `sheet.js` | キャラクターシートの組み立て。公式に忠実な版（既定・1536×2110：公式イラスト（CC0）と同じ向き・同じ切りとりの絵を並べ、見た目のポイント・色・三面図・表情・うごき・擬態・修行のうごき）／かっこいい版（1536×1680）／かわいい版（1536×1410） |
+| `sheet.js` | キャラクターシートの組み立て。原型版（既定・1536×1860：原型＝公式イラスト（CC0）を大きく、顔のアップ・色・見た目のポイント・公式の紹介、下の段に「ゲームの中の姿」（三面図・あるく・修行のうごき））／かっこいい版（1536×1680）／かわいい版（1536×1410） |
 | `render.js` | キャンバスの描画（修行の場・からくり・効果・道場・振り返りの小さな図・記念写真） |
 | `game.js` | 進行（保存・画面の切りかえ・修行のループ・操作・sim の合図） |
 | `ui.js` | 画面の中身（相棒づくり・道場・出発・作戦・言葉で教える・振り返り・着がえ・回想・メニュー・引き継ぎ） |
 | `sw.js` / `manifest.webmanifest` / `icons/` | ホーム画面に追加・オフライン |
 | `sheets/` | キャラクターシート（`<id>.jpg`・相棒の見本 `partner.jpg`）・縮小版（`thumb/`）・一覧（`index.html`） |
+| `img/official/` | シートの原型に使う公式イラスト（CC0）。`ninja-sato-life/img/art` の 360×360 を、絵を描き足さずに高画質化して 1080×1080 にしたもの |
 | `tools/test_rules.mjs` | 設計書 §12 の受け入れテスト（ほか、最初の10分・修行の完走・データ） |
 | `tools/bot.js` | テスト用の自動の見習い（ゲームでは使わない） |
 | `tools/build_sheets.mjs` / `build_sheet_index.mjs` / `build_icons.mjs` | シート画像・シート一覧・アイコンを作り直す |
+| `tools/upscale_official.py` | 公式イラストを高画質化して `img/official/` に入れる（Real-ESRGAN のアニメ絵用モデルを ncnn で CPU 実行） |
 
 ## テスト
 
 ```sh
-node ninja-aibou-dojo/tools/test_rules.mjs   # 結果: 111 件合格 / 0 件不合格
+node ninja-aibou-dojo/tools/test_rules.mjs   # 結果: 112 件合格 / 0 件不合格
 ```
 
 §12 の7項目（同じ seed・方針で同じ判断を再現／「救助を優先」後に救助を選ぶ／危ない救助を避けたときの説明が実際のルールと一致／直前の指導を戻すと以前の方針／不可能・矛盾・不適切な入力を保存しない／日記は承認済みの出来事だけ・AIなしで全5章を最後まで（練習設定なら成功、なしでも結果まで進む）／引き継ぎ・二端末の競合・見た目の権利）と、代表的な日本語の指示43件での意図の一致（目標95%以上）、最初の10分の因果確認、どの方針でも3種の修行を完走できること、39体のデータ・セリフ・絵を確かめます。
@@ -55,7 +57,8 @@ node ninja-aibou-dojo/tools/test_rules.mjs   # 結果: 111 件合格 / 0 件不�
 ## キャラクターシート・アイコンを作り直す
 
 `art.js` / `chars.js` / `sheet.js` を変えたら作り直します。Chromium と playwright-core、フォント（TTF。名前の筆文字は Yuji Boku、見出しは Zen Kaku Gothic New 700/900、小物の字は Zen Maru Gothic。どれも Google Fonts・SIL OFL）を使います。
-シートの左上の公式イラストは `ninja-sato-life/img/art/<id>.jpg`（CC0）を読みこんで画像の中に入れます（置き場所は `OFFICIAL_ART` で変えられます）。
+シートの原型（公式イラスト・CC0）は `img/official/<id>.jpg` を読みこんで画像の中に入れます（なければ `ninja-sato-life/img/art/<id>.jpg`。置き場所は `OFFICIAL_ART` で変えられます）。
+`img/official/` は `tools/upscale_official.py` で作ります（`pip install ncnn numpy opencv-python-headless`。モデルは [Real-ESRGAN のリリース](https://github.com/xinntao/Real-ESRGAN/releases) の `realesrgan-ncnn-vulkan-*.zip` の `models/` を `REALESRGAN_MODELS` で指定）。
 `SHEET_STYLE=cool` を付けるとかっこいい版（約5頭身）、`SHEET_STYLE=cute` を付けるとかわいい版（ちびキャラ）で作ります。
 
 ```sh
@@ -69,7 +72,7 @@ PLAYWRIGHT_CORE=... CHROME=... node ninja-aibou-dojo/tools/build_icons.mjs
 
 ## 更新するとき
 
-- 中身を変えたら `index.html` の `?v=3` と `sw.js` の `CACHE` / `CORE` の番号を上げる（上げないと、ホーム画面に追加した人に古い版が残る）
+- 中身を変えたら `index.html` の `?v=4` と `sw.js` の `CACHE` / `CORE` の番号を上げる（上げないと、ホーム画面に追加した人に古い版が残る）
 
 ## 設計書との対応
 

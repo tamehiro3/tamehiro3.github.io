@@ -2,6 +2,7 @@
 //   node ninja-aibou-dojo/tools/test_rules.mjs
 import { createRequire } from 'module';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 const require = createRequire(import.meta.url);
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -284,7 +285,8 @@ section('データ');
   ok(C.CHARS.every(c => Array.isArray(c.look) && c.look.length >= 3 && c.look.every(t => typeof t === 'string' && t.length > 3)), '39体すべて、キャラクターシートにのせる「見た目のポイント」がある');
   const Sh = require(path.join(ROOT, 'sheet.js'));
   const sv = Sh.sheetSvg(C.BY_ID.kohaku, { officialHref: 'x.jpg', officialBg: '#2a4a7a' });
-  ok(sv.indexOf('<image href="x.jpg"') >= 0 && sv.indexOf('公式イラスト（CryptoNinja・CC0）') >= 0 && sv.indexOf('NaN') < 0 && Sh.size().H === Sh.H, 'キャラクターシートに公式イラスト（CC0）が入り、同じ向きの絵と並ぶ');
+  ok(sv.indexOf('<image href="x.jpg"') >= 0 && sv.indexOf('原型　公式イラスト（CryptoNinja・CC0）') >= 0 && sv.indexOf('顔のアップ') >= 0 && sv.indexOf('NaN') < 0 && Sh.size().H === Sh.H, 'キャラクターシートの主役は原型（公式イラスト・CC0）で、顔のアップと並ぶ');
+  ok(C.CHARS.every(c => fs.existsSync(path.join(ROOT, 'img', 'official', c.id + '.jpg'))), '原型（公式イラスト）を高画質化した画像が39体そろっている');
 }
 
 console.log(`\n結果: ${pass} 件合格 / ${fail} 件不合格`);

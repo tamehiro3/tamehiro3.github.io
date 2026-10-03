@@ -1,5 +1,7 @@
-/* ニンジャ相棒道場 — キャラクター描画エンジン（SVG）
- * ninja-sato-life/art.js を写して、修行の動き（attack / rescue / search / retreat / down / cheer）・へとへとの表情（tired）・効果を足したもの。
+/* CryptoNinja ファンゲーム共通 — キャラクター描画エンジン（SVG）
+ * ニンジャ相棒道場・ニンジャ里ライフ・ニンジャからくり工房の3作で同じファイルを使う（どれかを直したら、3つとも同じにする）。
+ * ninja-sato-life/art.js（ちびキャラ）をもとに、相棒道場の修行の動き（attack / rescue / search / retreat / down / cheer）・
+ * へとへとの表情（tired）・効果と、からくり工房の横スクロールのうごき（run / jump / fall / oops / land・guard。走る・跳ぶときは体ごと前へ傾ける）を足したもの。
  *
  * 39体を「向き（yaw）・しぐさ（pose）・表情（expr）」を指定して描く。絵柄は3つ：
  *   official（既定）… 公式イラスト（CryptoNinja・CC0）に忠実な絵柄。約2.7頭身・丸い大きな頭・低い位置の大きな目・
@@ -381,6 +383,37 @@
     } else if (pose === 'cheer') { // 相棒道場：わーい（両手を上げてとびはねる）
       for (k = 0; k < 2; k++) { s = k ? 1 : -1; R.arms[s].E = [s * (b.sx + 14), sy + 6, 4]; R.arms[s].H = [s * (b.sx + 27), sy + 24, 4]; R.arms[s].hand = 'open'; }
       R.legs[-1].A = [-(b.hip + 4), 14, 2]; R.legs[1].A = [b.hip + 4, 14, 2]; R.bob = 7;
+    } else if (pose === 'guard') { // からくり工房：びっくり（両こぶしを胸の前に、足を開いて身がまえる）
+      for (k = 0; k < 2; k++) { s = k ? 1 : -1; R.arms[s].E = [s * (b.sx + 10), sy - 22, 8]; R.arms[s].H = [s * 13, sy - 8, 26]; R.arms[s].hand = 'fist'; }
+      R.legs[-1].A = [-(b.hip + 9), 9, 3]; R.legs[1].A = [b.hip + 9, 9, 3];
+      R.bob = 2; R.tilt = -3;
+    } else if (pose === 'run') { // からくり工房：走る（6コマ）
+      var rp = (frame || 0) * Math.PI / 3;
+      for (k = 0; k < 2; k++) {
+        s = k ? 1 : -1;
+        var rsw = Math.sin(rp + (s > 0 ? 0 : Math.PI)), rlift = Math.max(0, Math.cos(rp + (s > 0 ? 0 : Math.PI)));
+        R.legs[s].A = [s * (b.hip + 1), 10 + rlift * 14, 2 + rsw * 20];
+        R.arms[s].E = [s * (b.sx + 8), sy - 20, 2 - rsw * 12];
+        R.arms[s].H = [s * (b.sx + 9), sy - 34, 8 - rsw * 22];
+        R.arms[s].hand = 'fist';
+      }
+      R.bob = 3 + 3 * Math.abs(Math.sin(rp)); R.tilt = 7;
+    } else if (pose === 'jump') { // からくり工房：跳ぶ（両腕を上げ、片ひざを上げる）
+      for (k = 0; k < 2; k++) { s = k ? 1 : -1; R.arms[s].E = [s * (b.sx + 16), sy + 2, 4]; R.arms[s].H = [s * (b.sx + 30), sy + 22, 6]; R.arms[s].hand = 'open'; }
+      R.legs[1].A = [b.hip + 2, 30, 16]; R.legs[-1].A = [-(b.hip + 2), 14, -8];
+      R.bob = 10; R.tilt = 5;
+    } else if (pose === 'fall') { // からくり工房：落ちる（腕を横に広げ、脚をそろえてぶらり）
+      for (k = 0; k < 2; k++) { s = k ? 1 : -1; R.arms[s].E = [s * (b.sx + 16), sy - 4, 2]; R.arms[s].H = [s * (b.sx + 30), sy + 6, 4]; R.arms[s].hand = 'open'; }
+      R.legs[1].A = [b.hip + 5, 14, 6]; R.legs[-1].A = [-(b.hip + 5), 12, -4];
+      R.bob = 8;
+    } else if (pose === 'oops') { // からくり工房：落ちた・当たった（ばんざいでびっくり）
+      for (k = 0; k < 2; k++) { s = k ? 1 : -1; R.arms[s].E = [s * (b.sx + 18), sy + 8, 2]; R.arms[s].H = [s * (b.sx + 32), sy + 30, 4]; R.arms[s].hand = 'open'; }
+      R.legs[1].A = [b.hip + 8, 16, 4]; R.legs[-1].A = [-(b.hip + 8), 20, -2];
+      R.bob = 6; R.tilt = -6;
+    } else if (pose === 'land') { // からくり工房：着地（ひざを少し曲げる）
+      for (k = 0; k < 2; k++) { s = k ? 1 : -1; R.arms[s].E = [s * (b.sx + 12), sy - 18, 6]; R.arms[s].H = [s * (b.sx + 20), sy - 30, 10]; R.arms[s].hand = 'open'; }
+      R.legs[-1].A = [-(b.hip + 6), 9, 2]; R.legs[1].A = [b.hip + 6, 9, 2];
+      R.bob = -3;
     }
     // キャラ固有の立ちポーズ（ピース・印・柄に手 など）。y は肩の高さ sy からの差
     if (def.arm && (pose === 'stand' || pose === def.pose)) {
@@ -506,6 +539,37 @@
       arm(1, [sx + 9, sy + 16, 2], [sx + 8, sy + 44, 4], 'fist');
       arm(-1, [-(sx + 13), sy - 22, -4], [-(sx + 5), sy - 42, 7], 'fist');
       leg(1, [hp + 5, 12, 2]); leg(-1, [-(hp + 5), 10, -2]); R.bob = 6;
+    } else if (pose === 'guard') { // からくり工房：びっくり（両こぶしを胸の前に、足を開いて身がまえる）
+      for (k = 0; k < 2; k++) { s = k ? 1 : -1; arm(s, [s * (sx + 9), sy - 25, 11], [s * 7, sy - 12, 26], 'fist'); }
+      leg(1, [hp + 10, 8, 3]); leg(-1, [-(hp + 10), 8, 3]); R.bob = 1; R.tilt = -3;
+    } else if (pose === 'run') { // からくり工房：走る（6コマ）。ひじを曲げて脚と逆に腕をふり、ももを上げる。足はいつも少し浮く
+      var rp = (frame || 0) * Math.PI / 3;
+      R.bob = 3 + 4 * Math.abs(Math.sin(rp)); R.tilt = 7;
+      for (k = 0; k < 2; k++) {
+        s = k ? 1 : -1;
+        var rsw = Math.sin(rp + (s > 0 ? 0 : Math.PI)), rlift = Math.max(0, Math.cos(rp + (s > 0 ? 0 : Math.PI)));
+        var th = -rsw * 0.75, fo = th + 1.45; // 上腕のふり（前が＋）と前腕の向き（下から前へ）
+        var E = [s * (sx + 5), sy - 4 - 27 * Math.cos(th), 27 * Math.sin(th)];
+        arm(s, E, [E[0] + s, E[1] - 25 * Math.cos(fo), E[2] + 25 * Math.sin(fo)], 'fist');
+        leg(s, [s * (hp + 1.5), 7 + R.bob + rlift * 26, 4 + rsw * 32]);
+      }
+    } else if (pose === 'jump') { // からくり工房：跳ぶ（両腕を前の上へのばし、片ひざを上げる。横から見て頭にかくれない向き）
+      arm(1, [sx + 6, sy + 8, 17], [sx + 8, sy + 30, 32], 'open');
+      arm(-1, [-(sx + 7), sy - 2, 20], [-(sx + 8), sy + 16, 40], 'open');
+      R.bob = 14; R.tilt = 5;
+      leg(1, [hp + 2, R.bob + 30, 20]); leg(-1, [-(hp + 2), R.bob + 8, -14]);
+    } else if (pose === 'fall') { // からくり工房：落ちる（腕を横に広げ、脚をそろえてぶらり）
+      for (k = 0; k < 2; k++) { s = k ? 1 : -1; arm(s, [s * (sx + 24), sy - 10, 2], [s * (sx + 46), sy - 6, 4], 'open'); }
+      R.bob = 12;
+      leg(1, [hp + 5, R.bob + 10, 8]); leg(-1, [-(hp + 5), R.bob + 8, -6]);
+    } else if (pose === 'oops') { // からくり工房：落ちた・当たった（両腕を前と後ろの上へ。びっくり）
+      arm(1, [sx + 6, sy + 12, 16], [sx + 8, sy + 36, 26], 'open');
+      arm(-1, [-(sx + 6), sy + 12, -16], [-(sx + 8), sy + 36, -26], 'open');
+      R.bob = 8; R.tilt = -6;
+      leg(1, [hp + 9, R.bob + 14, 6]); leg(-1, [-(hp + 9), R.bob + 20, -4]);
+    } else if (pose === 'land') { // からくり工房：着地（ひざを曲げて腰を落とす）
+      for (k = 0; k < 2; k++) { s = k ? 1 : -1; arm(s, [s * (sx + 10), sy - 26, 8], [s * (sx + 18), sy - 46, 14], 'open'); }
+      leg(1, [hp + 8, 7, 3]); leg(-1, [-(hp + 8), 7, 1]); R.bob = -8;
     }
     // キャラ固有の立ちポーズ（ちびキャラ用の値を cool の腕の長さへ直す。armCool があればそちら）
     var ovs = def.armCool || def.arm;
@@ -790,7 +854,7 @@
     opt = opt || {};
     var yaw = opt.yaw == null ? 0 : opt.yaw;
     var pose = opt.pose || 'stand';
-    var expr = opt.expr || (pose === 'happy' ? 'happy' : pose === 'surprised' ? 'surprised' : (pose === 'serious' ? 'serious' : 'normal'));
+    var expr = opt.expr || (pose === 'happy' ? 'happy' : (pose === 'surprised' || pose === 'guard' || pose === 'oops') ? 'surprised' : (pose === 'serious' ? 'serious' : 'normal'));
     var uid = 'n' + (++uidSeq).toString(36) + Math.floor(Math.random() * 1e4).toString(36);
     var S = new Scene(uid);
     var cam = new Cam(yaw, opt.pitch);
@@ -820,6 +884,8 @@
     var vb = opt.viewBox || '0 0 200 240';
     var w = opt.w || 200, h = opt.h || 240;
     var inner = S.out();
+    var tilt = (R.tilt || 0) * Math.sin(yaw * D2R); // 向いている方へ傾ける（正面では傾けない）
+    if (Math.abs(tilt) > 0.2) inner = '<g transform="rotate(' + r1(tilt) + ' 100 ' + GROUND + ')">' + inner + '</g>';
     if (opt.raw) return inner;
     return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="' + vb + '" width="' + w + '" height="' + h + '">' + inner + '</svg>';
   }

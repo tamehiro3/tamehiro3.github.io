@@ -469,6 +469,16 @@ section('§2・§12 運営の試験（投稿が少なくても遊べる）：39�
   ok(C.CHARS.every(c => { const s = SH.sheetSvg(c, {}); return s.indexOf('NaN') < 0 && s.indexOf('undefined') < 0; }), '39体すべてのシートを描ける');
   const wrong = C.CHARS.filter(c => JSON.stringify(jpegSize(path.join(ROOT, 'sheets', c.id + '.jpg'))) !== JSON.stringify([SH.W, SH.H])).map(c => c.id);
   eq(wrong, [], 'シートの画像は今の並び（' + SH.W + '×' + SH.H + '）で作り直してある');
+  // ゲームの中の絵：公式イラストに忠実な絵柄（約2.7頭身）。描画エンジンは3作で同じファイル
+  const A = globalThis.NinjaArt;
+  ok(A.style === 'official' && A.builds('official').normal.hs > 0.7, 'ゲームの中の絵の既定は、公式イラストに忠実な絵柄（約2.7頭身）');
+  const same = ['ninja-aibou-dojo', 'ninja-sato-life'].every(g => fs.readFileSync(path.join(ROOT, '..', g, 'art.js'), 'utf8') === fs.readFileSync(path.join(ROOT, 'art.js'), 'utf8'));
+  ok(same, '描画エンジン（art.js）は、相棒道場・里ライフと同じファイル');
+  const defs = C.CHARS.map(c => c.art).concat(C.APPRENTICE_SETS.map(s => C.apprenticeArt(s.id, 'pony')));
+  const moves = [['run', 0], ['run', 1], ['run', 2], ['run', 3], ['run', 4], ['run', 5], ['jump', 0], ['fall', 0], ['oops', 0], ['land', 0], ['guard', 0], ['cheer', 0], ['stand', 0]];
+  ok(defs.every(d => moves.every(m => { const s = A.render(d, { pose: m[0], frame: m[1], yaw: 62 }); return s.indexOf('NaN') < 0 && s.indexOf('undefined') < 0; })), '39体と見習いを、その絵柄で横スクロールのうごき（走る6コマ・跳ぶ・落ちる・当たる・着地・しぐさ）まで描ける');
+  const runA = A.render(C.BY_ID.jin.art, { pose: 'run', frame: 0, yaw: 62 }), runB = A.render(C.BY_ID.jin.art, { pose: 'run', frame: 3, yaw: 62 });
+  ok(runA !== runB && runA.indexOf('rotate(') >= 0, '走るときは、コマで脚と腕が入れかわり、体を前へ傾ける');
 }
 
 console.log(`\n結果: ${pass} 件合格 / ${fail} 件不合格`);

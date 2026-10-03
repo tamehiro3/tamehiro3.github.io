@@ -2,7 +2,7 @@
  * ニンジャ相棒道場のシートと同じ並び：
  *   上：原型＝公式資料（ninja-dao.com/characters・CC0）の公式イラストと公式3Dフィギュア（全身）を大きく。
  *       顔のアップ・色・見た目のポイント・公式の紹介と、本作での役（担当の試験）を添える
- *   下：ゲームの中の姿（ゲーム用に描き起こしたちびキャラ）：まえ／ななめ／よこ／うしろ・あるく、
+ *   下：ゲームの中の姿（原型をもとに、ゲームで動かせるように簡略化して描いた約2.7頭身の絵）：まえ／ななめ／よこ／うしろ・あるく、
  *       しぐさ（ふつう・うれしい・びっくり・しんけん）・擬態（かくれる）
  *   いちばん下：CryptoNinja ファンゲーム制作資料
  * 描画は art.js（NinjaArt）。ブラウザでも Node でも動く。
@@ -79,23 +79,6 @@
       var gx = x + i * 16 + (i % 3) * 3, h = 18 + (i * 7) % 12;
       o += '<path d="M' + gx + ' ' + y + 'q-3 ' + (-h * 0.6) + ' -8 ' + (-h) + 'M' + (gx + 4) + ' ' + y + 'q1 ' + (-h * 0.7) + ' 3 ' + (-h - 4) + 'M' + (gx + 8) + ' ' + y + 'q4 ' + (-h * 0.5) + ' 10 ' + (-h + 2) + '" stroke="#5b8a3a" stroke-width="3.4" fill="none" stroke-linecap="round"/>';
     }
-    return o;
-  }
-  // うれしい：黄色い放射線／びっくり：朱色のとげ
-  function joyMarks(cx, cy, r) {
-    var o = '<g stroke="#f2a31b" stroke-width="4.5" stroke-linecap="round">';
-    [[-150, 1], [-125, 0.8], [-100, 0.9], [-40, 1], [-15, 0.85], [15, 0.8]].forEach(function (a) {
-      var t = a[0] * Math.PI / 180, r0 = r, r1 = r + 18 * a[1];
-      o += '<path d="M' + (cx + Math.cos(t) * r0).toFixed(1) + ' ' + (cy + Math.sin(t) * r0).toFixed(1) + 'L' + (cx + Math.cos(t) * r1).toFixed(1) + ' ' + (cy + Math.sin(t) * r1).toFixed(1) + '"/>';
-    });
-    return o + '</g>';
-  }
-  function shockMarks(x, y) {
-    var o = '';
-    [[0, 0, -18], [22, 10, 12], [-6, 30, -40]].forEach(function (m) {
-      var mx = x + m[0], my = y + m[1], a = m[2];
-      o += '<path d="M' + mx + ' ' + my + 'l7 -22l7 22Z" fill="#e8552a" stroke="#b83a1a" stroke-width="1.6" stroke-linejoin="round" transform="rotate(' + a + ' ' + mx + ' ' + my + ')"/>';
-    });
     return o;
   }
   // 竹柄の布（擬態）と竹の枠
@@ -225,9 +208,9 @@
     }
     var divY = my + s2 + 136;
     o += '<path d="M36 ' + divY + 'H1500" stroke="' + SUMI + '" stroke-width="2.5"/>';
-    // ---- ゲームの中の姿（ゲーム用に描き起こしたちびキャラ）
+    // ---- ゲームの中の姿（原型をもとに、ゲームで動かせるように簡略化して描いた絵）
     var y1 = divY + 48;
-    o += secTitle(40, y1, 'ゲームの中の姿', '原型をもとに、ゲーム用に描き起こしたアレンジ（ちびキャラ）');
+    o += secTitle(40, y1, 'ゲームの中の姿', '原型をもとに、ゲームで動かせるように簡略化して描いた絵（約2.7頭身）');
     var row1 = [['まえ', 'stand', 0], ['ななめ', 'stand', -38], ['よこ', 'stand', -90], ['うしろ', 'stand', 180], ['あるく', 'walk', 52]];
     var cw1 = 292, ch1 = 286, t1 = y1 + 12;
     row1.forEach(function (v, i) {
@@ -236,15 +219,12 @@
       o += fig(def, x, t1, cw1, ch1, v[1] === 'walk' ? { yaw: v[2], pose: 'walk', frame: 1, prop: false, companions: false } : { yaw: v[2], pose: 'stand' });
       o += TG(x + cw1 / 2, t1 + ch1 + 30, v[0], 22, { anchor: 'middle', w: 700, ls: 3 });
     });
-    var y2 = t1 + ch1 + 70, aw = 245, ah = 262, ay = y2 + 12, k = ah / 300;
+    var y2 = t1 + ch1 + 70, aw = 245, ah = 262, ay = y2 + 12;
     o += TG(40, y2 + 6, 'しぐさ', 22, { w: 900, ls: 2 }) + TG(132, y2 + 4, '試験官として見せるしぐさ', 16, { w: 500, col: '#6a6670' });
-    var gs = [['ふつう', 'stand', -8], ['うれしい', 'cheer', -12], ['びっくり', 'guard', -4], ['しんけん', 'serious', 0]];
+    var gs = [['ふつう', 'stand', -8], ['うれしい', 'cheer', -12, 'joy', 'happy'], ['びっくり', 'guard', -4, 'surprise'], ['しんけん', 'serious', 0, 'focus']];
     gs.forEach(function (e, i) {
       var x = 28 + i * aw, cx = x + aw / 2;
-      o += fig(def, x, ay, aw, ah, { yaw: e[2], pose: e[1], prop: false, companions: e[1] === 'stand' });
-      if (e[1] === 'cheer') o += joyMarks(cx + 8 * k, ay + 118 * k, 92 * k);
-      if (e[1] === 'guard') o += shockMarks(cx + 78 * k, ay + 44 * k);
-      if (e[1] === 'serious') o += '<g stroke="#6a8ab8" stroke-width="3" stroke-linecap="round" opacity=".8"><path d="M' + (cx - 88 * k) + ' ' + (ay + 64 * k) + 'l8 10M' + (cx + 88 * k) + ' ' + (ay + 64 * k) + 'l-8 10"/></g>';
+      o += fig(def, x, ay, aw, ah, { yaw: e[2], pose: e[1], fx: e[3], expr: e[4], prop: false, companions: e[1] === 'stand' });
       o += TG(cx, ay + ah + 30, e[0], 22, { anchor: 'middle', w: 700, ls: 3 });
     });
     o += '<path d="M1030 ' + (y2 - 22) + 'V' + (ay + ah + 40) + '" stroke="#b8b2a8" stroke-width="2"/>';

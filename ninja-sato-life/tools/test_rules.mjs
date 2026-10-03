@@ -242,6 +242,13 @@ section('キャラクターシート（原型＝公式イラストと公式3Dフ
   eq(miss, [], '39体のキャラクターシート（本体と縮小版）がある');
   const wrong = CH.CHARS.filter(c => JSON.stringify(jpegSize(path.join(ROOT, 'sheets', c.id + '.jpg'))) !== JSON.stringify([SH.W, SH.H])).map(c => c.id);
   eq(wrong, [], 'シートの画像は今の並び（' + SH.W + '×' + SH.H + '）で作り直してある');
+  // ゲームの中の絵：公式イラストに忠実な絵柄（約2.7頭身）。描画エンジンは3作で同じファイル
+  const A = require(path.join(ROOT, 'art.js'));
+  ok(A.style === 'official' && A.builds('official').normal.hs > 0.7, 'ゲームの中の絵の既定は、公式イラストに忠実な絵柄（約2.7頭身）');
+  const same = ['ninja-aibou-dojo', 'ninja-karakuri-kobo'].every(g => fs.readFileSync(path.join(ROOT, '..', g, 'art.js'), 'utf8') === fs.readFileSync(path.join(ROOT, 'art.js'), 'utf8'));
+  ok(same, '描画エンジン（art.js）は、相棒道場・からくり工房と同じファイル');
+  const defs = CH.CHARS.map(c => c.art).concat(CH.APPRENTICE_SETS.map(s => CH.apprenticeArt(s.id, 'pony')));
+  ok(defs.every(d => ['stand', 'walk', 'happy', 'surprised', 'serious', 'wave'].every(p => { const s = A.render(d, { pose: p, yaw: -38, frame: 1 }); return s.indexOf('NaN') < 0 && s.indexOf('undefined') < 0; })), '39体と見習いを、その絵柄で立ち・歩き・表情まで描ける');
 }
 
 console.log(`\n結果: ${pass} 件合格 / ${fail} 件不合格`);

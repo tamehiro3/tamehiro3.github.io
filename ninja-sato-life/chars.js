@@ -57,35 +57,41 @@
       band: { color: '#1e1e22', plate: 3 },
       top: { color: '#26262b', trim: '#1b1b20', inner: '#44444a', mesh: true, tasuki: '#1b1b20' }, obi: { color: '#6e6e73', knot: 'buckle', knotColor: '#9a9ca3' },
       sleeves: { kind: 'short' }, arms: { guard: '#4c4c54' }, bottom: { kind: 'pants', color: '#26262b', wrap: '#55555c' }, feet: { kind: 'sandal', color: '#1e1e22' },
-      back: KT, prop: { kind: 'shuriken' }
+      back: KT, prop: { kind: 'shuriken' },
+      off: { eyes: { style: 'slit' }, mask: { kind: 'cloth', color: '#26262b', top: -27 }, hood: { color: '#2b2b30', front: -3 } }
     },
     sakuya: {
       skin: '#f8ddc3', hair: { color: '#28222a', bangs: 'straight', front: 2, side: -42, back: -50, vol: 5, parts: [{ kind: 'pony', sway: -1, tie: '#d8302c' }] },
       eyes: { style: 'iris', color: '#3a2a2a', lash: true }, band: { color: '#d45ba0', plate: 0 },
       top: { color: '#d2669e', trim: '#28222a', inner: '#28222a', tasuki: '#28222a' }, obi: { color: '#b2954a', knot: 'bow' },
       sleeves: { kind: 'short' }, arms: { guard: '#2a2a2e' }, bottom: { kind: 'skirt', color: '#d2669e' }, legs: { color: '#2a2a2e', top: 0.3 }, feet: { kind: 'sandal', color: '#2a2a2e' },
-      back: KT, prop: { kind: 'shuriken' }
+      back: KT, prop: { kind: 'shuriken' },
+      off: { hair: { vol: 3, side: -56, back: -56, fw: 56 }, eyes: { style: 'simple', color: '#66626a' }, blush: true, band: { under: true, hi: 27, lo: 15, knot: -100 } }
     },
     kohaku: {
       skin: '#f6dbc1', hair: { color: '#241f26', bangs: 'straight', front: 2, side: -42, back: -50, vol: 5, parts: [{ kind: 'pony', sway: -1, tie: '#3fc1c9' }] }, mask: { kind: 'fox' },
       band: { color: '#6e4f9c', plate: 0 },
       top: { color: '#6e4f9c', trim: '#241f26', inner: '#241f26', tasuki: '#241f26' }, obi: { color: '#6c7cc0', knot: 'knot' },
       sleeves: { kind: 'short' }, arms: { guard: '#2a2a2e' }, bottom: { kind: 'skirt', color: '#6e4f9c' }, legs: { color: '#9c9ca1', top: 0.3 }, feet: { kind: 'sandal', color: '#2a2a2e', toe: '#6e4f9c' },
-      prop: { kind: 'katana' }
+      prop: { kind: 'katana' },
+      off: { hair: { parts: [{ kind: 'pony', sway: -1, tie: '#3fc1c9', len: 0.82, up: 0.92 }] }, band: { under: true, hi: 26, lo: 14, knot: -100 } }
     },
     shiba: {
       skin: '#e3aa60', head: { kind: 'dog', fur: '#e3aa60', fur2: '#f4f0e8' }, ears: { kind: 'dog', color: '#e3aa60', inner: '#f4f0e8', th: 46, ph: 44, len: 24, w: 15 },
       eyes: { style: 'dot' }, brows: 'none', cheek: false, band: { color: '#46703e', plate: 3 },
       top: { color: '#46703e', trim: '#232327', inner: '#2f4f2a', tasuki: '#232327' }, obi: { color: '#232327', knot: 'buckle' },
       sleeves: { kind: 'short' }, arms: { color: '#e3aa60', hand: '#f4f0e8' }, bottom: { kind: 'pants', color: '#46703e', wrap: '#2a2a2e' },
-      feet: { kind: 'sandal', color: '#f4f0e8', strap: '#232327' }, back: KT, tail: { kind: 'dog', color: '#e3aa60', tip: '#f4f0e8' }
+      feet: { kind: 'sandal', color: '#f4f0e8', strap: '#232327' }, back: KT, tail: { kind: 'dog', color: '#e3aa60', tip: '#f4f0e8' },
+      off: { skin: '#cda574', head: { kind: 'dog', fur: '#cda574', fur2: '#f8f6f0', sx: 1.04 }, ears: { kind: 'dog', color: '#cda574', inner: '#f8f6f0', th: 50, ph: 44, len: 22, w: 15, scribble: true },
+        eyes: { style: 'dot', color: '#3a2620', w: 7.5, h: 8.5 }, band: { color: '#41693a', plate: 3 }, arms: { color: '#cda574', hand: '#f8f6f0' }, top: { vee: '#cda574' }, tail: { kind: 'dog', color: '#cda574', tip: '#f8f6f0' } }
     },
     kanaoni: {
       skin: '#f2dfc4', hood: { color: '#33505d', front: -3 }, mask: { kind: 'oni', color: '#c8392a' }, horns: { color: '#efe3c4', list: [[-26, 30, 26, 8], [26, 30, 26, 8]] },
       band: { color: '#d8452c', plate: 0, hi: 40, lo: 28 }, fur: { color: '#b69b72' },
       top: { color: '#33505d', trim: '#22363f', inner: '#26262a', mesh: true, tasuki: '#26262a', cord: '#efe3c4' }, obi: { color: '#7a7a80', knot: 'buckle' },
       sleeves: { kind: 'short' }, arms: { guard: '#aeb2b8' }, bottom: { kind: 'pants', color: '#2e4a55', wrap: '#26262a' }, feet: { kind: 'sandal', color: '#26262a', strap: '#b69b72' },
-      prop: { kind: 'gyuto' }
+      prop: { kind: 'gyuto' },
+      off: { horns: { color: '#d9ccae', list: [[-24, 16, 30, 9], [26, 14, 28, 9]] }, band: { color: '#c8392a', plate: 0, hi: 30, lo: 22, knot: -110 }, mask: { kind: 'oni', color: '#a8323a' }, hood: { color: '#2e4c58', front: 12 } }
     },
     oto: {
       build: 'small', skin: '#f7dcc4', hair: { color: '#f0a2b6', bangs: 'straight', front: 3, side: -50, back: -52, fw: 54, vol: 5 }, ears: { kind: 'rabbit', color: '#f5b3c6', inner: '#f7e6d8' },
@@ -93,14 +99,21 @@
       band: { color: '#4f9a4a', plate: 0, hi: 36, lo: 25 },
       top: { color: '#f7c9d4', trim: '#e7a6b8', inner: '#f2e7dc', tasuki: '#3a3a40', emblem: { kind: 'rabbit', color: '#d8497c', th: 18, y: 76 } }, obi: { color: '#d8497c', knot: 'bow' },
       sleeves: { kind: 'short' }, bottom: { kind: 'skirt', color: '#f7c9d4' }, legs: { color: '#3a3a40', top: 0.12 }, feet: { kind: 'boot', color: '#3a3a40' },
-      back: { katana: {}, tube: '#4f9a4a' }, prop: { kind: 'scroll', color: '#4d8a4a' }
+      back: { katana: {}, tube: '#4f9a4a' }, prop: { kind: 'scroll', color: '#4d8a4a' },
+      off: { skin: '#f3e3dc', hair: { color: '#f0aecd', bangs: 'straight', front: -2, side: -60, back: -62, fw: 60, vol: 4, flare: 7 },
+        ears: { kind: 'rabbit', color: '#f2a9cb', inner: '#f4eef0', th: 46, ph: 52, w: 16, len: 56, lean: 6, bulge: 9 },
+        band: { color: '#5fb39a', plate: 0, under: true, hi: 26, lo: 16, knot: -100 }, blush: '#f4a6b8', mouth: 'openFang',
+        eyes: { style: 'anime', color: '#2a221e', pupil: 'star', pupilColor: '#f5c542', lash: true },
+        top: { tasuki: null, emblem: { kind: 'rabbit', color: '#ef8fb8', th: 30, y: 84, r: 6 } }, back: { katana: {} } }
     },
     rotten: {
       skin: '#8cb891', hood: { color: '#4e3a2a', front: 16 }, arrow: true, eyepatch: { side: 1 }, eyes: { style: 'wide' }, brows: 'none', mouth: 'openFang', cheek: false,
       marks: [{ kind: 'drool' }, { kind: 'blood', th: 26, ph: 60 }],
       band: { color: '#1e1e22', plate: 3 },
       top: { color: '#57402f', trim: '#3e2e22', inner: '#3e2e22', tasuki: '#232326', pattern: { kind: 'blood', color: '#7a1f1f', r: 3.2 } }, obi: { color: '#2a2a2e', studs: '#b9bcc0', knot: 'none' },
-      sleeves: { kind: 'short' }, arms: { color: '#8cb891' }, bottom: { kind: 'shorts', color: '#57402f' }, legs: { color: '#8cb891' }, feet: { kind: 'boot', color: '#232326', toe: '#efe9de' }
+      sleeves: { kind: 'short' }, arms: { color: '#8cb891' }, bottom: { kind: 'shorts', color: '#57402f' }, legs: { color: '#8cb891' }, feet: { kind: 'boot', color: '#232326', toe: '#efe9de' },
+      off: { skin: '#6a9a83', arms: { color: '#6a9a83' }, legs: { color: '#6a9a83' }, eyepatch: null, eyes: { style: 'wide', styleR: 'hollow', w: 9, h: 9 }, mouth: 'grin',
+        hood: { color: '#3d3128', front: 18 }, band: { color: '#2f3a48', plate: 3, tilt: -12, hi: 20, lo: -5 }, top: { color: '#4f3c2e' } }
     },
     nagisa: {
       skin: '#e9b183', hair: { color: '#c6cad0', bangs: 'messy', front: 8, side: -30, back: -44, amp: 10, per: 15, vol: 7, parts: [{ kind: 'spikes', list: [[-66, 36, 16, 14, -10], [66, 36, 16, 14, 10], [-150, 30, 14, 16], [150, 30, 14, 16], [180, 12, 12, 16]] }] },
@@ -108,14 +121,18 @@
       band: { color: '#1e1e22', plate: 3 },
       top: { color: '#2e3138', trim: '#1e1f24', inner: '#1e1f24', tasuki: '#1e1f24' }, obi: { color: '#c9a03a', knot: 'bow' },
       sleeves: { kind: 'short' }, arms: { guard: '#7a7d84' }, bottom: { kind: 'skirt', color: '#2e3138' }, legs: { color: '#2b2b2e', top: 0.2 }, feet: { kind: 'boot', color: '#2b2b2e' },
-      back: KT, prop: { kind: 'scroll', color: '#c8392a', cap: '#f4f1ea' }
+      back: KT, prop: { kind: 'scroll', color: '#c8392a', cap: '#f4f1ea' },
+      off: { hair: { color: '#b9c4cc', bangs: 'messy', front: 6, side: -46, back: -56, amp: 9, per: 15, vol: 5, rough: 11, roughTop: 30 },
+        band: { color: '#26302a', plate: 3 }, mask: { kind: 'cloth', color: '#2d3241', top: -27 }, top: { color: '#2d3241' }, bottom: { kind: 'skirt', color: '#2d3241' } }
     },
     anne: {
       skin: '#f5dcc0', hair: { color: '#63402e', bangs: 'straight', front: 1, side: -54, back: -56, fw: 56, vol: 5, parts: [{ kind: 'top', h: 1.08, w: [16, 12, 9, 3], x2: -6, x3: -14, ring: '#c4282b' }, { kind: 'top', h: 1.02, w: [16, 12, 9, 3], x2: 6, x3: 14 }] },
       eyes: { style: 'iris', color: '#5c4566', lash: true }, scarf: { color: '#c4282b', dir: -1 },
       top: { color: '#4f7a3d', trim: '#2a3a22', inner: '#2a3a22', tasuki: '#232326' }, obi: { color: '#b7913c', knot: 'bow' },
       sleeves: { kind: 'short' }, arms: { guard: '#7a7d84' }, bottom: { kind: 'skirt', color: '#4f7a3d' }, legs: { color: '#4a4c50', top: 0.3 }, feet: { kind: 'boot', color: '#232326' },
-      back: KT, prop: { kind: 'dango' }
+      back: KT, prop: { kind: 'dango' },
+      off: { hair: { color: '#4f4040', bangs: 'straight', front: -3, side: -60, back: -62, fw: 60, vol: 4, flare: 1, parts: [{ kind: 'top', h: 1.08, w: [16, 12, 9, 3], x2: -6, x3: -14, ring: '#c4282b' }, { kind: 'top', h: 1.02, w: [16, 12, 9, 3], x2: 6, x3: 14 }] },
+        eyes: { style: 'simple', color: '#4f4058', sharp: true, lash: false, browY: 19 }, brows: 'angry', browsOver: true, browColor: '#1d1416', blush: true, mouth: 'wavy', scarf: { color: '#b3282a', dir: -1, big: true, top: 5, len: 96 } }
     },
     dan: {
       hood: { color: '#26262b', front: -3 }, mask: { kind: 'robot' }, band: { color: '#1e1e22', plate: 3, plateColor: '#a8acb4' },
@@ -127,7 +144,9 @@
       build: 'chick', skin: '#f5ce1c', head: { kind: 'chick', fur: '#f5ce1c' }, crest: { color: '#f5ce1c' }, cheek: false, brows: 'none', eyes: { style: 'dot' }, mouth: 'beak',
       band: { color: '#1c1c22', plate: 3 },
       top: { color: '#f0ede8', trim: '#d8d2c6', inner: '#f5ce1c', tasuki: '#1c1c22' }, obi: { color: '#ce3a2e', knot: 'bow' },
-      sleeves: { kind: 'none' }, arms: { color: '#f5ce1c' }, bottom: { kind: 'none' }, legs: { w: 8 }, feet: { kind: 'bird' }, prop: { kind: 'bomb' }
+      sleeves: { kind: 'none' }, arms: { color: '#f5ce1c' }, bottom: { kind: 'none' }, legs: { w: 8 }, feet: { kind: 'bird' }, prop: { kind: 'bomb' },
+      off: { skin: '#e8cf38', head: { kind: 'chick', fur: '#e8cf38', cheek: '#f0a04a' }, crest: { color: '#e8cf38' }, band: { color: '#2a2a30', plate: 3, hi: 30, lo: 6 },
+        eyes: { style: 'dot', w: 6, h: 7 }, arms: { color: '#e8cf38' }, legs: { w: 15, skin: '#e8cf38' }, top: { color: '#efece6', vee: '#e8cf38' }, sleeves: { kind: 'short', color: '#efece6' } }
     },
     torika: {
       skin: '#f7d9c4', hair: { color: '#c4586f', bangs: 'side', slope: -0.25, front: 6, side: -40, back: -48, vol: 6 },
@@ -135,7 +154,11 @@
       band: { color: '#1e1e22', plate: 2, plateColor: '#6e7078' },
       top: { color: '#26262b', trim: '#e0b32a', inner: '#1e1e22', tasuki: '#1e1e22', emblem: { kind: 'cross', color: '#e0b32a', th: 16, y: 82 }, hemTrim: '#e0b32a' }, obi: { color: '#e0b32a', knot: 'bow' },
       sleeves: { kind: 'short', trim: '#e0b32a' }, bottom: { kind: 'skirt', color: '#26262b' }, legs: { color: '#4b4b52', top: 0.25 }, feet: { kind: 'boot', color: '#1e1e22' },
-      back: { katana: { guard: '#e0b32a' } }, prop: { kind: 'shuriken' }
+      back: { katana: { guard: '#e0b32a' } }, prop: { kind: 'shuriken' },
+      off: { hair: { color: '#ad6f70', bangs: 'jag', amp: 10, per: 13, front: 3, side: -52, back: -62, fw: 54, vol: 6, rough: 0, parts: [{ kind: 'spikes', list: [[-80, -40, 16, 12, -16], [-96, -30, 16, 12, -14], [84, -40, 14, 12, 14], [140, -40, 16, 14], [-140, -40, 16, 14]] }] },
+        band: { color: '#1e1e22', plate: 1, plateShape: 'tri', pw: 30, plateColor: '#a2a4ab', hi: 24, lo: 11, knot: -105 },
+        eyes: { style: 'anime', color: '#c24a82', lash: true }, blush: true,
+        top: { emblem: { kind: 'cross', color: '#e0b32a', th: -30, y: 84, r: 6 }, hemTrim: null }, sleeves: { kind: 'short', stripes: '#e0b32a' } }
     },
     atoza: {
       skin: '#c68a5c', hair: { color: '#6d7076', bangs: 'messy', front: 4, side: -34, back: -46, amp: 12, vol: 7, cover: [-62, -2, -40] }, horns: { color: '#c9a24a', list: [[-42, 36, 22, 7], [42, 36, 22, 7]] },
@@ -143,7 +166,10 @@
       scarf: { color: '#d42630', dir: -1, len: 100 },
       top: { color: '#2a2a30', trim: '#1e1e22', inner: '#1e1e22', tasuki: '#1e1e22', flameChest: '#1e7c84' }, obi: { color: '#3a3a40', plates: '#b9bcc0', knot: 'none' },
       sleeves: { kind: 'short' }, arms: { guard: '#aeb2b8', spikes: true }, bottom: { kind: 'pants', color: '#26262b', wrap: '#1e1e22' }, feet: { kind: 'boot', color: '#1e1e22' },
-      back: KT, prop: { kind: 'kanabo' }
+      back: KT, prop: { kind: 'kanabo' },
+      off: { skin: '#c86a58', hair: { color: '#5d6762', bangs: 'messy', front: 2, side: -44, back: -56, amp: 10, per: 18, vol: 7, rough: 9, roughTop: 2, cover: [6, 64, -46] },
+        horns: { color: '#d8ccaa', list: [[-40, 48, 22, 9, 34, 10], [40, 48, 20, 9, 34, 10]] }, eyes: { style: 'anime', color: '#d42630', pupil: 'sparkle' }, brows: 'none',
+        scarf: { color: '#c42a30', dir: -1, len: 104, big: true, top: 13 } }
     },
     hayate: {
       skin: '#f0c6a0', hair: { color: '#55595f', bangs: 'jag', front: 8, side: -26, back: -40, amp: 12, per: 14, vol: 6, parts: [{ kind: 'spikes', list: [[0, 64, 22, 16, 0], [-40, 52, 20, 14, -12], [40, 52, 20, 14, 12], [-120, 40, 18, 16], [120, 40, 18, 16], [180, 40, 18, 16], [-84, 28, 16, 14], [84, 28, 16, 14]] }] },
@@ -152,7 +178,9 @@
       sleeves: { kind: 'short' }, arms: { guard: '#2a2a30', guardSide: 1, glove: { side: -1, color: '#8a5a36', tassel: '#3a7ad8' } },
       arm: { '-1': { E: [-36, -20, 10], H: [-38, -8, 18], hand: 'fist' } },
       bottom: { kind: 'pants', color: '#26386b', wrap: '#1e1e22' }, feet: { kind: 'boot', color: '#1e1e22', toe: '#a8adb5' },
-      back: KT, companions: [{ kind: 'hawk', hand: -1 }]
+      back: KT, companions: [{ kind: 'hawk', hand: -1 }],
+      off: { hair: { color: '#5c5f63', bangs: 'jag', front: 0, side: -30, back: -46, amp: 13, per: 15, vol: 6, rough: 0, parts: [{ kind: 'spikes', list: [[40, 56, 28, 22, 40], [80, 40, 26, 20, 30], [110, 24, 24, 18, 20], [-50, 48, 18, 16, -12], [150, 30, 20, 18], [-130, 30, 18, 16]] }] },
+        eyes: { style: 'half', color: '#e8b818', sharp: true }, brows: 'thick', browsOver: true, mask: { kind: 'cloth', color: '#252b4f', top: -27 }, top: { color: '#252b4f' }, marks: [{ kind: 'scar', th: 30, ph: -6 }] }
     },
     uka: {
       skin: '#f7dac0', hair: { color: '#d9a45c', bangs: 'messy', front: 4, side: -50, back: -56, amp: 10, vol: 8, tipColor: '#f6f1e6' }, ears: { kind: 'fox', color: '#d9a45c', inner: '#f6f1e6', tuft: '#ffffff' },
@@ -161,7 +189,11 @@
       sleeves: { kind: 'short', trim: '#c8202c', cross: '#c8202c' },
       arm: { '-1': { E: [-32, -18, 12], H: [-14, 2, 24], hand: 'peace' } },
       bottom: { kind: 'skirt', color: '#c8202c' }, legs: { color: '#f4f1ea', dash: '#c8202c', top: 0.25 }, feet: { kind: 'sandal', color: '#2a2226', strap: '#c8202c' },
-      tail: { kind: 'fox', color: '#d9a45c', tip: '#f6f1e6', side: -1 }, prop: { kind: 'fuda', hand: 1 }
+      tail: { kind: 'fox', color: '#d9a45c', tip: '#f6f1e6', side: -1 }, prop: { kind: 'fuda', hand: 1 },
+      off: { hair: { color: '#c09a62', bangs: 'messy', front: -4, side: -56, back: -60, amp: 11, per: 16, vol: 6, rough: 0, tipColor: null, parts: [{ kind: 'curtain', len: 1.1, w: [24, 28, 26, 14], tip: '#f6f1e6' }] },
+        ears: { kind: 'fox', color: '#c09a62', inner: '#f6f1e6', tuft: '#ffffff', th: 42 }, eyes: { style: 'anime', color: '#7a68d8', sharp: true, pupil: 'sparkle', browY: 18 }, browsOver: true, mouth: 'openFang', blush: true,
+        marks: [{ kind: 'whiskers', color: '#2a1e1a' }],
+        tail: { kind: 'fox', color: '#c09a62', tip: '#f6f1e6', side: -1 } }
     },
     ganzi: {
       skin: '#ebbe95', hair: { color: '#8e8e90', bangs: 'swept', front: 20, side: -24, back: -40, vol: 6, slope: 0.2, parts: [{ kind: 'top', h: 0.98, w: [34, 26, 16, 4] }, { kind: 'spikes', list: [[-24, 72, 18, 14, -16], [24, 72, 18, 14, 16], [0, 80, 22, 14, 0], [-160, 50, 16, 16], [160, 50, 16, 16]] }, { kind: 'beard', color: '#9a9a9c' }] },
@@ -169,14 +201,20 @@
       eyes: { style: 'sharp', color: '#5a7a90' }, eyepatch: { side: 1 }, brows: 'thick', browColor: '#6e6e70', cheek: false,
       top: { color: '#6e5d48', trim: '#4a3e30', inner: '#4a3e30' }, obi: { color: '#3a3a3c', knot: 'buckle' },
       over: { kind: 'haori', color: '#2a2a2c', lining: '#b8492a', open: 26 }, sleeves: { kind: 'wide' }, arms: { beads: '#9a4a2a' },
-      bottom: { kind: 'hakama', color: '#4a3e30' }, feet: { kind: 'boot', color: '#26262b', toe: '#9a9ca3' }, pose: 'seal'
+      bottom: { kind: 'hakama', color: '#4a3e30' }, feet: { kind: 'boot', color: '#26262b', toe: '#9a9ca3' }, pose: 'seal',
+      off: { hair: { color: '#7e7e7f', bangs: 'swept', front: 24, side: -20, back: -40, vol: 7, slope: 0.25, parts: [{ kind: 'top', h: 1.02, w: [26, 20, 14, 4], ring: '#a8392a' }, { kind: 'beard', color: '#7a7a7b', big: true }] },
+        streaks: [{ th: -40, w: 14, color: '#e6e6e3', len: 46 }], brows: 'bushy', browColor: '#9c9c9c', browsOver: true, eyes: { style: 'half', color: '#6a8494', sharp: true, browY: 17 } }
     },
     yui: {
       skin: '#f4d8c0', hair: { color: '#b71c24', bangs: 'straight', front: 1, side: -52, back: -56, fw: 56, vol: 5 }, ribbon: { th: 66, ph: 44, color: '#1a1a1a', size: 2.2 }, flower: { th: 56, ph: 22, color: '#f7b8cc', size: 8 },
       eyes: { style: 'iris', color: '#2a1a1a', lash: true },
       top: { color: '#2b2b2e', len: 'long', trim: '#f4f1ea', inner: '#f4f1ea' }, obi: { color: '#c0392b', knot: 'knot' },
       sleeves: { kind: 'long', pattern: 'sakura', patternColor: '#f4b6c8' }, bottom: { kind: 'none' }, feet: { kind: 'geta', color: '#f4f1ea', sole: '#1a1a1a', strap: '#f4f1ea' },
-      pose: 'hold', prop: { kind: 'scroll', color: '#6b3fa8', cap: '#8a5a36' }
+      pose: 'hold', prop: { kind: 'scroll', color: '#6b3fa8', cap: '#8a5a36' },
+      off: { hair: { color: '#a8191b', bangs: 'straight', front: -3, side: -66, back: -66, fw: 66, vol: 7, flare: 6, strands: [-34, -12, 10, 30] },
+        ribbon: { th: 58, ph: 66, color: '#1a1a1a', size: 2.6, behind: true }, flower: { th: 60, ph: 28, color: '#f7b8cc', size: 9 },
+        eyes: { style: 'narrow', color: '#1a1414' }, mouth: 'lips', blush: true,
+        sleeves: { kind: 'long', pattern: 'flower4', patternColor: '#f4f1ea' }, top: { vee: '#f4f1ea' } }
     },
     fuuta: {
       skin: '#f0cba0', hair: { color: '#7e2e2c', bangs: 'jag', front: 8, side: -26, back: -40, amp: 12, per: 13, vol: 6 }, hat: { color: '#9a6a3a', crest: '#a32b29', r: 72 },
@@ -185,7 +223,8 @@
       over: { kind: 'cape', color: '#22304f', lining: '#a32b29', pattern: { kind: 'stripes', color: '#e8e4da', step: 22, w: 3.5 }, open: 30 },
       sleeves: { kind: 'short', color: '#22304f' }, arm: { '1': { E: [34, -22, 12], H: [12, -6, 24], hand: 'twofinger' } },
       bottom: { kind: 'pants', color: '#22304f', wrap: '#1a1a1a' }, feet: { kind: 'boot', color: '#1a1a1a', toe: '#5a5c63' },
-      back: { katana: { hip: true, side: -1 } }
+      back: { katana: { hip: true, side: -1 } },
+      off: { hat: { color: '#8c6748', crest: '#b8322a', r: 80 }, hair: { color: '#80302c', bangs: 'jag', front: -2, side: -30, back: -42, amp: 10, per: 13, vol: 5 }, eyes: { style: 'half', color: '#2a1a18', sharp: true }, mouth: 'smirk' }
     },
     rei: {
       skin: '#f5dcc4', hair: { color: '#1e1e22', bangs: 'part', front: 6, side: -40, back: -50, partH: 14, partW: 24, vol: 4, parts: [{ kind: 'bun', th: 180, ph: 74, r: 18 }], locks: { th: 78, w: [10, 10, 8, 3], ph1: -80 } },
@@ -193,7 +232,10 @@
       band: { color: '#1e7c74', plate: 3 },
       eyes: { style: 'sharp', color: '#2a1a1a' }, liner: '#d8303a', mouth: 'flat',
       top: { color: '#a5a5a8', len: 'long', trim: '#f4f1ea', inner: '#f4f1ea', tasuki: '#1a1a1a', pattern: { kind: 'dots', color: '#d8b04a', r: 2 } }, obi: { color: '#5b3a7e', knot: 'knot' },
-      sleeves: { kind: 'wide' }, bottom: { kind: 'none' }, feet: { kind: 'boot', color: '#1a1a1a', toe: '#f4f1ea' }, prop: { kind: 'dagger' }
+      sleeves: { kind: 'wide' }, bottom: { kind: 'none' }, feet: { kind: 'boot', color: '#1a1a1a', toe: '#f4f1ea' }, prop: { kind: 'dagger' },
+      off: { hair: { color: '#2a2a2e', bangs: 'part', front: 2, side: -46, back: -54, partH: 14, partW: 24, vol: 4, parts: [{ kind: 'bun', th: 170, ph: 78, r: 20 }], locks: { th: 74, w: [12, 12, 10, 3], ph1: -84 } },
+        pins: { color: '#e0a23c', list: [[-30, 70, 28, 12, -16]] }, flower: null, band: { color: '#2f6058', plate: 3 },
+        eyes: { style: 'half', color: '#2a1a1a', sharp: true }, liner: '#c8303a', mouth: 'lips', blush: true, top: { vee: '#f4f1ea' } }
     },
     sattva: {
       skin: '#f6dcc2', hair: { color: '#1a1a1e', bangs: 'part', front: 14, side: -30, back: -40, partH: 10, vol: 3, parts: [{ kind: 'bun', th: 180, ph: 80, r: 22 }] },
@@ -201,7 +243,8 @@
       eyes: { style: 'closed', lash: true }, marks: [{ kind: 'urna', ph: 12, color: '#d8303a' }],
       top: { color: '#f0ede8', len: 'long', trim: '#e2dccf', inner: '#e2dccf', necklace: '#e2b93b', collar: 'round' }, obi: { color: '#c9a227', knot: 'knot' },
       sleeves: { kind: 'wide' }, arm: { '-1': { E: [-32, -22, 12], H: [-12, -10, 24], hand: 'twofinger' } },
-      bottom: { kind: 'none' }, feet: { kind: 'sandal', color: '#f6dcc2', sole: '#8a6a44', strap: '#8a6a44' }, halo: true
+      bottom: { kind: 'none' }, feet: { kind: 'sandal', color: '#f6dcc2', sole: '#8a6a44', strap: '#8a6a44' }, halo: true,
+      off: { blush: true, eyes: { style: 'closed', lash: true }, mouth: 'smile', marks: [{ kind: 'urna', ph: 6, color: '#d8303a' }] }
     },
     nekomata: {
       skin: '#efe0c4', head: { kind: 'cat', fur: '#efe0c4', fur2: '#f7efdc', patches: [{ poly: [[-110, 92], [-8, 92], [-4, 40], [-30, 22], [-64, 12], [-110, 24]], color: '#6b4a38' }, { poly: [[12, 92], [110, 92], [110, 12], [62, 20], [30, 34], [14, 50]], color: '#b5673a' }] },
@@ -211,7 +254,9 @@
       top: { color: '#2c3550', trim: '#1e2438', inner: '#1e2438' }, obi: { color: '#5a5c63', knot: 'buckle' },
       over: { kind: 'haori', color: '#26262b', lining: '#26262b', trim: '#c0972f', open: 24 }, sleeves: { kind: 'wide', trim: '#c0972f' }, arms: { color: '#efe0c4' },
       bottom: { kind: 'hakama', color: '#2c3550' }, feet: { kind: 'sandal', color: '#1f1f23' },
-      back: KT, tail: { kind: 'cat', color: '#efe0c4', side: 1, patches: [[0.3, 8, '#6b4a38'], [0.65, 8, '#b5673a']] }, pose: 'seal'
+      back: KT, tail: { kind: 'cat', color: '#efe0c4', side: 1, patches: [[0.3, 8, '#6b4a38'], [0.65, 8, '#b5673a']] }, pose: 'seal',
+      off: { skin: '#e9dcc4', head: { kind: 'cat', fur: '#e9dcc4', fur2: '#f4ecdc', sx: 1.02, patches: [{ poly: [[-110, 92], [-8, 92], [-6, 50], [-30, 30], [-64, 22], [-110, 30]], color: '#6b4a38' }, { poly: [[12, 92], [110, 92], [110, 22], [62, 26], [30, 38], [14, 54]], color: '#b8703c' }] },
+        eyes: { style: 'anime', color: '#f2a517', pupil: 'slit', sharp: true, scar: 1, y: -24 }, mouth: 'cat', band: { color: '#2a3048', plate: 3, hi: 33, lo: 6 } }
     },
     janome: {
       skin: '#f6d6b8', hair: { color: '#4e8a55', bangs: 'jag', front: 8, side: -30, back: -42, amp: 13, per: 13, vol: 6, parts: [{ kind: 'tuft', th: 10, ph: 84, lean: 1 }, { kind: 'spikes', list: [[-130, 40, 16, 14], [130, 40, 16, 14], [180, 30, 16, 16], [-72, 40, 14, 12, -8], [72, 40, 14, 12, 8]] }] },
@@ -219,7 +264,9 @@
       eyes: { style: 'iris', color: '#c42a21', pupil: 'star', pupilColor: '#ffffff' }, mouth: 'openFang',
       top: { color: '#3f6b39', trim: '#2a4a26', inner: '#2a4a26', tasuki: '#1d1d21', pattern: { kind: 'squares', color: '#8cc07a', spots: [[-50, 0.9], [-15, 0.9], [20, 0.9], [55, 0.9]] } }, obi: { color: '#7a4fa6', knot: 'bow' },
       sleeves: { kind: 'short' }, bottom: { kind: 'skirt', color: '#3f6b39' }, legs: { color: '#3b3b41', top: 0.3 }, feet: { kind: 'sandal', color: '#f4f1ea', sole: '#1d1d21', strap: '#1d1d21' },
-      back: KT, prop: { kind: 'shuriken' }, companions: [{ kind: 'snake', color: '#f1efe9' }]
+      back: KT, prop: { kind: 'shuriken' }, companions: [{ kind: 'snake', color: '#f1efe9' }],
+      off: { hair: { color: '#5f9a58', bangs: 'jag', front: -2, side: -40, back: -50, amp: 11, per: 15, vol: 6, cover: [10, 40, -18], parts: [{ kind: 'ahoge', th: 20, ph: 82, lean: 1 }] },
+        band: { color: '#1e1e22', plate: 0, under: true, hi: 22, lo: 16, knot: -100 }, blush: true, eyes: { style: 'anime', color: '#c42a21', pupil: 'star', pupilColor: '#ffffff' } }
     },
     benten: {
       skin: '#f2dcc4', hair: { color: '#1c1a1d', bangs: 'straight', front: 1, side: -50, back: -56, fw: 56, vol: 5, parts: [{ kind: 'loops' }] },
@@ -227,7 +274,9 @@
       eyes: { style: 'iris', color: '#1c1a1d', lash: true }, liner: '#c42a24', marks: [{ kind: 'brows_red', color: '#c42a24' }],
       top: { color: '#262428', len: 'long', trim: '#c42a24', inner: '#ede7dd', pattern: { kind: 'maple', color: '#c42a24', r: 6 }, emblem: { kind: 'circle', color: '#ede7dd', th: 20, y: 84, r: 5 } }, obi: { color: '#c42a24', knot: 'knot' },
       sleeves: { kind: 'long', pattern: 'maple', patternColor: '#c42a24' }, bottom: { kind: 'none' }, feet: { kind: 'geta', color: '#f4f1ea', sole: '#2a2226', strap: '#c42a24' },
-      prop: { kind: 'shamisen' }
+      prop: { kind: 'shamisen' },
+      off: { skin: '#f6ece6', eyes: { style: 'anime', color: '#1c1a1d', lash: true, sharp: true }, mouth: 'lips',
+        armOff: { '1': { E: [33, -12, 12], H: [30, 8, 20], hand: 'fist' }, '-1': { E: [-34, -16, 10], H: [-20, -32, 22], hand: 'fist' } } }
     },
     karma: {
       skin: '#f5d6b6', hair: { color: '#d5d3d2', bangs: 'jag', front: 6, side: -30, back: -42, amp: 13, per: 13, vol: 7, parts: [{ kind: 'spikes', list: [[-40, 56, 20, 14, -14], [40, 56, 20, 14, 14], [0, 70, 18, 14], [-120, 40, 18, 16], [120, 40, 18, 16], [180, 30, 18, 16]] }] },
@@ -235,7 +284,9 @@
       scarf: { color: '#4b3f9a', dir: -1, len: 104 },
       top: { color: '#2b2b31', trim: '#1e1e22', inner: '#1e1e22', tasuki: '#b4222c' }, obi: { color: '#2b2b31', chain: '#8a8d94', knot: 'none' },
       sleeves: { kind: 'short', one: -1, color: '#2c3550', shoulder: '#2a2a2e' }, arms: { guard: '#1e1e22', spikes: true },
-      bottom: { kind: 'pants', color: '#1e1e22', wrap: '#1e1e22' }, feet: { kind: 'sandal', color: '#f4f1ea', sole: '#1e1e22', strap: '#1e1e22' }, prop: { kind: 'kama' }
+      bottom: { kind: 'pants', color: '#1e1e22', wrap: '#1e1e22' }, feet: { kind: 'sandal', color: '#f4f1ea', sole: '#1e1e22', strap: '#1e1e22' }, prop: { kind: 'kama' },
+      off: { hair: { color: '#c9c8cc', bangs: 'jag', front: -3, side: -42, back: -52, amp: 12, per: 14, vol: 6, rough: 0, parts: [{ kind: 'spikes', list: [[56, 34, 26, 18, 34], [84, 14, 26, 18, 30], [100, -6, 22, 16, 24], [-84, 4, 18, 14, -12], [150, 20, 18, 16], [-150, 20, 18, 16]] }] },
+        eyes: { style: 'anime', color: '#c8202b', sharp: true, lower: true }, scarf: { color: '#4b3f9a', dir: -1, len: 104, big: true, top: 1 } }
     },
     ichiya: {
       skin: '#f6d9bc', hair: { color: '#52396b', bangs: 'messy', front: 2, side: -36, back: -46, amp: 13, vol: 9 }, ears: { kind: 'cat', color: '#52396b', inner: '#f0c0c8', th: 46, ph: 44 },
@@ -244,7 +295,9 @@
       top: { color: '#4c3766', trim: '#2a272c', inner: '#2a272c' }, obi: { color: '#9a9ca3', knot: 'none', plates: '#c9ccd3' },
       over: { kind: 'haori', color: '#2a272c', lining: '#2a272c', hem: 24, open: 22 }, sleeves: { kind: 'wide' },
       bottom: { kind: 'hakama', color: '#4c3766' }, feet: { kind: 'sandal', color: '#23222a' },
-      prop: { kind: 'brush' }, companions: [{ kind: 'rainbow', side: -1 }, { kind: 'rainbow', side: 1 }]
+      prop: { kind: 'brush' }, companions: [{ kind: 'rainbow', side: -1 }, { kind: 'rainbow', side: 1 }],
+      off: { hair: { color: '#5a4258', bangs: 'messy', front: -4, side: -40, back: -50, amp: 12, per: 15, vol: 6, rough: 4 }, ears: { kind: 'cat', color: '#5a4258', inner: '#e8c4c8', th: 46, ph: 44 },
+        mask: null, scarf: { color: '#d8862f', color2: '#8a4a1e', pattern: 'check', big: true, top: 14, tail: false }, eyes: { style: 'half', color: '#8a52c8' } }
     },
     nemu: {
       skin: '#f7d3b2', hair: { color: '#4a3348', bangs: 'messy', front: 3, side: -40, back: -48, amp: 13, vol: 9 },
@@ -262,7 +315,8 @@
       top: { color: '#26262b', trim: '#1e1e22', inner: '#1e1e22', suspenders: '#6e52b8' }, obi: { color: '#6e52b8', knot: 'bow' },
       sleeves: { kind: 'short' }, arms: { beads: '#3a8ad8' }, arm: { '-1': { E: [-32, -20, 12], H: [-12, -4, 24], hand: 'twofinger' } },
       bottom: { kind: 'skirt', color: '#26262b' }, legs: { color: '#26262b', top: 0.2, band: '#6e52b8' }, feet: { kind: 'boot', color: '#1e1e22' },
-      wings: { color: '#26262b', sheen: '#6a5a9a' }
+      wings: { color: '#26262b', sheen: '#6a5a9a' },
+      off: { hair: { color: '#2c2c33', bangs: 'side', slope: 0.3, front: 0, side: -54, back: -58, vol: 6, cover: [-62, -2, -46], parts: [{ kind: 'long', len: 0.8 }] }, eyes: { style: 'anime', color: '#2fbfb2', sharp: true }, mask: { kind: 'cloth', color: '#26262b', top: -27 } }
     },
     xiaolan: {
       skin: '#fbdabe', hair: { color: '#e8703a', bangs: 'side', slope: -0.25, front: 4, side: -40, back: -46, vol: 5, parts: [{ kind: 'bun', th: -52, ph: 58, r: 22 }, { kind: 'bun', th: 52, ph: 58, r: 22 }] },
@@ -270,7 +324,9 @@
       top: { color: '#e0a81e', trim: '#26262b', inner: '#26262b', emblem: { kind: 'diamond', color: '#26262b', th: 18, y: 82, r: 4 } }, obi: { color: '#f0ede8', knot: 'bow' },
       sleeves: { kind: 'short', trim: '#26262b' }, arms: { bandage: true }, arm: { '1': { E: [34, -18, 12], H: [16, 2, 24], hand: 'peace' } },
       bottom: { kind: 'skirt', color: '#e0a81e' }, legs: { color: '#6e6e70', top: 0.3 }, feet: { kind: 'boot', color: '#26262b' },
-      back: { katana: {}, panda: { cloth: '#c8302c' } }
+      back: { katana: {}, panda: { cloth: '#c8302c' } },
+      off: { hair: { color: '#ec7a3c', bangs: 'side', slope: -0.25, front: 0, side: -44, back: -50, vol: 5, parts: [{ kind: 'bun', th: -50, ph: 60, r: 27, ring: '#d0602a' }, { kind: 'bun', th: 50, ph: 60, r: 27, ring: '#d0602a' }] },
+        eyes: { style: 'anime', color: '#4a4a8c', lash: true }, mouth: 'o', blush: true }
     },
     aum: {
       skin: '#6fa8d8', hair: { color: '#4a4266', bangs: 'jag', front: 8, side: -30, back: -42, amp: 14, per: 12, vol: 8, parts: [{ kind: 'spikes', list: [[0, 70, 30, 18, 0], [-30, 62, 28, 16, -10], [30, 62, 28, 16, 10], [-62, 50, 22, 14, -14], [62, 50, 22, 14, 14], [-150, 40, 22, 18], [150, 40, 22, 18]] }, { kind: 'pony', sway: 1, tie: '#4fb34a', w: [14, 26, 30, 24, 6], up: 1.1 }] },
@@ -278,7 +334,10 @@
       eyes: { style: 'iris', color: '#e01b1b' }, mouth: 'openFang', brows: 'angry', cheek: false,
       top: { color: '#26262b', trim: '#1e1e22', inner: '#1e1e22', tasuki: '#1e1e22', chest: '#a3252c', flameChest: '#26262b' }, obi: { color: '#2a2a2e', studs: '#b9bcc0', knot: 'none' },
       sleeves: { kind: 'short' }, arms: { guard: '#8a8d94', spikes: true }, bottom: { kind: 'pants', color: '#26262b', wrap: '#1e1e22' }, feet: { kind: 'boot', color: '#1e1e22' },
-      back: KT, prop: { kind: 'kanabo', long: true }
+      back: KT, prop: { kind: 'kanabo', long: true },
+      off: { hair: { color: '#3d3a64', bangs: 'jag', front: -4, side: -40, back: -50, amp: 14, per: 13, vol: 7, rough: 14, roughTop: 92, parts: [{ kind: 'spikes', list: [[-30, 66, 32, 18, -24], [-70, 44, 30, 18, -30], [10, 74, 26, 16, -6], [-110, 20, 26, 18, -20], [100, 30, 24, 16, 24], [80, -10, 24, 16, 20]] }] },
+        band: { color: '#2b2b30', plate: 1, pw: 18, hi: 18, lo: -4 }, horns: { color: '#d8ccaa', list: [[26, 50, 26, 9, 20, 18]] },
+        eyes: { style: 'anime', color: '#e01b1b', pupil: 'sparkle' }, shadowLid: '#7a4aa0', mouth: 'shark', brows: 'none' }
     },
     konga: {
       build: 'big', skin: '#8c8c90', head: { kind: 'gorilla', fur: '#3a3a3f', face: '#9a9a9e' }, ears: { kind: 'round', color: '#3a3a3f', inner: '#6a6a6e' },
@@ -286,21 +345,24 @@
       top: { color: '#8c8c90', collar: 'none', tasuki: '#7b3f9e', tasukiW: 8 }, obi: { color: '#2a2a2e', studs: '#b9bcc0', knot: 'none' },
       sleeves: { kind: 'none' }, arms: { color: '#3a3a3f', hand: '#8c8c90' },
       arm: { '1': { E: [46, -14, 8], H: [30, 4, 20], hand: 'thumb' }, '-1': { E: [-44, -24, 10], H: [-20, -24, 22], hand: 'fist' } },
-      bottom: { kind: 'pants', color: '#2e3040' }, feet: { kind: 'bare', color: '#8c8c90' }, back: KT
+      bottom: { kind: 'pants', color: '#2e3040' }, feet: { kind: 'bare', color: '#8c8c90' }, back: KT,
+      off: { head: { kind: 'gorilla', fur: '#36363b', face: '#8a8a8e', sx: 1.04 }, band: { color: '#7b3f9e', plate: 3, hi: 24, lo: 2 } }
     },
     shion: {
       skin: '#f6d9bc', hair: { color: '#8a2a33', bangs: 'side', slope: 0.28, front: 4, side: -44, back: -50, vol: 6, parts: [{ kind: 'pony', sway: -1, tie: '#6b3fa8', w: [14, 24, 26, 20, 4] }] },
       eyes: { style: 'iris', color: '#dc2148' }, brows: 'angry', mouth: 'frown', cheek: '#f08a8a',
       fur: { color: '#26262b' },
       top: { color: '#34424e', trim: '#26262b', inner: '#26262b' }, obi: { color: '#de8b2e', stripe: '#26262b', cord: '#6b3fa8', knot: 'bow', knotColor: '#6b3fa8' },
-      sleeves: { kind: 'short' }, claws: { color: '#5a5c63' }, bottom: { kind: 'skirt', color: '#34424e' }, legs: { color: '#3b3b40', top: 0.2 }, feet: { kind: 'boot', color: '#26262b' }
+      sleeves: { kind: 'short' }, claws: { color: '#5a5c63' }, bottom: { kind: 'skirt', color: '#34424e' }, legs: { color: '#3b3b40', top: 0.2 }, feet: { kind: 'boot', color: '#26262b' },
+      off: { hair: { color: '#7c2a2e', bangs: 'jag', front: -2, side: -44, back: -52, amp: 11, per: 14, vol: 6, rough: 4, roughTop: 30, parts: [{ kind: 'pony', sway: -1, tie: '#6b3fa8', len: 0.95 }] }, blush: true, eyes: { style: 'anime', color: '#dc2148', sharp: true } }
     },
     seori: {
       skin: '#f8ddc3', hair: { color: '#a8c0d6', bangs: 'straight', front: 2, side: -54, back: -58, fw: 56, vol: 5, parts: [{ kind: 'long', len: 0.9 }] }, candles: {},
       eyes: { style: 'iris', color: '#d8324f', lash: true }, mouth: 'fang',
       top: { color: '#f1eee9', trim: '#26262b', inner: '#26262b' }, obi: { color: '#7e63c6', knot: 'knot' },
       sleeves: { kind: 'short', trim: '#ee8fab' }, bottom: { kind: 'shorts', color: '#26262b' }, legs: { color: '#f4f1ea' }, feet: { kind: 'sandal', color: '#f4f1ea', strap: '#7e63c6' },
-      prop: { kind: 'mallet' }, companions: [{ kind: 'ghost', at: [-66, 150, 10] }]
+      prop: { kind: 'mallet' }, companions: [{ kind: 'ghost', at: [-66, 150, 10] }],
+      off: { blush: true, eyes: { style: 'anime', color: '#d8324f' }, mouth: 'openFang', marks: [{ kind: 'eyebags', color: '#7a5a7a' }] }
     },
     quon: {
       skin: '#f7dcc0', hair: { color: '#2c63d6', bangs: 'messy', front: 3, side: -40, back: -48, amp: 12, vol: 8, parts: [{ kind: 'ahoge', lean: -1 }] }, ears: { kind: 'cat', color: '#2c63d6', inner: '#f0c0c8', th: 46, ph: 44, tuft: '#ffffff' },
@@ -309,7 +371,8 @@
       top: { color: '#2e5c9e', trim: '#1e3a6a', inner: '#1e3a6a' }, obi: { color: '#efede6', knot: 'knot' },
       over: { kind: 'haori', color: '#26262b', lining: '#26262b', open: 24, hem: 40 }, sleeves: { kind: 'wide' }, pose: 'fists',
       bottom: { kind: 'skirt', color: '#2e5c9e' }, legs: { color: '#26262b', top: 0.2 }, feet: { kind: 'boot', color: '#26262b', toe: '#efede6' },
-      back: KT, tail: { kind: 'cat', color: '#2c63d6', tip: '#efede6', side: -1 }, companions: [{ kind: 'wisps' }]
+      back: KT, tail: { kind: 'cat', color: '#2c63d6', tip: '#efede6', side: -1 }, companions: [{ kind: 'wisps' }],
+      off: { skin: '#f6ebe2', hair: { color: '#3a78d8', bangs: 'messy', front: -3, side: -44, back: -52, amp: 12, per: 15, vol: 6, rough: 3, roughTop: 30, parts: [{ kind: 'ahoge', lean: -1 }] }, mouth: 'openFang', marks: [{ kind: 'whiskers', color: '#2a1e1a' }], blush: true }
     },
     magoichi: {
       skin: '#f5d3b0', hair: { color: '#2c7a4a', bangs: 'jag', front: 8, side: -28, back: -40, amp: 13, per: 13, vol: 7, parts: [{ kind: 'spikes', list: [[-40, 56, 20, 14, -12], [40, 56, 20, 14, 12], [0, 68, 20, 14], [-120, 40, 18, 16], [120, 40, 18, 16], [180, 30, 18, 16]] }] },
@@ -318,7 +381,9 @@
       fur: { color: '#3f8c50' },
       top: { color: '#f5d3b0', collar: 'none', pattern: { kind: 'tattoo', color: '#2c5a3a', spots: [[-34, 0.22], [28, 0.28], [-8, 0.45], [40, 0.55]] } }, obi: { color: '#efede6', cord: '#efede6', knot: 'none' },
       over: { kind: 'coat', color: '#26262b', lining: '#c8302c', open: 34, stitch: '#efede6' }, sleeves: { kind: 'short', color: '#26262b' },
-      bottom: { kind: 'pants', color: '#26262b' }, feet: { kind: 'boot', color: '#1e1e22', toe: '#efede6' }, prop: { kind: 'pistol' }
+      bottom: { kind: 'pants', color: '#26262b' }, feet: { kind: 'boot', color: '#1e1e22', toe: '#efede6' }, prop: { kind: 'pistol' },
+      off: { hair: { color: '#2f7a52', bangs: 'jag', front: 4, side: -30, back: -46, amp: 14, per: 13, vol: 7, rough: 10, roughTop: 92, parts: [{ kind: 'spikes', list: [[-20, 70, 26, 18, -20], [20, 70, 24, 18, 24], [60, 54, 24, 16, 30], [-60, 54, 22, 16, -24], [150, 40, 20, 18], [-150, 40, 20, 18]] }, { kind: 'goatee', color: '#2f7a52' }] },
+        band: null, fur: null, eyes: { style: 'anime', color: '#9ac84a', sharp: true, lower: true }, skin: '#d9a77c', top: { color: '#d9a77c' } }
     },
     ibuki: {
       skin: '#f7ddc0', hair: { color: '#4b4570', bangs: 'straight', front: 4, side: -46, back: -50, fw: 56, vol: 4, parts: [{ kind: 'top', h: 1.1, w: [18, 16, 14, 5], ring: '#e0b23c' }] },
@@ -327,7 +392,9 @@
       over: { kind: 'haori', color: '#26262b', lining: '#6b4b9c', trim: '#c0232c', open: 24 }, sleeves: { kind: 'wide' },
       arm: { '-1': { E: [-32, -20, 12], H: [-12, -4, 24], hand: 'twofinger' } },
       bottom: { kind: 'hakama', color: '#6b4b9c' }, feet: { kind: 'sandal', color: '#26262b', sole: '#e0b23c' },
-      prop: { kind: 'fuda1', hand: 1 }, companions: [{ kind: 'imp' }]
+      prop: { kind: 'fuda1', hand: 1 }, companions: [{ kind: 'imp' }],
+      off: { hair: { color: '#4b4878', bangs: 'part', partH: 20, partW: 34, front: -2, side: -56, back: -58, fw: 60, vol: 5, flare: 2, parts: [{ kind: 'top', h: 1.1, w: [18, 16, 14, 5], ring: '#e0b23c' }] }, brows: 'dot', browColor: '#1d1a26',
+        eyes: { style: 'anime', color: '#35c04a', sharp: true, browY: 15 } }
     },
     oen: {
       build: 'small', skin: '#f7ddc2', hair: { color: '#6f9a52', bangs: 'messy', front: 4, side: -40, back: -48, amp: 11, vol: 7 }, streaks: [{ th: 12, w: 8, color: '#f4f1ea', len: 32 }],
@@ -336,7 +403,8 @@
       top: { color: '#6d9950', trim: '#26262b', inner: '#26262b', cord: '#e8901f' }, obi: { color: '#f0ede8', knot: 'bow' },
       over: { kind: 'haori', color: '#ce5a1d', lining: '#a8481a', pattern: { kind: 'flower4', color: '#f7efe0', r: 5 }, open: 26, hem: 46 }, sleeves: { kind: 'wide' }, pose: 'fists',
       bottom: { kind: 'skirt', color: '#6d9950' }, legs: { color: '#3e4247', top: 0.25, band: '#f0ede8' }, feet: { kind: 'geta', color: '#f4f1ea', sole: '#8a5a36', strap: '#4f8a3a' },
-      back: { box: { color: '#7a4a26', strap: '#f1efe8' } }, tail: { kind: 'cat', color: '#6f9a52', tip: '#f4f1ea', side: 1 }
+      back: { box: { color: '#7a4a26', strap: '#f1efe8' } }, tail: { kind: 'cat', color: '#6f9a52', tip: '#f4f1ea', side: 1 },
+      off: { hair: { color: '#5f9a4c', bangs: 'messy', front: -2, side: -44, back: -52, amp: 10, per: 16, vol: 6, rough: 3, roughTop: 20 }, ears: { kind: 'cat', color: '#5f9a4c', inner: '#f0c0c8', tuft: '#ffffff', th: 46, ph: 44 }, blush: true }
     },
     izuna: {
       skin: '#f8dfc6', hair: { color: '#221f1e', bangs: 'part', front: 4, side: -54, back: -58, partH: 12, vol: 5, parts: [{ kind: 'long', len: 1.1 }], locks: { th: 70, w: [14, 14, 12, 4], inner: '#2f97d6', ph1: -86 } },
@@ -345,7 +413,8 @@
       top: { color: '#f0ede8', trim: '#26262b', inner: '#26262b' }, obi: { color: '#d9a62a', knot: 'none' },
       sleeves: { kind: 'wide', trim: '#26262b' }, arm: { '-1': { E: [-32, -16, 12], H: [-16, 4, 22], hand: 'point' } },
       bottom: { kind: 'hakama', color: '#a32530', bow: '#c8302c' }, feet: { kind: 'sandal', color: '#f4f1ea', strap: '#c8302c' },
-      tail: { kind: 'fox', color: '#221f1e', tip: '#f4f1ea', side: 1 }
+      tail: { kind: 'fox', color: '#221f1e', tip: '#f4f1ea', side: 1 },
+      off: { ears: { kind: 'fox', color: '#2a2628', inner: '#c9c6c8', tuft: '#f4f1ea', th: 44 }, blush: true, eyes: { style: 'anime', color: '#7a58c8', lash: true, wink: 1 } }
     },
     sekishusai: {
       skin: '#efc9a2', hair: { color: '#2a2a2e', bangs: 'jag', front: 8, side: -26, back: -40, amp: 13, per: 12, vol: 6, parts: [{ kind: 'spikes', list: [[0, 74, 34, 16, 0], [-24, 66, 30, 14, -10], [24, 66, 30, 14, 10], [-60, 52, 22, 14, -16], [60, 52, 22, 14, 16], [-150, 40, 22, 16], [150, 40, 22, 16]] }, { kind: 'top', h: 0.95, w: [22, 16, 8, 2], ring: '#c75b18' }, { kind: 'goatee' }] },
@@ -355,7 +424,10 @@
       over: { kind: 'haori', color: '#26262b', lining: '#26262b', trim: '#d9d9d6', open: 22, hem: 44 }, sleeves: { kind: 'wide', pattern: 'flame', patternColor: '#c8302c' },
       arm: { '1': { E: [34, -26, 10], H: [30, -34, 20], hand: 'fist' } },
       bottom: { kind: 'hakama', color: '#26262b' }, feet: { kind: 'sandal', color: '#26262b', strap: '#f4f1ea' },
-      back: { katana: { hip: true, side: 1, second: true } }
+      back: { katana: { hip: true, side: 1, second: true } },
+      off: { hair: { color: '#2e2e33', bangs: 'jag', front: 0, side: -36, back: -50, amp: 13, per: 13, vol: 6, rough: 9, roughTop: 70, parts: [{ kind: 'spikes', list: [[-40, 60, 30, 18, -30], [-80, 40, 28, 18, -26], [0, 74, 26, 16, -10], [40, 60, 22, 16, 16], [-120, 30, 22, 18]] }, { kind: 'pony', sway: -1, tie: '#c75b18', len: 0.7, up: 1.05, w: [16, 20, 18, 12, 2] }, { kind: 'goatee', color: '#3a3a3e' }] },
+        streaks: [{ th: 22, w: 12, color: '#ececea', kind: 'bolt' }], eyes: { style: 'anime', color: '#d88a28', sharp: true }, mouth: 'grinFang', brows: 'thick', browsOver: true,
+        over: { kind: 'haori', color: '#26262b', lining: '#26262b', trim: '#d9d9d6', open: 22, hem: 44, pattern: { kind: 'flames', color: '#c8302c', h: 30 } } }
     },
     sasagane: {
       skin: '#f3edee', hair: { color: '#211d22', bangs: 'part', front: 6, side: -44, back: -52, partH: 10, vol: 5, parts: [{ kind: 'oiran', stripe: '#7a3ea6' }] },
@@ -567,7 +639,8 @@
       obi: { color: of.obi || st.obi, knot: 'bow' },
       sleeves: { kind: 'short' }, arms: { guard: '#3a3a40' },
       bottom: { kind: 'pants', color: of.top || st.top, wrap: '#3a3a40' }, feet: { kind: 'sandal', color: '#2a2226' },
-      back: of.katana === false ? {} : { katana: {} }
+      back: of.katana === false ? {} : { katana: {} },
+      off: { band: { hi: 17, lo: -3 }, blush: true } // 公式に忠実な絵柄（約2.7頭身）では、鉢巻を細めに
     };
   }
 

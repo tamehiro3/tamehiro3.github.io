@@ -53,6 +53,8 @@
     if (line) out.push(line);
     return out;
   }
+  // ゲームの中の姿の段は、上に余白をとった枠（高く結った髪がすぐ上の見出しにかからないように。足もとの位置はほぼ同じ）
+  var VBH = '0 -28 200 268';
   // キャラ1体を (x,y,w,h) の枠に置く（viewBox 200×240、地面は y=232。枠の中央にそろう）
   function fig(def, x, y, w, h, opt) {
     var inner = A.render(def, Object.assign({ raw: true }, opt || {}));
@@ -196,7 +198,7 @@
     row1.forEach(function (v, i) {
       var x = 40 + i * cw1;
       if (v[1] === 'walk') o += speedLines(x + 6, t1 + 150) + dust(x + 84, t1 + ch1 - 14);
-      o += fig(def, x, t1, cw1, ch1, v[1] === 'walk' ? { yaw: v[2], pose: 'walk', frame: 1, prop: false, companions: false } : { yaw: v[2], pose: 'stand' });
+      o += fig(def, x, t1, cw1, ch1, v[1] === 'walk' ? { yaw: v[2], pose: 'walk', frame: 1, prop: false, companions: false, vb: VBH } : { yaw: v[2], pose: 'stand', vb: VBH });
       o += TG(x + cw1 / 2, t1 + ch1 + 30, v[0], 22, { anchor: 'middle', w: 700, ls: 3 });
     });
     var y2 = t1 + ch1 + 70, aw = 245, ah = 262, ay = y2 + 12;
@@ -204,7 +206,7 @@
     var ex = [['ふつう', 'stand', -8, null], ['うれしい', 'happy', -14, 'joy'], ['びっくり', 'surprised', 0, 'surprise'], ['しんけん', 'serious', 0, 'focus']];
     ex.forEach(function (e, i) {
       var x = 28 + i * aw;
-      o += fig(def, x, ay, aw, ah, { yaw: e[2], pose: e[1], fx: e[3], prop: false, companions: e[1] === 'stand' });
+      o += fig(def, x, ay, aw, ah, { yaw: e[2], pose: e[1], fx: e[3], prop: false, companions: e[1] === 'stand', vb: VBH });
       o += TG(x + aw / 2, ay + ah + 30, e[0], 22, { anchor: 'middle', w: 700, ls: 3 });
     });
     o += '<path d="M1030 ' + (y2 - 22) + 'V' + (ay + ah + 40) + '" stroke="#b8b2a8" stroke-width="2"/>';

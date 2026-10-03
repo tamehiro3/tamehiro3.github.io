@@ -60,10 +60,12 @@
     var t = Math.floor(n / 10), u = n % 10;
     return (t > 1 ? KANSUJI[t] : '') + '十' + KANSUJI[u];
   }
+  // ゲームの中の姿の段は、上に余白をとった枠（高く結った髪がすぐ上の見出しにかからないように。足もとの位置はほぼ同じ）
+  var VBH = '0 -28 200 268';
   // キャラ1体を (x,y,w,h) の枠に置く（viewBox 200×240、地面は y=232）
   function fig(def, x, y, w, h, opt) {
     var inner = A.render(def, Object.assign({ raw: true }, opt || {}));
-    return '<svg x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" viewBox="0 0 200 240" overflow="visible">' + inner + '</svg>';
+    return '<svg x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" viewBox="' + (opt && opt.vb || '0 0 200 240') + '" overflow="visible">' + inner + '</svg>';
   }
   function speedLines(x, y) {
     return '<g stroke="' + INK + '" stroke-width="4" stroke-linecap="round" opacity=".7"><path d="M' + x + ' ' + y + 'h46"/><path d="M' + (x + 14) + ' ' + (y + 16) + 'h30"/><path d="M' + (x - 6) + ' ' + (y + 32) + 'h40"/></g>';
@@ -216,7 +218,7 @@
     row1.forEach(function (v, i) {
       var x = 40 + i * cw1;
       if (v[1] === 'walk') o += speedLines(x + 6, t1 + 150) + dust(x + 84, t1 + ch1 - 14);
-      o += fig(def, x, t1, cw1, ch1, v[1] === 'walk' ? { yaw: v[2], pose: 'walk', frame: 1, prop: false, companions: false } : { yaw: v[2], pose: 'stand' });
+      o += fig(def, x, t1, cw1, ch1, v[1] === 'walk' ? { yaw: v[2], pose: 'walk', frame: 1, prop: false, companions: false, vb: VBH } : { yaw: v[2], pose: 'stand', vb: VBH });
       o += TG(x + cw1 / 2, t1 + ch1 + 30, v[0], 22, { anchor: 'middle', w: 700, ls: 3 });
     });
     var y2 = t1 + ch1 + 70, aw = 245, ah = 262, ay = y2 + 12;
@@ -224,7 +226,7 @@
     var gs = [['ふつう', 'stand', -8], ['うれしい', 'cheer', -12, 'joy', 'happy'], ['びっくり', 'guard', -4, 'surprise'], ['しんけん', 'serious', 0, 'focus']];
     gs.forEach(function (e, i) {
       var x = 28 + i * aw, cx = x + aw / 2;
-      o += fig(def, x, ay, aw, ah, { yaw: e[2], pose: e[1], fx: e[3], expr: e[4], prop: false, companions: e[1] === 'stand' });
+      o += fig(def, x, ay, aw, ah, { yaw: e[2], pose: e[1], fx: e[3], expr: e[4], prop: false, companions: e[1] === 'stand', vb: VBH });
       o += TG(cx, ay + ah + 30, e[0], 22, { anchor: 'middle', w: 700, ls: 3 });
     });
     o += '<path d="M1030 ' + (y2 - 22) + 'V' + (ay + ah + 40) + '" stroke="#b8b2a8" stroke-width="2"/>';

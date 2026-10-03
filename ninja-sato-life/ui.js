@@ -50,7 +50,7 @@
   G.confirm = function (html, fn, okLabel) { G.modal('<p>' + html + '</p>', [{ label: 'やめる', cls: 'ghost' }, { label: okLabel || 'OK', cls: 'primary', fn: fn }]); };
   var faceCache = {};
   // 顔のアイコン：公式に忠実な絵柄（約2.7頭身）の頭を、アイコンの切りぬき（CSS）が見せる位置と大きさに置く。full: true なら全身
-  var FACE_VB = '23 -3 154 185', FULL_VB = '0 -20 200 260';
+  var FACE_VB = '23 -3 154 185', FULL_VB = '0 -32 200 272';
   G.face = function (id, opt) {
     var key = id + (opt ? JSON.stringify(opt) : '');
     if (faceCache[key]) return faceCache[key];
@@ -527,7 +527,7 @@
   function previewShop(it) {
     var S = G.S;
     R.event(S, 'theme_preview', { id: it.id });
-    if (it.kind === 'outfit') { G.modal('<h3>試着：' + esc(it.name) + '</h3><div style="text-align:center">' + A.render(CH.apprenticeArt(S.player.set, S.player.hair, Object.assign({ id: it.id }, it.outfit)), { yaw: -20, w: 200, h: 260, viewBox: '0 -20 200 260' }) + A.render(CH.apprenticeArt(S.player.set, S.player.hair, Object.assign({ id: it.id }, it.outfit)), { yaw: 180, w: 150, h: 195, viewBox: '0 -20 200 260' }) + '</div><p class="muted">表示した衣装がそのまま手に入ります。</p>'); return; }
+    if (it.kind === 'outfit') { G.modal('<h3>試着：' + esc(it.name) + '</h3><div style="text-align:center">' + A.render(CH.apprenticeArt(S.player.set, S.player.hair, Object.assign({ id: it.id }, it.outfit)), { yaw: -20, w: 200, h: 272, viewBox: FULL_VB }) + A.render(CH.apprenticeArt(S.player.set, S.player.hair, Object.assign({ id: it.id }, it.outfit)), { yaw: 180, w: 150, h: 204, viewBox: FULL_VB }) + '</div><p class="muted">表示した衣装がそのまま手に入ります。</p>'); return; }
     if (it.kind === 'theme') {
       var c = document.createElement('canvas'); c.width = 360; c.height = 200;
       var x = c.getContext('2d'); x.fillStyle = '#a7d273'; x.fillRect(0, 0, 360, 200);
@@ -882,7 +882,7 @@
 
   /* ================= タイトル・着がえ ================= */
   function titleScreen() {
-    $('#title-chars').innerHTML = ['sakuya', 'shiba', 'kohaku'].map(function (id, i) { return A.render(CH.BY_ID[id].art, { yaw: [-24, 0, 24][i], pose: i === 1 ? 'happy' : 'stand', prop: false, viewBox: '0 -20 200 260', h: 260 }); }).join('');
+    $('#title-chars').innerHTML = ['sakuya', 'shiba', 'kohaku'].map(function (id, i) { return A.render(CH.BY_ID[id].art, { yaw: [-24, 0, 24][i], pose: i === 1 ? 'happy' : 'stand', prop: false, viewBox: FULL_VB, h: 272 }); }).join('');
     var has = !!G.load();
     $('#btn-continue').hidden = !has;
     $('#btn-start').textContent = has ? '最初からはじめる' : 'はじめる';
@@ -903,7 +903,7 @@
     (S.owned.outfit || []).forEach(function (oid) { var it = D.SHOP.filter(function (x) { return x.id === oid; })[0]; if (!it) return; var b = document.createElement('button'); b.innerHTML = '<span class="sw" style="background:' + it.outfit.top + '"></span>' + it.name; if (S.player.outfit && S.player.outfit.id === oid) b.className = 'on'; b.onclick = function () { S.player.outfit = Object.assign({ id: oid }, it.outfit); openDress(dressFirst); }; sets.appendChild(b); });
     var hair = $('#dress-hair'); hair.innerHTML = '';
     CH.APPRENTICE_HAIR.forEach(function (h) { var b = document.createElement('button'); b.textContent = h.name; if (S.player.hair === h.id) b.className = 'on'; b.onclick = function () { S.player.hair = h.id; openDress(dressFirst); }; hair.appendChild(b); });
-    $('#dress-preview').innerHTML = A.render(CH.apprenticeArt(S.player.set, S.player.hair, S.player.outfit), { yaw: -20, pose: 'wave', viewBox: '0 -20 200 260', h: 260 }) + A.render(CH.apprenticeArt(S.player.set, S.player.hair, S.player.outfit), { yaw: 180, w: 120, h: 156, viewBox: '0 -20 200 260' });
+    $('#dress-preview').innerHTML = A.render(CH.apprenticeArt(S.player.set, S.player.hair, S.player.outfit), { yaw: -20, pose: 'wave', viewBox: FULL_VB, h: 272 }) + A.render(CH.apprenticeArt(S.player.set, S.player.hair, S.player.outfit), { yaw: 180, w: 120, h: 163, viewBox: FULL_VB });
     $('#btn-dress-ok').textContent = first ? 'この姿で里へ行く' : 'これにする';
   }
   function dressAgain() { G.closePanel(); openDress(false); }

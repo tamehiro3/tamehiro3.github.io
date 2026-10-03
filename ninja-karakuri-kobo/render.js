@@ -417,7 +417,7 @@
   /* ---------- 人物の絵（SVG → 画像。読みこみ中は null） ---------- */
   var sprites = {}, pending = 0, onReady = null;
   var SPRITE_UNITS = 208; // 足もとから頭のてっぺんまで（art.js の座標。公式に忠実な絵柄（約2.7頭身）で約208）
-  var TOPPAD = 20;        // 髪・耳・小物が上で切れないよう、絵の上に足す余白（art.js の座標）
+  var TOPPAD = 32;        // 髪・耳・小物が上で切れないよう、絵の上に足す余白（art.js の座標）
   function sprite(key, def, pose, frame, yaw, hPx, expr) {
     var hp = Math.max(8, Math.round(hPx));
     var k = key + '|' + pose + '|' + (frame || 0) + '|' + yaw + '|' + hp + '|' + (expr || '');

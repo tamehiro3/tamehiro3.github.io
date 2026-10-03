@@ -23,10 +23,13 @@
 
   /* ================= 人物の絵（SVG → 画像） ================= */
   var cache = {}, last = {}, pending = 0, onReady = null;
+  var TOPPAD = 32; // 髪・まげ・耳が上で切れないよう、絵の上に足す余白（art.js の座標。足もとは y=232）
+  var VB = '0 ' + (-TOPPAD) + ' 200 ' + (240 + TOPPAD);
   R.onSprite = function (fn) { onReady = fn; };
   R.pending = function () { return pending; };
   R.clear = function (prefix) { var k; for (k in cache) if (k.indexOf(prefix) === 0) delete cache[k]; for (k in last) if (k.indexOf(prefix) === 0) delete last[k]; };
-  // key: 人物ごとの名前。o: { yaw, pose, frame, expr }。hpx: 画面上の高さ（CSS px）
+  // key: 人物ごとの名前。o: { yaw, pose, frame, expr }。hpx: 画面上の高さ（CSS px。余白をのぞいた 240 の枠の高さ）
+  // 返す e：cv（画像）・w・h（余白をふくむ大きさ）・ay（上はしから足もとまで）。足もと (x, y) には drawImage(e.cv, x - e.w / 2, y - e.ay, e.w, e.h)
   R.sprite = function (key, defFn, o, hpx) {
     var ph = Math.max(24, Math.round(hpx * DPR / 8) * 8);
     var k = key + '|' + o.yaw + '|' + o.pose + '|' + (o.frame || 0) + '|' + (o.expr || '') + '|' + ph;
@@ -34,16 +37,16 @@
     if (e) return e.ready ? e : (last[key] || null);
     e = cache[k] = { ready: false };
     pending++;
-    var pw = Math.round(ph * 200 / 240);
+    var pw = Math.round(ph * 200 / 240), pht = Math.round(ph * (240 + TOPPAD) / 240);
     var svg;
     // 小さく描くときは線を太めに（背の高い絵柄は線が細く見えやすい）
     var lwk = Math.max(1, Math.min(1.9, 98 / Math.max(1, hpx)));
-    try { svg = A.render(defFn(), { yaw: o.yaw, pose: o.pose, frame: o.frame, expr: o.expr, w: pw, h: ph, shadow: false, prop: false, companions: false, lw: lwk }); }
+    try { svg = A.render(defFn(), { yaw: o.yaw, pose: o.pose, frame: o.frame, expr: o.expr, viewBox: VB, w: pw, h: pht, shadow: false, prop: false, companions: false, lw: lwk }); }
     catch (err) { pending--; return last[key] || null; }
     var img = new Image();
     img.onload = function () {
-      var c = document.createElement('canvas'); c.width = pw; c.height = ph; c.getContext('2d').drawImage(img, 0, 0);
-      e.cv = c; e.w = pw / DPR; e.h = ph / DPR; e.ready = true; last[key] = e; pending--;
+      var c = document.createElement('canvas'); c.width = pw; c.height = pht; c.getContext('2d').drawImage(img, 0, 0);
+      e.cv = c; e.w = pw / DPR; e.h = pht / DPR; e.ay = ph * (232 + TOPPAD) / 240 / DPR; e.ready = true; last[key] = e; pending--;
       if (onReady) onReady();
     };
     img.onerror = function () { pending--; };
@@ -54,9 +57,9 @@
   R.faceSvg = function (def, expr, yaw) {
     try { return A.render(def, { yaw: yaw == null ? -20 : yaw, pose: 'stand', expr: expr || 'normal', viewBox: A.faceBox(def, { size: 58, up: 0.52 }), w: 144, h: 144, shadow: false, prop: false, companions: false, lw: 1.2 }); } catch (e) { return ''; }
   };
-  R.bodySvg = function (def, o) {
+  R.bodySvg = function (def, o) { // 全身（上に余白つき。幅：高さ = 200：272）
     o = o || {};
-    try { return A.render(def, { yaw: o.yaw || 0, pose: o.pose || 'stand', expr: o.expr, fx: o.fx, frame: o.frame, w: o.w || 200, h: o.h || 240, shadow: o.shadow !== false, prop: o.prop, companions: o.companions }); } catch (e) { return ''; }
+    try { return A.render(def, { yaw: o.yaw || 0, pose: o.pose || 'stand', expr: o.expr, fx: o.fx, frame: o.frame, viewBox: VB, w: o.w || 200, h: o.h || Math.round((o.w || 200) * (240 + TOPPAD) / 200), shadow: o.shadow !== false, prop: o.prop, companions: o.companions }); } catch (e) { return ''; }
   };
   // 向き（見下ろしの画面）→ art.js の yaw
   var YAW = { 0: 0, 45: 50, 90: 90, 135: 130, 180: 180, '-45': -50, '-90': -90, '-135': -130 };
@@ -278,7 +281,7 @@
       var a = 1;
       if (who === 'player' && o.inv > 0 && o.dodge <= 0) a = (Math.floor(time * 20) % 2) ? 0.55 : 1;
       ctx.globalAlpha = a;
-      ctx.drawImage(spr.cv, c.x - spr.w / 2, c.y - spr.h * 232 / 240, spr.w, spr.h);
+      ctx.drawImage(spr.cv, c.x - spr.w / 2, c.y - spr.ay, spr.w, spr.h);
       ctx.globalAlpha = 1;
     }
     // 相棒の頭の上：いまの行動
@@ -296,7 +299,7 @@
     shadowAt(c.x, c.y, T);
     var o = a.state === 'down' ? { yaw: a.x < 6 ? 30 : -30, pose: 'down', expr: 'tired' } : (a.state === 'up' ? { yaw: 0, pose: 'cheer', expr: 'happy' } : { yaw: 0, pose: 'walk', frame: Math.floor(time * 7) % 4 });
     var spr = R.sprite('c:' + a.charId, charDefFn(a.charId), o, T * 1.6);
-    if (spr) { ctx.globalAlpha = a.state === 'leaving' ? Math.max(0, 1 - (a.leaveA || 0)) : 1; ctx.drawImage(spr.cv, c.x - spr.w / 2, c.y - spr.h * 232 / 240, spr.w, spr.h); ctx.globalAlpha = 1; }
+    if (spr) { ctx.globalAlpha = a.state === 'leaving' ? Math.max(0, 1 - (a.leaveA || 0)) : 1; ctx.drawImage(spr.cv, c.x - spr.w / 2, c.y - spr.ay, spr.w, spr.h); ctx.globalAlpha = 1; }
     if (a.state === 'down') { // 待てる時間
       var w = T * 0.8, k = a.patience;
       ctx.fillStyle = 'rgba(59,42,32,.7)'; ctx.fillRect(c.x - w / 2 - 1, c.y + 5, w + 2, 7);
@@ -309,7 +312,7 @@
     shadowAt(c.x, c.y, T);
     var o = e.moving ? { yaw: R.yawFor(e.face || { x: 0, y: -1 }), pose: 'walk', frame: Math.floor(time * 6) % 4 } : { yaw: 0, pose: e.state === 'scared' ? 'surprised' : 'stand', expr: e.state === 'scared' ? 'surprised' : undefined };
     var spr = R.sprite('c:' + e.charId, charDefFn(e.charId), o, T * 1.6);
-    if (spr) ctx.drawImage(spr.cv, c.x - spr.w / 2, c.y - spr.h * 232 / 240, spr.w, spr.h);
+    if (spr) ctx.drawImage(spr.cv, c.x - spr.w / 2, c.y - spr.ay, spr.w, spr.h);
     // 荷物と安心
     ctx.fillStyle = '#e8d8b0'; ctx.strokeStyle = '#3b2a20'; ctx.lineWidth = 2; ctx.fillRect(c.x + T * 0.2, c.y - T * 0.7, T * 0.3, T * 0.22); ctx.strokeRect(c.x + T * 0.2, c.y - T * 0.7, T * 0.3, T * 0.22);
     var w = T * 0.9, k = e.relief / 100;
@@ -477,19 +480,19 @@
       var vx = VW * (0.2 + i * 0.13), vy = floorY + mh * 0.2;
       shadowAt2(vx, vy, mh * 0.25);
       var spr = R.sprite('c:' + id, charDefFn(id), { yaw: i ? -30 : 30, pose: 'stand' }, mh * 0.7);
-      if (spr) ctx.drawImage(spr.cv, vx - spr.w / 2, vy - spr.h * 232 / 240, spr.w, spr.h);
+      if (spr) ctx.drawImage(spr.cv, vx - spr.w / 2, vy - spr.ay, spr.w, spr.h);
     });
     if (s.masterId) {
       shadowAt2(mx, my, mh * 0.3);
       var mspr = R.sprite('c:' + s.masterId, charDefFn(s.masterId), { yaw: -40, pose: 'stand' }, mh);
-      if (mspr) ctx.drawImage(mspr.cv, mx - mspr.w / 2, my - mspr.h * 232 / 240, mspr.w, mspr.h);
+      if (mspr) ctx.drawImage(mspr.cv, mx - mspr.w / 2, my - mspr.ay, mspr.w, mspr.h);
     }
     shadowAt2(px, py, ph * 0.3);
     var bob = Math.sin(time * 2) * 2;
     var pose = s.pose || 'stand', frame = 0, expr;
     if (s.happyT > time) { pose = 'cheer'; expr = 'happy'; }
     var pspr = R.sprite('partner', s.partnerDef, { yaw: 0, pose: pose, frame: frame, expr: expr }, ph);
-    if (pspr) ctx.drawImage(pspr.cv, px - pspr.w / 2, py - pspr.h * 232 / 240 + bob, pspr.w, pspr.h);
+    if (pspr) ctx.drawImage(pspr.cv, px - pspr.w / 2, py - pspr.ay + bob, pspr.w, pspr.h);
     R.partnerRect = { x: px - ph * 0.35, y: py - ph, w: ph * 0.7, h: ph };
     if (s.talk && s.talk.until > time) bubble(px, py - ph * 0.95, s.talk.text, '#eaf2fb', 48);
   };
@@ -551,13 +554,13 @@
     var n = ppl.length, done = 0;
     var imgs = [];
     ppl.forEach(function (p, k) {
-      var svg = A.render(p.def, { yaw: p.yaw, pose: p.pose || 'stand', expr: p.expr, fx: p.fx, w: Math.round(p.h * 200 / 240), h: p.h, shadow: true, prop: p.pose ? false : undefined });
+      var svg = A.render(p.def, { yaw: p.yaw, pose: p.pose || 'stand', expr: p.expr, fx: p.fx, viewBox: VB, w: Math.round(p.h * 200 / 240), h: Math.round(p.h * (240 + TOPPAD) / 240), shadow: true, prop: p.pose ? false : undefined });
       var im = new Image(); imgs[k] = im;
       im.onload = im.onerror = function () { if (++done === n) finish(); };
       im.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
     });
     function finish() {
-      ppl.forEach(function (p, k) { var w = p.h * 200 / 240; try { x.drawImage(imgs[k], p.x - w / 2, 800 - p.h * 232 / 240, w, p.h); } catch (e) { } });
+      ppl.forEach(function (p, k) { var w = p.h * 200 / 240; try { x.drawImage(imgs[k], p.x - w / 2, 800 - p.h * (232 + TOPPAD) / 240, w, p.h * (240 + TOPPAD) / 240); } catch (e) { } });
       // 額
       var fcol = o.frame === 'gold' ? '#d8a63a' : (o.frame === 'kaiden' ? '#8e2432' : '#5a3a22');
       x.lineWidth = 26; x.strokeStyle = fcol; x.strokeRect(13, 13, W - 26, H - 26);

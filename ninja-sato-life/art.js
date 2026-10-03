@@ -4,8 +4,8 @@
  * へとへとの表情（tired）・効果と、からくり工房の横スクロールのうごき（run / jump / fall / oops / land・guard。走る・跳ぶときは体ごと前へ傾ける）を足したもの。
  *
  * 39体を「向き（yaw）・しぐさ（pose）・表情（expr）」を指定して描く。絵柄は3つ：
- *   official（既定）… 公式イラスト（CryptoNinja・CC0）に忠実な絵柄。約2.7頭身・丸い大きな頭・低い位置の大きな目・
- *                      箱形の着物と短く広い袖・手甲・結び目のある帯。キャラ定義の off で公式だけの見た目を上書きできる
+ *   official（既定）… 公式イラスト（CryptoNinja・CC0）に忠実な絵柄。約2.7頭身・横に広い大きな頭・低い位置の大きな目・耳・太い輪郭線・
+ *                      太い箱形の着物と短く広い袖・短く太い手足・手甲・結び目のある帯。キャラ定義の off で公式だけの見た目を上書きできる
  *   cool        … かっこいい系。約5頭身・ひざのある脚・くびれた胴・首・あごの細い顔・切れ長の目
  *   cute        … かわいい系のちびキャラ（2頭身。ninja-sato-life と同じ描き方）
  *   render(def, { style: 'cute' }) か NinjaArt.style = 'cute' で切りかえる。
@@ -600,35 +600,31 @@
   }
 
   /* ---------------- official（公式イラストに忠実な絵柄）の体格とポーズ ---------------- */
-  // 公式イラスト（39体）から測った比率：約2.7頭身。頭は横に広く（幅≒高さ×1.1）、目は頭の上から7割の低い位置に大きく離れてつく。
-  // 胴は箱形（肩から帯へほぼ同じ幅、裾で少し広がる）、袖は短く広い。腕は肩から斜め下へ33°ほど開く。
+  // 公式イラスト（39体）と公式3Dフィギュアから測った比率：約2.7頭身。頭は大きく横に広い（幅≒高さ×1.17）。目は大きく、頭の上から7割の低い位置に離れてつき、
+  // 横に耳が出る。輪郭線は太い。胴は太い箱形（肩から帯へほぼ同じ幅、裾で少し広がる）で、袖は短く広い。腕と脚は短く太く、手は大きい。腕は肩から斜め下へ33°ほど開く。
   // 値は体の空間（地面 y=0、全身の高さ≒210）。ymap はちびキャラの定義の高さ → この体の高さ
-  var OFF_LW = 0.78;
+  var OFF_LW = 0.98;
   var OFF_BUILDS = {
-    normal: { hs: 0.77, hr: 50, headY: 171, neck: 6.5, sy: 131, sj: 117, sx: 23, hem: 60, srx: 21, srz: 13, hrx: 28, hrz: 16,
-      prof: [[132, 12, 9], [127, 22.5, 13.5], [118, 26, 15], [85, 26, 15.5], [60, 30.5, 18]],
-      hip: 12, legTop: 66, thigh: [24, 19], shin: [17.5, 13.5], lt: 32, ls: 30,
-      upper: 10.5, upper1: 7.5, armW: 7.6, hand: 6.4, obi: [77, 84], foot: [8.5, 12.5, 5], u: 0.9,
-      ka: 0.72, kl: 0.65, ymap: [[0, 0], [10, 6], [40, 60], [48, 66], [56, 77], [67, 84], [97, 131], [146, 171], [200, 214]],
-      hx: 0.86, jaw: { x: 0.22, p: 1.4, y: 0.05, z: 0.05 }, eye: { x: 26, y: -16, w: 8.8, h: 12 }, mouthY: -39, blushY: -28 },
-    small: { hs: 0.74, hr: 50, headY: 162, neck: 6, sy: 124, sj: 111, sx: 21.5, hem: 57, srx: 19.5, srz: 12, hrx: 26, hrz: 15,
-      prof: [[125, 11.5, 8.5], [120, 21, 12.5], [111, 24.5, 14], [80, 24.5, 14.5], [57, 29, 17]],
-      hip: 11.5, legTop: 63, thigh: [22.5, 18], shin: [16.5, 12.5], lt: 30.5, ls: 28.5,
-      upper: 10, upper1: 7.2, armW: 7.2, hand: 6, obi: [73, 79.5], foot: [8, 12, 4.8], u: 0.86,
-      ka: 0.68, kl: 0.6, ymap: [[0, 0], [10, 6], [40, 57], [48, 63], [56, 73], [67, 79.5], [97, 124], [146, 162], [200, 204]],
-      hx: 0.86, jaw: { x: 0.22, p: 1.4, y: 0.05, z: 0.05 }, eye: { x: 26, y: -16, w: 8.8, h: 12 }, mouthY: -39, blushY: -28 },
-    big: { hs: 0.74, hr: 50, headY: 176, neck: 9, sy: 136, sj: 121, sx: 31, hem: 60, srx: 31, srz: 18, hrx: 32, hrz: 19,
-      prof: [[137, 15, 11], [131, 31, 18], [120, 35, 20], [86, 31, 18.5], [60, 34, 20]],
-      hip: 14, legTop: 67, thigh: [28, 22], shin: [21, 16], lt: 32.5, ls: 30.5,
-      upper: 14, upper1: 11, armW: 13, hand: 9.5, obi: [77, 85], foot: [9.5, 14, 5.6], u: 1,
-      ka: 0.82, kl: 0.66, ymap: [[0, 0], [10, 6], [40, 60], [48, 67], [56, 77], [67, 85], [97, 136], [146, 176], [200, 218]],
-      hx: 0.92, jaw: { x: 0.08, p: 1.4, y: 0.03, z: 0.04 }, eye: { x: 30, y: -18, w: 9, h: 8.5 }, mouthY: -48, blushY: -37 },
-    chick: { hs: 0.88, hr: 50, headY: 167, neck: 0, sy: 131, sj: 117, sx: 23, hem: 60, srx: 21, srz: 13, hrx: 28, hrz: 16,
-      prof: [[132, 12, 9], [127, 22.5, 13.5], [118, 26, 15], [85, 26, 15.5], [60, 30.5, 18]],
-      hip: 12, legTop: 66, thigh: [24, 19], shin: [15, 11], lt: 32, ls: 30,
-      upper: 10.5, upper1: 7.5, armW: 9, hand: 7, obi: [77, 84], foot: [8.5, 12.5, 5], u: 0.9,
-      ka: 0.72, kl: 0.65, ymap: [[0, 0], [10, 6], [40, 60], [48, 66], [56, 77], [67, 84], [97, 131], [146, 167], [200, 214]],
-      hx: 1, jaw: null, eye: { x: 22, y: -12, w: 5.6, h: 7 }, mouthY: -28, blushY: -22 }
+    normal: { hs: 0.86, hr: 50, headY: 167, neck: 6.5, sy: 123, sj: 109, sx: 27.6, hem: 52, srx: 25.2, srz: 15, hrx: 33.6, hrz: 18.4,
+      prof: [[124, 14.4, 10.4], [119, 27, 15.5], [110, 31.2, 17.3], [77, 31.2, 17.8], [52, 36.6, 20.7]], hip: 13.4, legTop: 58, thigh: [29.9, 24.2],
+      shin: [22.4, 17.8], lt: 28.1, ls: 26.4, upper: 14.4, upper1: 10.4, armW: 11, hand: 9.1, obi: [69, 76], foot: [10.9, 15.5, 6.3], u: 0.9, ka: 0.72,
+      kl: 0.562, ymap: [[0, 0], [10, 6], [40, 52.7], [48, 58], [56, 69], [67, 76], [97, 123], [146, 167], [200, 210]], hx: 1.03, hy: 0.88,
+      jaw: { x: 0.13, p: 1.4, y: 0.05, z: 0.05 }, eye: { x: 29, y: -22, w: 12.6, h: 12.4 }, mouthY: -45, blushY: -32 },
+    small: { hs: 0.83, hr: 50, headY: 158, neck: 6, sy: 116, sj: 103, sx: 25.8, hem: 49, srx: 23.4, srz: 13.8, hrx: 31.2, hrz: 17.3,
+      prof: [[117, 13.8, 9.8], [112, 25.2, 14.4], [103, 29.4, 16.1], [72, 29.4, 16.7], [49, 34.8, 19.5]], hip: 12.9, legTop: 55, thigh: [28.2, 23],
+      shin: [21.3, 16.7], lt: 26.6, ls: 24.9, upper: 13.8, upper1: 10, armW: 10.5, hand: 8.6, obi: [65, 71.5], foot: [10.4, 15, 6.1], u: 0.86, ka: 0.68,
+      kl: 0.505, ymap: [[0, 0], [10, 6], [40, 49.8], [48, 55], [56, 65], [67, 71.5], [97, 116], [146, 158], [200, 200]], hx: 1.03, hy: 0.88,
+      jaw: { x: 0.13, p: 1.4, y: 0.05, z: 0.05 }, eye: { x: 29, y: -22, w: 12.6, h: 12.4 }, mouthY: -45, blushY: -32 },
+    big: { hs: 0.82, hr: 50, headY: 172, neck: 9, sy: 128, sj: 113, sx: 37.2, hem: 52, srx: 37.2, srz: 20.7, hrx: 38.4, hrz: 21.8,
+      prof: [[129, 18, 12.6], [123, 37.2, 20.7], [112, 42, 23], [78, 37.2, 21.3], [52, 40.8, 23]], hip: 15.7, legTop: 59, thigh: [34.5, 27.6],
+      shin: [26.5, 20.7], lt: 28.6, ls: 26.9, upper: 18.8, upper1: 15, armW: 18.1, hand: 12.6, obi: [69, 77], foot: [12.1, 17.3, 6.9], u: 1, ka: 0.82,
+      kl: 0.573, ymap: [[0, 0], [10, 6], [40, 52.8], [48, 59], [56, 69], [67, 77], [97, 128], [146, 172], [200, 214]], hx: 1.04, hy: 0.88,
+      jaw: { x: 0.08, p: 1.4, y: 0.03, z: 0.04 }, eye: { x: 31, y: -21, w: 11.6, h: 10.2 }, mouthY: -50, blushY: -39 },
+    chick: { hs: 0.95, hr: 50, headY: 162, neck: 0, sy: 123, sj: 109, sx: 27.6, hem: 52, srx: 25.2, srz: 15, hrx: 33.6, hrz: 18.4,
+      prof: [[124, 14.4, 10.4], [119, 27, 15.5], [110, 31.2, 17.3], [77, 31.2, 17.8], [52, 36.6, 20.7]], hip: 13.4, legTop: 58, thigh: [27.6, 21.8],
+      shin: [17.3, 12.6], lt: 28.1, ls: 26.4, upper: 14.4, upper1: 10.4, armW: 12.5, hand: 9.6, obi: [69, 76], foot: [10.9, 15.5, 6.3], u: 0.9, ka: 0.72,
+      kl: 0.562, ymap: [[0, 0], [10, 6], [40, 52.7], [48, 58], [56, 69], [67, 76], [97, 123], [146, 162], [200, 209]], hx: 1, jaw: null,
+      eye: { x: 22, y: -12, w: 6.4, h: 8 }, mouthY: -28, blushY: -22 }
   };
   // official のポーズ：cool のポーズを計算してから、腕は肩を中心に・脚は股を中心に、この体の長さへ縮める
   function rigOff(def, pose, frame) {
@@ -896,7 +892,7 @@
     var hd = def.head || {};
     var hr = (hd.r || b.hr), hx = hd.sx || 1, hy = hd.sy || 0.92, jaw = null;
     if (c.off) { // 公式：丸い頭（髪をのせて縦長に見えるくらいの幅）、あごは少しだけ細い
-      if (!hd.kind || hd.kind === 'human') { jaw = b.jaw; hx = hd.sx || b.hx; }
+      if (!hd.kind || hd.kind === 'human') { jaw = b.jaw; hx = hd.sx || b.hx; hy = hd.sy || b.hy || hy; }
       else if (hd.kind === 'dog' || hd.kind === 'cat') { jaw = { x: 0.08, p: 1.5, y: 0.03, z: 0.06 }; hx = hd.sx || 0.94; }
     } else if (c.tp) { // あごの細い、少し面長の頭
       if (!hd.kind || hd.kind === 'human') { jaw = { x: 0.34, p: 1.4, y: 0.2, z: 0.2 }; hx = hd.sx || 0.9; hy = hd.sy || 0.96; }
@@ -910,7 +906,7 @@
       var tf = '<g transform="matrix(' + hs + ' 0 0 ' + hs + ' ' + r1(H.cx * (1 - hs)) + ' ' + r1(H.cy * (1 - hs)) + ')">';
       c.headScr = { x: H.cx, y: H.cy, r: hr * hx * hs, s: hs };
       S.add = function (z, str) { if (str) add0.call(S, z, tf + str + '</g>'); };
-      var lw1 = LWK; LWK = c.off ? c.lw * 0.94 / hs : c.lw * 0.6 / (hs * COOL_LW);
+      var lw1 = LWK; LWK = c.off ? c.lw * 1.12 / hs : c.lw * 0.6 / (hs * COOL_LW);
       try { drawHeadParts(c, H, hd, hr); } finally { S.add = add0; LWK = lw1; }
       return;
     }
@@ -958,6 +954,7 @@
     if (def.crest) drawCrest(c, H, def.crest, ZH);
     if (def.band) drawBand(c, H, def.band, ZH);
     if (c.off && def.band && def.band.under && hp && !c.back) drawFringe(c, H, hp, def.band, ZH);
+    if (c.off && kind === 'human' && def.earsHuman && !def.ears && !def.hood && !(def.mask && (def.mask.kind === 'fox' || def.mask.kind === 'oni' || def.mask.kind === 'robot'))) drawEarsHuman(c, H, ZH);
     if (hp && hp.locks) drawLocks(c, H, hp, ZH);
     if (def.eyepatch) drawEyepatch(c, H, def.eyepatch, ZH);
     if (def.glasses) drawGlasses(c, H, def.glasses, ZH);
@@ -1335,13 +1332,14 @@
     var inner = '';
     if (sty === 'simple' || sty === 'narrow') { // 白目のない目（咲耶・結・令）
       inner += sf(ellD(x, y + h * 0.1, w * 1.1, h * 1.2), ic);
-      inner += sf(ellD(x, y - h * 0.55, w * 1.2, h * 0.62), dk(ic, 0.42), { op: 0.9 });
-      inner += sf(ellD(x - w * 0.34, y - h * 0.3, w * 0.24, w * 0.24), hi);
+      inner += sf(ellD(x, y - h * 0.72, w * 1.2, h * 0.42), dk(ic, 0.38), { op: 0.6 });
+      inner += sf(ellD(x - w * 0.32, y - h * 0.28, w * 0.3, w * 0.3), hi);
+      inner += sf(ellD(x + w * 0.3, y + h * 0.38, w * 0.13, w * 0.13), hi, { op: 0.85 });
     } else {
       inner += sf(shape, '#fdfaf5');
       inner += sf(ellD(icx, icy, irx, iry), ic);
       inner += sf(ellD(icx, icy + iry * 0.55, irx * 0.78, iry * 0.48), lt(ic, 0.3), { op: 0.85 });
-      inner += sf(ellD(icx, icy - iry * 0.62, irx * 1.15, iry * 0.55), dk(ic, 0.5), { op: 0.85 });
+      inner += sf(ellD(icx, icy - iry * 0.74, irx * 1.15, iry * 0.4), dk(ic, 0.5), { op: 0.6 });
       var pc = dk(ic, 0.78);
       if (e.pupil === 'star') inner += starSvg(icx, icy + 0.5, irx * 0.95, e.pupilColor || '#ffd54a');
       else if (e.pupil === 'sparkle') inner += starSvg(icx, icy + 0.5, irx * 0.7, e.pupilColor || '#ffffff');
@@ -1350,7 +1348,7 @@
       else if (e.pupil === 'diamond') inner += sf('M' + r1(icx) + ' ' + r1(icy - iry * 0.6) + 'l' + r1(irx * 0.42) + ' ' + r1(iry * 0.6) + 'l' + r1(-irx * 0.42) + ' ' + r1(iry * 0.6) + 'l' + r1(-irx * 0.42) + ' ' + r1(-iry * 0.6) + 'Z', pc);
       else if (e.pupil !== 'none') inner += sf(ellD(icx, icy + 0.4, irx * (expr === 'surprised' ? 0.32 : 0.46), iry * (expr === 'surprised' ? 0.36 : 0.5)), pc);
       if (e.pupil !== 'star' && e.pupil !== 'sparkle') {
-        inner += sf(ellD(icx - irx * 0.42, icy - iry * 0.38, irx * 0.34, irx * 0.34), hi);
+        inner += sf(ellD(icx - irx * 0.4, icy - iry * 0.36, irx * 0.4, irx * 0.4), hi);
         inner += sf(ellD(icx + irx * 0.34, icy + iry * 0.45, irx * 0.16, irx * 0.16), hi, { op: 0.85 });
       }
     }
@@ -1467,10 +1465,20 @@
     var fullMask = c.def.mask && (c.def.mask.kind === 'fox' || c.def.mask.kind === 'oni' || c.def.mask.kind === 'robot');
     if (!hp.noShine && !fullMask) {
       var hl = []; for (var th = -48; th <= 8; th += 6) { var f = H.feat(th, 50); if (f.s > 0.05) hl.push(H.p(th, 50, vol * 0.8)); }
-      if (hl.length > 2) S.add(ZH + 31, sl(smoothD(hl, false), hp.shine || lt(hp.color, 0.3), 3.5, { clip: cid, op: 0.9 }));
+      if (hl.length > 2) S.add(ZH + 31, sl(smoothD(hl, false), hp.shine || lt(hp.color, c.off ? 0.42 : 0.3), c.off ? 5.2 : 3.5, { clip: cid, op: 0.9 }));
+    }
+    // 公式：前髪の下のおでこに落ちる影（肌を少し暗く。目より上だけ）
+    var yaw = c.cam.yaw;
+    if (c.off && !((c.def.head || {}).kind && c.def.head.kind !== 'human') && !fullMask && !c.back && !c.def.hood && hp.bangs) {
+      var fu = [], fd = [], t0 = Math.max(-76, -86 - yaw), t1 = Math.min(76, 86 - yaw);
+      for (var tf = t0; tf <= t1 + 0.01; tf += 4) {
+        var tw = Math.max(0, 1 - Math.pow(tf / 80, 2)), hl0 = hf(wrap(tf));
+        fu.push(H.p(tf, hl0 + 2, 0.4)); fd.push(H.p(tf, hl0 - 7.5 * tw, 0.4));
+      }
+      if (fu.length > 2) S.add(ZH + 2, sf(smoothD(fu.concat(fd.reverse()), true, 0.5), dk(c.skin, 0.16), { clip: c.headClip, op: 0.75 }));
     }
     // 生え際の影
-    var sh = []; var yaw = c.cam.yaw;
+    var sh = [];
     for (var t = -90 - yaw; t <= 90 - yaw; t += 3) sh.push(H.p(t, hf(wrap(t)) + 5, 0.8));
     if (sh.length > 2 && !hp.noLines) S.add(ZH + 31, sl(smoothD(sh, false), dk(hp.color, 0.25), 2.2, { clip: cid, op: 0.55 }));
     // 前髪の筋
@@ -1480,6 +1488,20 @@
         var a = H.feat(tt, hf(tt) + 3), b2 = H.feat(tt * 0.85 + 2, hf(tt) + 22);
         if (a.s > 0.2) S.add(ZH + 31, sl('M' + r1(a.x) + ' ' + r1(a.y) + 'L' + r1(b2.x) + ' ' + r1(b2.y), dk(hp.color, 0.3), 1.6, { clip: cid, op: 0.8 }));
       });
+    }
+  }
+
+  // 公式：人の耳。顔の横の目の高さに、髪の上へ出る半円（公式で耳が見えている人だけ earsHuman: true）
+  function drawEarsHuman(c, H, ZH) {
+    var def = c.def, S = c.S, k = H.k, B = c.b, e = def.eyes || {};
+    var lat = (e.y != null ? e.y : B.eye.y) - 5;
+    for (var s = -1; s <= 1; s += 2) {
+      var th = s * 94, a = H.va(th);
+      if (Math.abs(a) > 116 || c.back) continue; // 頭の向こう側・うしろ向き
+      var p = H.p(th, lat, 2.5), sd = p.x >= H.cx ? 1 : -1;
+      var w = 5.2 * k, h = 8.6 * k;
+      var d = 'M' + r1(p.x - sd * w * 0.35) + ' ' + r1(p.y - h) + 'C' + r1(p.x + sd * w * 1.2) + ' ' + r1(p.y - h * 1.05) + ' ' + r1(p.x + sd * w * 1.25) + ' ' + r1(p.y + h * 0.95) + ' ' + r1(p.x - sd * w * 0.25) + ' ' + r1(p.y + h * 0.85) + 'Z';
+      S.add(ZH + 31.8, sp(d, c.skin) + sl('M' + r1(p.x + sd * w * 0.55) + ' ' + r1(p.y - h * 0.45) + 'Q' + r1(p.x + sd * w * 0.05) + ' ' + r1(p.y) + ' ' + r1(p.x + sd * w * 0.45) + ' ' + r1(p.y + h * 0.4), dk(c.skin, 0.32), 2.2));
     }
   }
 
@@ -1536,7 +1558,7 @@
         var up = pt.up == null ? 1 : pt.up, len = pt.len == null ? 1 : pt.len;
         var a = H.local(s * 6, 36, -38), b0 = H.local(s * 34 * len, 58 * up, -58), b1 = H.local(s * 64 * len, 34 * up, -52), b2 = H.local(s * 62 * len, -4 * len, -46);
         if (c.tp) { a = H.local(s * 4, 38, -40); b0 = H.local(s * 26 * len, 66 * up, -66); b1 = H.local(s * 34 * len, -6, -62); b2 = H.local(s * 20 * len, -112 * len, -48); }
-        if (c.off) { a = H.local(s * 2, 50, -14); b0 = H.local(s * 16 * len, 100 * up, -24); b1 = H.local(s * 58 * len, 78 * up, -28); b2 = H.local(s * 88 * len, 34 * up, -22); } // 高く結って横へ払う
+        if (c.off) { a = H.local(s * 2, 50, -14); b0 = H.local(s * 16 * len, 80 * up, -24); b1 = H.local(s * 52 * len, 62 * up, -28); b2 = H.local(s * 76 * len, 24 * up, -22); } // 高く結って横へ払う
         m = massD(c, [a, b0, b1, b2], pt.w || (c.off ? [22, 34, 30, 18, 2] : [14, 26, 28, 22, 4]), c.tp ? { n: 18 } : null);
         var zz = addMass(c, Z.BACK + 2, ZH + 26, m, col);
         S.add(zz + 0.02, sl(smoothD(m.scr, false), dk(col, 0.3), 1.8, { op: 0.6 }));
@@ -1576,8 +1598,8 @@
         if (pt.ring) { var rp = c.cam.pv(H.local(0, 50 + 3 * hgt, -5)); S.add(ZH + 28.6, sp(ellD(rp.x, rp.y, 7 * k, 3 * k), pt.ring, { w: 2 })); }
       } else if (t === 'spikes') {
         (pt.list || []).forEach(function (sk) {
-          var th = sk[0], ph = sk[1], L = sk[2] || 22, wd = sk[3] || 11, lean = sk[4] || 0;
-          var base = H.pt3(th, ph, -2), tipP = H.pt3(th + lean, ph + L * 0.9, L);
+          var th = sk[0], ph = sk[1], L = sk[2] || 22, wd = sk[3] || 11, lean = sk[4] || 0, rise = sk[5] == null ? L * 0.9 : sk[5];
+          var base = H.pt3(th, ph, -2), tipP = H.pt3(th + lean, ph + rise, L);
           var sb = c.cam.pv(base), st = c.cam.pv(tipP);
           var dx = st.x - sb.x, dy = st.y - sb.y, l = Math.hypot(dx, dy) || 1, nx = -dy / l, ny = dx / l, w = wd * k / 2;
           var d = 'M' + r1(sb.x + nx * w) + ' ' + r1(sb.y + ny * w) + 'Q' + r1(sb.x + dx * 0.55 + nx * w * 0.5) + ' ' + r1(sb.y + dy * 0.55 + ny * w * 0.5) + ' ' + r1(st.x) + ' ' + r1(st.y) +
@@ -1830,7 +1852,7 @@
   function drawMask(c, H, mk, ZH) {
     var S = c.S, k = H.k, kind = mk.kind, f, s;
     if (kind === 'cloth' || kind === 'scarf') {
-      var top = mk.top == null ? (c.off ? -36 : -21) : mk.top;
+      var top = mk.top == null ? (c.off ? -43 : -21) : mk.top - (c.off ? 7 : 0);
       var lf = function (th) { return top + (mk.dip || 0) * Math.cos(th * D2R) - Math.max(0, Math.abs(th) - 70) * 0.1; };
       var pts = H.lowPts(lf, 1.8);
       S.add(ZH + 12, sp(smoothD(pts, true, 0.5), mk.color));

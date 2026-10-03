@@ -57,7 +57,7 @@
       });
     }
     function draw() {
-      $('#cr-preview').innerHTML = R.bodySvg(CH.partnerArt(cr.look), { yaw: -20, w: 180, h: 216 });
+      $('#cr-preview').innerHTML = R.bodySvg(CH.partnerArt(cr.look), { yaw: -20, w: 180 });
       $('#cr-name').textContent = cr.name;
       sw($('#cr-outfit'), CH.PARTNER_OUTFITS, cr.look.outfit, function (id) { cr.look.outfit = id; }, function (it) { return it.top; });
       sw($('#cr-hair'), CH.PARTNER_HAIRS, cr.look.hair, function (id) { cr.look.hair = id; });
@@ -611,7 +611,7 @@
   U.openDress = function (startTab) {
     openPanel('着がえ・道場札の交換', [{ id: 'look', label: '見た目' }, { id: 'costume', label: '衣装' }, { id: 'weapon', label: '木刀' }, { id: 'dojo', label: '道場' }, { id: 'pose', label: '登場ポーズ' }], function (body, id) {
       var c = G.S.companion;
-      body.appendChild(h('div', 'row', '<div style="width:140px;height:168px">' + R.bodySvg(G.partnerDef(), { yaw: -20, w: 140, h: 168 }) + '</div><div style="align-self:center"><b>🎴 道場札 ' + G.S.tokens + '</b><br><span class="muted">見た目だけが変わります。絆や判断の性能は変わりません。</span></div>'));
+      body.appendChild(h('div', 'row', '<div style="width:140px;height:190px">' + R.bodySvg(G.partnerDef(), { yaw: -20, w: 140 }) + '</div><div style="align-self:center"><b>🎴 道場札 ' + G.S.tokens + '</b><br><span class="muted">見た目だけが変わります。絆や判断の性能は変わりません。</span></div>'));
       if (id === 'look') { var b = h('button', 'btn', '見た目と呼び名を変える'); b.onclick = function () { U.closePanel(); U.openCreate(false); }; body.appendChild(b); return; }
       var slots = id === 'dojo' ? ['wall', 'floor', 'deco'] : [id];
       slots.forEach(function (slot) {
@@ -620,7 +620,7 @@
         D.SHOP.filter(function (it) { return it.slot === slot; }).forEach(function (it) {
           var owned = G.owns(it.id), cur = slot === 'costume' ? c.costume : slot === 'weapon' ? c.weapon : slot === 'pose' ? c.pose : G.S.dojo[slot];
           var lvOk = !it.level || G.level() >= it.level;
-          var ic = slot === 'costume' ? R.bodySvg(G.partnerDef(null, it.id), { yaw: -20, w: 64, h: 77 }) : ({ weapon: '🗡️', wall: '📜', floor: '🟫', deco: '🏮', pose: '✨' }[slot]);
+          var ic = slot === 'costume' ? R.bodySvg(G.partnerDef(null, it.id), { yaw: -20, w: 64 }) : ({ weapon: '🗡️', wall: '📜', floor: '🟫', deco: '🏮', pose: '✨' }[slot]);
           var row = h('div', 'item' + (cur === it.id ? ' on' : ''), '<div class="ic">' + ic + '</div><div class="tx"><b>' + esc(it.name) + '</b><br>' + (owned ? '<span class="muted">交換ずみ</span>' : '🎴 ' + it.price + (lvOk ? '' : '　<span class="lock">Lv' + it.level + 'から</span>')) + '</div>');
           var btn;
           if (owned) {

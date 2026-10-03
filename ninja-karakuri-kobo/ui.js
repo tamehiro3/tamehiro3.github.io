@@ -775,7 +775,7 @@
   function renderDress() {
     var el = $('scr-dress'), s = UI.store, p = s.profile;
     function owned(setId) { var set = C.APPRENTICE_SETS.filter(function (x) { return x.id === setId; })[0]; return !set.price || p.owned['outfit_' + setId]; }
-    var h = bar('身じたく', 'home') + '<div class="scroll"><div class="wrap"><div class="dress"><div class="me">' + A.render(C.apprenticeArt(p.outfit, p.hair), { pose: 'stand', yaw: -20, w: 160, h: 208, viewBox: '0 -20 200 260' }) + '</div><div>';
+    var h = bar('身じたく', 'home') + '<div class="scroll"><div class="wrap"><div class="dress"><div class="me">' + A.render(C.apprenticeArt(p.outfit, p.hair), { pose: 'stand', yaw: -20, w: 160, h: 218, viewBox: '0 -32 200 272' }) + '</div><div>';
     h += '<h2 class="sec">装束</h2><div class="choice">' + C.APPRENTICE_SETS.map(function (st) { return '<button data-outfit="' + st.id + '" class="' + (p.outfit === st.id ? 'on' : '') + '"><span class="sw" style="background:' + st.top + '"></span>' + st.name + (owned(st.id) ? '' : '（印' + st.price + '）') + '</button>'; }).join('') + '</div>';
     h += '<h2 class="sec">髪型</h2><div class="choice">' + C.APPRENTICE_HAIR.map(function (hh) { return '<button data-hair="' + hh.id + '" class="' + (p.hair === hh.id ? 'on' : '') + '">' + hh.name + '</button>'; }).join('') + '</div>';
     h += '<h2 class="sec">合格の演出</h2><div class="choice"><button data-fx="" class="' + (!p.fx ? 'on' : '') + '">いつもの紙ふぶき</button>' + D.SHOP.filter(function (x) { return x.kind === 'fx'; }).map(function (x) { return '<button data-fx="' + x.id + '" class="' + (p.fx === x.id ? 'on' : '') + '">' + x.name + (p.owned[x.id] ? '' : '（印' + x.price + '）') + '</button>'; }).join('') + '</div>';

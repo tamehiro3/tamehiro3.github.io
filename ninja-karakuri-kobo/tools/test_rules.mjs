@@ -22,6 +22,17 @@ let pass = 0, fail = 0;
 function ok(cond, msg) { if (cond) pass++; else { fail++; console.log('  NG: ' + msg); } }
 function eq(a, b, msg) { ok(JSON.stringify(a) === JSON.stringify(b), msg + '  (' + JSON.stringify(a) + ' != ' + JSON.stringify(b) + ')'); }
 function section(t) { console.log('■ ' + t); }
+// JPEG の幅と高さ（SOF の見出しから読む）
+function jpegSize(file) {
+  const b = fs.readFileSync(file);
+  for (let i = 2; i + 9 < b.length;) {
+    if (b[i] !== 0xff) { i++; continue; }
+    const m = b[i + 1], len = b.readUInt16BE(i + 2);
+    if (m >= 0xc0 && m <= 0xc3) return [b.readUInt16BE(i + 7), b.readUInt16BE(i + 5)];
+    i += 2 + len;
+  }
+  return null;
+}
 const codes = v => (v.errors || []).map(e => e.code);
 
 const T0 = Date.parse('2026-09-28T01:00:00Z');
@@ -451,6 +462,23 @@ section('§2・§12 運営の試験（投稿が少なくても遊べる）：39�
   eq(bad, [], '全試験が検証に通る（部品80・仕掛け10・チェックポイント2 以内）');
   const sheets = C.CHARS.filter(c => !fs.existsSync(path.join(ROOT, 'sheets', c.id + '.jpg')) || !fs.existsSync(path.join(ROOT, 'sheets', 'thumb', c.id + '.jpg'))).map(c => c.id);
   eq(sheets, [], '39体のキャラクターシート（本体と縮小版）がある');
+  const SH = require(path.join(ROOT, 'sheet.js'));
+  const sv = SH.sheetSvg(C.BY_ID.kohaku, { officialHref: 'x.jpg', figureHref: 'f.jpg', look: ['赤い耳と青い模様の白い狐面'] });
+  ok(sv.indexOf('<image href="x.jpg"') >= 0 && sv.indexOf('原型　公式イラスト') >= 0 && sv.indexOf('<image href="f.jpg"') >= 0 && sv.indexOf('原型　公式3Dフィギュア（全身）') >= 0 &&
+    sv.indexOf('本作での役') >= 0 && sv.indexOf('第二の試験「足場わたり」試験官') >= 0 && sv.indexOf('ゲームの中の姿') >= 0 && sv.indexOf('しぐさ') >= 0, 'シートの主役は原型（公式イラストと公式3Dフィギュア）で、担当の試験とゲームの中の姿をそえる');
+  ok(C.CHARS.every(c => { const s = SH.sheetSvg(c, {}); return s.indexOf('NaN') < 0 && s.indexOf('undefined') < 0; }), '39体すべてのシートを描ける');
+  const wrong = C.CHARS.filter(c => JSON.stringify(jpegSize(path.join(ROOT, 'sheets', c.id + '.jpg'))) !== JSON.stringify([SH.W, SH.H])).map(c => c.id);
+  eq(wrong, [], 'シートの画像は今の並び（' + SH.W + '×' + SH.H + '）で作り直してある');
+  // ゲームの中の絵：公式イラストに忠実な絵柄（約2.7頭身）。描画エンジンは3作で同じファイル
+  const A = globalThis.NinjaArt;
+  ok(A.style === 'official' && A.builds('official').normal.hs > 0.7, 'ゲームの中の絵の既定は、公式イラストに忠実な絵柄（約2.7頭身）');
+  const same = ['ninja-aibou-dojo', 'ninja-sato-life'].every(g => fs.readFileSync(path.join(ROOT, '..', g, 'art.js'), 'utf8') === fs.readFileSync(path.join(ROOT, 'art.js'), 'utf8'));
+  ok(same, '描画エンジン（art.js）は、相棒道場・里ライフと同じファイル');
+  const defs = C.CHARS.map(c => c.art).concat(C.APPRENTICE_SETS.map(s => C.apprenticeArt(s.id, 'pony')));
+  const moves = [['run', 0], ['run', 1], ['run', 2], ['run', 3], ['run', 4], ['run', 5], ['jump', 0], ['fall', 0], ['oops', 0], ['land', 0], ['guard', 0], ['cheer', 0], ['stand', 0]];
+  ok(defs.every(d => moves.every(m => { const s = A.render(d, { pose: m[0], frame: m[1], yaw: 62 }); return s.indexOf('NaN') < 0 && s.indexOf('undefined') < 0; })), '39体と見習いを、その絵柄で横スクロールのうごき（走る6コマ・跳ぶ・落ちる・当たる・着地・しぐさ）まで描ける');
+  const runA = A.render(C.BY_ID.jin.art, { pose: 'run', frame: 0, yaw: 62 }), runB = A.render(C.BY_ID.jin.art, { pose: 'run', frame: 3, yaw: 62 });
+  ok(runA !== runB && runA.indexOf('rotate(') >= 0, '走るときは、コマで脚と腕が入れかわり、体を前へ傾ける');
 }
 
 console.log(`\n結果: ${pass} 件合格 / ${fail} 件不合格`);

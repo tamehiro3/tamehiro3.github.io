@@ -1,4 +1,4 @@
-// アイコン（192・512・apple-touch 180）を作る（開発用）
+// アイコン（192・512・apple-touch 180）を作る（開発用）。歯車の窓に、見習いの顔
 //   node ninja-karakuri-kobo/tools/build_icons.mjs
 import { createRequire } from 'module';
 import path from 'path';
@@ -25,14 +25,17 @@ function gear(cx, cy, r, teeth, col, rot) {
   }
   return `<path d="${d}Z" fill="${col}" stroke="#2b1d16" stroke-width="6" stroke-linejoin="round"/><circle cx="${cx}" cy="${cy}" r="${r * 0.32}" fill="#4a2f25" stroke="#2b1d16" stroke-width="6"/>`;
 }
-const face = A.render(C.apprenticeArt('ai', 'short'), { pose: 'stand', yaw: -15, w: 300, h: 288, viewBox: '30 18 140 134', shadow: false, prop: false, companions: false }).replace('<svg ', '<svg x="106" y="110" ');
+// 見習いの顔（公式に忠実な絵柄・約2.7頭身。頭が歯車の窓いっぱいに来る切りとり）
+const face = A.render(C.apprenticeArt('ai', 'short'), { pose: 'stand', yaw: -15, w: 300, h: 340, viewBox: '40 8 120 136', shadow: false, prop: false, companions: false }).replace('<svg ', '<svg x="106" y="110" ');
 const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
 <defs><radialGradient id="bg" cx="50%" cy="40%" r="70%"><stop offset="0" stop-color="#7a5236"/><stop offset="1" stop-color="#3a2419"/></radialGradient></defs>
 <rect width="512" height="512" fill="url(#bg)"/>
 ${gear(256, 262, 206, 12, '#d8a63a', 0.1)}
 ${gear(420, 420, 70, 8, '#c8452c', 0.3)}
-<circle cx="256" cy="262" r="150" fill="#f6ead6" stroke="#2b1d16" stroke-width="6"/>
-${face}
+<clipPath id="win"><circle cx="256" cy="262" r="147"/></clipPath>
+<circle cx="256" cy="262" r="150" fill="#f6ead6"/>
+<g clip-path="url(#win)">${face}</g>
+<circle cx="256" cy="262" r="150" fill="none" stroke="#2b1d16" stroke-width="6"/>
 </svg>`;
 const out = path.join(ROOT, 'icons');
 fs.mkdirSync(out, { recursive: true });

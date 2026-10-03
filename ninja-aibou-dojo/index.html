@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <title>ニンジャ相棒道場 | 教えたことを覚えて、一緒に強くなる相棒</title>
+  <meta name="description" content="相棒に作戦を教えて、いっしょに修行する忍者ゲーム。教えたことで相棒の判断が変わり、その理由も見える。CryptoNinjaの忍者たちが師匠として課題を出す。課金・ガチャ・スタミナなし。CryptoNinja 非公式ファンゲーム。">
+  <meta name="theme-color" content="#3a2a20">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="相棒道場">
+  <link rel="stylesheet" href="style.css?v=5">
+</head>
+<body>
+  <!-- 道場・修行の絵 -->
+  <canvas id="cv" aria-label="道場と修行の様子"></canvas>
+
+  <!-- 道場（ホーム） -->
+  <header id="home-hud" class="hud" hidden>
+    <div class="hud-row">
+      <button id="hh-name" class="name-chip" title="相棒"><b id="hh-pname">相棒</b><span class="lv">Lv<b id="hh-lv">1</b></span></button>
+      <div class="exp"><i id="hh-exp"></i></div>
+    </div>
+    <div class="hud-row small">
+      <span class="chip" title="道場札（見た目と交換できる）">🎴 道場札 <b id="hh-tokens">0</b></span>
+      <span class="chip" title="絆の記録（指導や、いっしょの達成で増える）">🤝 絆 <b id="hh-bond">0</b></span>
+      <span class="chip ghost" id="hh-preset" title="いまの作戦">作戦：<b>いつもの</b></span>
+    </div>
+  </header>
+  <div id="home-cards" class="home-cards" hidden>
+    <button id="card-next" class="card next"></button>
+    <div id="card-tend" class="card tend"></div>
+  </div>
+  <nav id="nav" hidden>
+    <button data-go="depart" class="go"><i>⛩️</i>出発</button>
+    <button data-go="strategy"><i>📜</i>作戦</button>
+    <button data-go="dress"><i>👘</i>着がえ</button>
+    <button data-go="memory"><i>📖</i>回想</button>
+    <button data-go="menu"><i>≡</i>メニュー</button>
+  </nav>
+
+  <!-- 修行 -->
+  <div id="tr-hud" class="tr-hud" hidden>
+    <div class="bars">
+      <div class="bar-row"><span class="who">見習い</span><div class="hp"><i id="hp-pl"></i></div></div>
+      <div class="bar-row"><span class="who" id="tr-pname">相棒</span><div class="hp partner"><i id="hp-pa"></i></div><span id="tr-pact" class="pact"></span></div>
+    </div>
+    <div class="tr-obj" id="tr-obj"></div>
+    <button id="tr-pause" class="round" aria-label="一時停止">⏸</button>
+  </div>
+  <div id="tr-boss" class="tr-boss" hidden><span id="tr-bossname">からくり小将</span><div class="hp boss"><i id="hp-boss"></i></div></div>
+  <div id="tr-banner" class="tr-banner" hidden></div>
+  <button id="tr-dec" class="tr-dec" hidden></button>
+  <div id="tr-ctrl" class="tr-ctrl" hidden>
+    <div id="stick" class="stick" hidden><div class="knob" id="knob"></div></div>
+    <div class="cmds">
+      <button class="cmd" data-cmd="gather"><i>👣</i>集合</button>
+      <button class="cmd" data-cmd="help"><i>🙏</i>助けて</button>
+      <button class="cmd" data-cmd="back"><i>🛡️</i>下がって</button>
+    </div>
+    <button id="btn-dodge" class="dodge">回避</button>
+  </div>
+
+  <!-- パネル（下から出る） -->
+  <section id="panel" class="panel" hidden aria-modal="true" role="dialog">
+    <div class="panel-head"><h2 id="panel-title"></h2><button class="btn small ghost" id="panel-close" aria-label="とじる">✕</button></div>
+    <div id="panel-tabs" class="tabs"></div>
+    <div id="panel-body" class="panel-body"></div>
+  </section>
+
+  <!-- 振り返り（全画面） -->
+  <section id="review" class="screen review" hidden>
+    <div class="review-inner" id="review-body"></div>
+  </section>
+
+  <!-- 会話 -->
+  <section id="talk" class="talk" hidden>
+    <div class="talk-face" id="talk-face"></div>
+    <div class="talk-body">
+      <div class="talk-name" id="talk-name"></div>
+      <div class="talk-text" id="talk-text"></div>
+      <div class="talk-btns" id="talk-btns"></div>
+    </div>
+  </section>
+
+  <!-- 確認・結果 -->
+  <section id="modal" class="modal" hidden role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <div id="modal-body"></div>
+      <div class="modal-btns" id="modal-btns"></div>
+    </div>
+  </section>
+
+  <div id="toast" class="toast" hidden></div>
+  <div id="loading" class="loading" hidden><div class="spin"></div><p>準備中…</p></div>
+
+  <!-- タイトル -->
+  <section id="title" class="screen title">
+    <div class="title-inner">
+      <p class="title-sub">教えたことを覚えて、一緒に強くなる相棒</p>
+      <h1 class="title-logo">ニンジャ<span>相棒</span>道場</h1>
+      <div class="title-chars" id="title-chars"></div>
+      <div class="title-btns">
+        <button class="btn primary big" id="btn-start">はじめる</button>
+        <button class="btn big" id="btn-continue" hidden>つづきから</button>
+        <div class="row">
+          <a class="btn" href="about.html">遊び方</a>
+          <a class="btn" href="sheets/">キャラクターシート</a>
+        </div>
+      </div>
+      <p class="mini">CryptoNinja（CC0）のキャラクターを使った非公式ファンゲームです。<br>課金・ガチャ・スタミナはありません。記録はこの端末の中だけに保存されます。</p>
+    </div>
+  </section>
+
+  <!-- 相棒づくり -->
+  <section id="create" class="screen create" hidden>
+    <div class="create-inner">
+      <h2 class="create-h">相棒の見た目と呼び名を選ぼう</h2>
+      <div class="create-main">
+        <div class="create-preview" id="cr-preview"></div>
+        <div class="create-name"><b id="cr-name">コタロウ</b><button class="btn small" id="cr-lot">🎲 くじで決める</button></div>
+      </div>
+      <div class="create-opts">
+        <div class="opt"><h3>装束の色</h3><div class="sw-row" id="cr-outfit"></div></div>
+        <div class="opt"><h3>髪型</h3><div class="sw-row" id="cr-hair"></div></div>
+        <div class="opt"><h3>髪の色</h3><div class="sw-row" id="cr-hc"></div></div>
+        <div class="opt"><h3>小物</h3><div class="sw-row" id="cr-acc"></div></div>
+        <div class="opt"><h3>呼び名</h3><div class="sw-row names" id="cr-names"></div></div>
+        <div class="opt"><h3>話し方</h3><div class="sw-row" id="cr-voice"></div></div>
+      </div>
+      <button class="btn primary big" id="btn-create">この相棒と修行をはじめる</button>
+      <p class="mini">あとから「着がえ」で見た目を変えられます。相棒はこのゲーム独自のキャラクターです。</p>
+    </div>
+  </section>
+
+  <noscript><p style="padding:20px">このゲームを遊ぶには JavaScript を有効にしてください。</p></noscript>
+
+  <script src="data.js?v=5"></script>
+  <script src="art.js?v=5"></script>
+  <script src="chars.js?v=5"></script>
+  <script src="lines.js?v=5"></script>
+  <script src="policy.js?v=5"></script>
+  <script src="sim.js?v=5"></script>
+  <script src="story.js?v=5"></script>
+  <script src="sheet.js?v=5"></script>
+  <script src="render.js?v=5"></script>
+  <script src="game.js?v=5"></script>
+  <script src="ui.js?v=5"></script>
+</body>
+</html>

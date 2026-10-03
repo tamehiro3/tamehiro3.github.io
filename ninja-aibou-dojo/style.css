@@ -35,9 +35,18 @@ button { font-family: inherit; color: inherit; }
 .title-sub { margin: 0; font-weight: 700; color: var(--wood); letter-spacing: .08em; }
 .title-logo { margin: 6px 0 4px; font-size: clamp(34px, 10vw, 54px); letter-spacing: .06em; color: var(--ink); text-shadow: 0 3px 0 #fff, 0 5px 0 rgba(59, 42, 32, .25); }
 .title-logo span { color: var(--red); }
-.title-chars { display: flex; justify-content: center; align-items: flex-end; gap: 0; min-height: 210px; }
-.title-chars svg { width: 120px; height: 163px; }
-.title-chars .big svg { width: 150px; height: 204px; }
+.title-chars { margin: 2px auto 0; max-width: 430px; aspect-ratio: 4 / 3; }
+.title-chars > svg { display: block; width: 100%; height: auto; }
+/* タイトルの絵：跳ぶ相棒はふわりと上下し、もみじはゆれる（動きを減らす設定では止める） */
+.title-art .ta-hero { animation: ta-hover 2.8s ease-in-out infinite; }
+.title-art .ta-shadow { animation: ta-shadow 2.8s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.title-art .ta-leaf { animation: ta-leaf 6s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.title-art .ta-leaf2 { animation-duration: 7.4s; animation-delay: -2s; }
+.title-art .ta-leaf3 { animation-duration: 5.2s; animation-delay: -3.5s; }
+@keyframes ta-hover { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+@keyframes ta-shadow { 0%, 100% { transform: scale(1); opacity: .28; } 50% { transform: scale(.86); opacity: .2; } }
+@keyframes ta-leaf { 0%, 100% { transform: translate(0, 0) rotate(0); } 50% { transform: translate(3px, 6px) rotate(24deg); } }
+@media (prefers-reduced-motion: reduce) { .title-art .ta-hero, .title-art .ta-shadow, .title-art .ta-leaf { animation: none; } }
 .title-btns { display: flex; flex-direction: column; gap: 10px; align-items: center; margin: 8px 0 14px; }
 .title-btns .btn.big { min-width: 240px; }
 .mini { font-size: 12px; color: var(--muted); line-height: 1.7; }

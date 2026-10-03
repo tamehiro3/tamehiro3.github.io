@@ -61,6 +61,62 @@
     o = o || {};
     try { return A.render(def, { yaw: o.yaw || 0, pose: o.pose || 'stand', expr: o.expr, fx: o.fx, frame: o.frame, viewBox: VB, w: o.w || 200, h: o.h || Math.round((o.w || 200) * (240 + TOPPAD) / 200), shadow: o.shadow !== false, prop: o.prop, companions: o.companions }); } catch (e) { return ''; }
   };
+  // タイトルの絵：丸窓の向こうの夕焼けと五重塔。夕日を背に跳ぶ相棒と、印を結ぶ見習い、見守る今日の師匠
+  // o: { partner, player, master }（art.js の定義）。幅：高さ = 400：300 の SVG を返す
+  R.titleSvg = function (o) {
+    function fig(def, x, gy, w, opt) { // 足もと (x, gy) に幅 w で置く
+      var s = w / 200;
+      return '<svg x="' + (x - w / 2).toFixed(1) + '" y="' + (gy - (232 + TOPPAD) * s).toFixed(1) + '" width="' + w + '" height="' + (272 * s).toFixed(1) + '" viewBox="' + VB + '" overflow="visible">' +
+        A.render(def, Object.assign({ raw: true, shadow: true, prop: false, companions: false }, opt)) + '</svg>';
+    }
+    function leaf(x, y, rot, col, sc, k) {
+      return '<g transform="translate(' + x + ' ' + y + ') rotate(' + rot + ') scale(' + sc + ')"><g class="ta-leaf ta-leaf' + k + '">' +
+        '<path d="M0 9L0 4" stroke="#6a2a1a" stroke-width="1.2"/>' +
+        '<path d="M0 4L-2.2 1.6L-8.5 3L-5.2 -.6L-8 -4.2L-3 -3.2L-2.6 -8.4L0 -4.6L2.6 -8.4L3 -3.2L8 -4.2L5.2 -.6L8.5 3L2.2 1.6Z" fill="' + col + '" stroke="#6a2a1a" stroke-width=".9" stroke-linejoin="round"/></g></g>';
+    }
+    var W = 400, H = 300, cx = 200, cy = 110, r = 104, sy = 112, fy = 228, i, g;
+    g = '<defs>' +
+      '<linearGradient id="ta-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbe0a6"/><stop offset=".4" stop-color="#f7b062"/><stop offset=".72" stop-color="#ec7f45"/><stop offset="1" stop-color="#cf5537"/></linearGradient>' +
+      '<radialGradient id="ta-sun"><stop offset="0" stop-color="#fffdf2"/><stop offset=".65" stop-color="#fff0c0"/><stop offset="1" stop-color="#ffd98c"/></radialGradient>' +
+      '<radialGradient id="ta-glow"><stop offset="0" stop-color="#fff3cf" stop-opacity=".95"/><stop offset="1" stop-color="#fff3cf" stop-opacity="0"/></radialGradient>' +
+      '<linearGradient id="ta-floor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c38f58"/><stop offset="1" stop-color="#a06c3c"/></linearGradient>' +
+      '<linearGradient id="ta-fx" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".16" stop-color="#fff"/><stop offset=".84" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>' +
+      '<mask id="ta-fm"><rect width="' + W + '" height="' + H + '" fill="url(#ta-fx)"/></mask>' +
+      '<clipPath id="ta-win"><circle cx="' + cx + '" cy="' + cy + '" r="' + r + '"/></clipPath></defs>';
+    // 丸窓の中：夕焼け・夕日・霞・山なみ・五重塔・鳥
+    var w = '<rect x="' + (cx - r) + '" y="' + (cy - r) + '" width="' + 2 * r + '" height="' + 2 * r + '" fill="url(#ta-sky)"/>' +
+      '<circle cx="' + cx + '" cy="' + sy + '" r="84" fill="url(#ta-glow)"/><circle cx="' + cx + '" cy="' + sy + '" r="50" fill="url(#ta-sun)"/>' +
+      '<g fill="#fff6e2" opacity=".62"><rect x="100" y="' + (cy - 36) + '" width="124" height="7" rx="3.5"/><rect x="220" y="' + (cy - 20) + '" width="90" height="6" rx="3"/><rect x="118" y="' + (cy + 14) + '" width="70" height="5" rx="2.5"/></g>' +
+      '<path d="M90 ' + (cy + 56) + 'L126 ' + (cy + 28) + 'L150 ' + (cy + 42) + 'L192 ' + (cy + 10) + 'L232 ' + (cy + 40) + 'L258 ' + (cy + 26) + 'L310 ' + (cy + 58) + 'V330H90Z" fill="#d86c56" opacity=".5"/>' +
+      '<path d="M90 ' + (cy + 70) + 'Q124 ' + (cy + 48) + ' 152 ' + (cy + 60) + 'Q182 ' + (cy + 42) + ' 216 ' + (cy + 60) + 'Q252 ' + (cy + 44) + ' 310 ' + (cy + 68) + 'V330H90Z" fill="#a4464a"/>';
+    var px = 262, pb = cy + 52, pg = '';
+    for (i = 0; i < 5; i++) { // 五重塔：屋根を5つ重ねる
+      var yy = pb - i * 11, rw = 17 - i * 2.2, bw = 7 - i * 0.8;
+      pg += '<rect x="' + (px - bw) + '" y="' + (yy - 9) + '" width="' + 2 * bw + '" height="9"/>' +
+        '<path d="M' + (px - rw) + ' ' + (yy - 7) + 'Q' + px + ' ' + (yy - 12) + ' ' + (px + rw) + ' ' + (yy - 7) + 'L' + (px + rw * 0.72) + ' ' + (yy - 11) + 'L' + (px - rw * 0.72) + ' ' + (yy - 11) + 'Z"/>';
+    }
+    pg += '<rect x="' + (px - 0.9) + '" y="' + (pb - 71) + '" width="1.8" height="16"/>';
+    w += '<g fill="#5a2836">' + pg + '</g>' +
+      '<g fill="none" stroke="#5a2e2e" stroke-width="1.6" stroke-linecap="round"><path d="M138 ' + (cy - 60) + 'q4 -4 8 0q4 -4 8 0"/><path d="M156 ' + (cy - 48) + 'q3 -3 6 0q3 -3 6 0"/></g>';
+    g += '<g clip-path="url(#ta-win)">' + w + '</g>';
+    // 窓わく
+    g += '<circle cx="' + cx + '" cy="' + cy + '" r="' + (r + 7) + '" fill="none" stroke="#3b2618" stroke-opacity=".16" stroke-width="6"/>' +
+      '<circle cx="' + cx + '" cy="' + cy + '" r="' + (r + 3) + '" fill="none" stroke="#5a3a24" stroke-width="8"/>' +
+      '<circle cx="' + cx + '" cy="' + cy + '" r="' + (r - 1.5) + '" fill="none" stroke="#8a5a36" stroke-width="2"/>';
+    // 床：板目は奥（窓のまん中）へ向かって集まる。左右はうすく消える
+    var fl = '<rect x="0" y="' + fy + '" width="' + W + '" height="' + (H - fy) + '" fill="url(#ta-floor)"/><g stroke="#7a4e2c" stroke-opacity=".38" stroke-width="1.3">';
+    for (i = -6; i <= 6; i++) { var bx = 200 + i * 62; fl += '<path d="M' + (200 + (bx - 200) * (fy - 120) / (H - 120)).toFixed(1) + ' ' + fy + 'L' + bx + ' ' + H + '"/>'; }
+    g += '<g mask="url(#ta-fm)">' + fl + '</g><rect x="0" y="' + fy + '" width="' + W + '" height="4.5" fill="#4e3220"/></g>';
+    // 人物：見守る師匠（右）・印を結ぶ見習い（左）・夕日を背に跳ぶ相棒（まん中）
+    g += fig(o.master, 318, 262, 136, { yaw: -38, pose: 'stand', companions: true });
+    g += fig(o.player, 84, 264, 134, { yaw: 40, pose: 'seal', expr: 'serious' });
+    g += '<ellipse class="ta-shadow" cx="200" cy="276" rx="34" ry="7" fill="#3b2618" opacity=".28"/>' +
+      '<g class="ta-lines" stroke="#6a4226" stroke-width="2.4" stroke-linecap="round" opacity=".45"><path d="M184 252v12"/><path d="M200 248v15"/><path d="M216 252v12"/></g>'; // 跳び上がった線
+    g += '<g class="ta-hero">' + fig(o.partner, 200, 236, 176, { yaw: -8, pose: 'jump', shadow: false }) + '</g>';
+    // 舞うもみじ
+    g += leaf(58, 58, 18, '#e0482a', 1.15, 1) + leaf(344, 46, -28, '#f0a020', 1, 2) + leaf(360, 168, 48, '#c8301e', 0.95, 3) + leaf(34, 176, -12, '#ec7a1c', 0.9, 2) + leaf(316, 96, 12, '#e0482a', 0.72, 1);
+    return '<svg xmlns="http://www.w3.org/2000/svg" class="title-art" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="夕日を背に跳ぶ相棒と、見習いと師匠">' + g + '</svg>';
+  };
   // 向き（見下ろしの画面）→ art.js の yaw
   var YAW = { 0: 0, 45: 50, 90: 90, 135: 130, 180: 180, '-45': -50, '-90': -90, '-135': -130 };
   R.yawFor = function (f) {

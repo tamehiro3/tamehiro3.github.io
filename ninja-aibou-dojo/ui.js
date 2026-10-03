@@ -16,11 +16,15 @@
   function signed(n) { return (n > 0 ? '+' : '') + n; }
 
   /* ================= タイトル ================= */
+  // タイトルの絵で見守る師匠（日替わり）
+  var TITLE_MASTERS = ['hayate', 'jin', 'sakuya', 'kohaku', 'nagisa', 'karma', 'shion', 'aum', 'sekishusai', 'ibuki', 'karura', 'magoichi', 'izuna', 'rei', 'uka', 'atoza', 'quon', 'ichiya', 'dan', 'kanaoni', 'torika', 'anne'];
   U.boot = function () {
     var tc = $('#title-chars');
-    var sample = CH.partnerArt({ outfit: 'ai', hair: 'buns', hairColor: 'cha', acc: 'scarf' });
-    tc.innerHTML = '<div>' + R.bodySvg(CH.BY_ID.hayate.art, { yaw: 30 }) + '</div><div class="big">' + R.bodySvg(sample, { yaw: 0, pose: 'cheer', expr: 'happy', fx: 'cheer' }) + '</div><div>' + R.bodySvg(CH.BY_ID.konga.art, { yaw: -30 }) + '</div>';
     var has = G.S && G.S.companion;
+    // 相棒は、もう作っていれば自分の相棒。まだなら見本
+    var partner = has ? G.partnerDef() : CH.partnerArt({ outfit: 'ai', hair: 'short', hairColor: 'kuro', acc: 'scarf' });
+    var mid = TITLE_MASTERS[((G.dayNo() % TITLE_MASTERS.length) + TITLE_MASTERS.length) % TITLE_MASTERS.length];
+    try { tc.innerHTML = R.titleSvg({ partner: partner, player: CH.playerArt(), master: CH.BY_ID[mid].art }); } catch (e) { tc.innerHTML = ''; }
     $('#btn-continue').hidden = !has;
     $('#btn-start').textContent = has ? 'はじめから' : 'はじめる';
     if (has) { $('#btn-start').className = 'btn big'; $('#btn-continue').className = 'btn primary big'; }

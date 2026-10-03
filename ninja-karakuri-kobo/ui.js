@@ -35,10 +35,10 @@
       b.onclick = function (e) { var a = e.target.getAttribute('data-a'); if (a === 'no') closeModal(); if (a === 'ok') { closeModal(); fn(); } };
     });
   }
-  // 人物の顔（上半身）の SVG
+  // 人物の顔（上半身）の SVG。公式に忠実な絵柄（約2.7頭身）の頭と肩が入る枠
   function face(def, w, h, pose, yaw) {
     if (!def || !A) return '';
-    return A.render(def, { pose: pose || 'stand', yaw: yaw == null ? -18 : yaw, w: w || 64, h: h || 76, viewBox: '22 4 156 186', shadow: false, prop: false, companions: false });
+    return A.render(def, { pose: pose || 'stand', yaw: yaw == null ? -18 : yaw, expr: pose === 'cheer' ? 'happy' : undefined, w: w || 64, h: h || 76, viewBox: '33 -4 134 160', shadow: false, prop: false, companions: false });
   }
   UI.face = face;
   // 制作者の看板（修行印の店の飾りつき）
@@ -754,7 +754,7 @@
   function renderRoster() {
     var el = $('scr-roster'), p = UI.store.profile;
     var n = Object.keys(p.cleared).length;
-    el.innerHTML = bar('試験官名鑑', 'home') + '<div class="scroll"><div class="wrap"><p class="muted">CryptoNinja の忍者39体が、からくり工房の試験官です。合格すると印がつきます（合格 ' + n + '／39）。キャラクターシートは公式イラストを参考にゲーム用に描き起こしたアレンジ案です。</p><div class="roster">' +
+    el.innerHTML = bar('試験官名鑑', 'home') + '<div class="scroll"><div class="wrap"><p class="muted">CryptoNinja の忍者39体が、からくり工房の試験官です。合格すると印がつきます（合格 ' + n + '／39）。キャラクターシートには、原型の公式イラストと公式3Dフィギュア（CC0）と、ゲーム用に描き起こしたゲームの中の姿をのせています。</p><div class="roster">' +
       C.CHARS.map(function (ch) { var ok = p.cleared[ch.exam.stage]; return '<button class="rcard" data-c="' + ch.id + '"><img loading="lazy" alt="' + esc(ch.name) + '" src="sheets/thumb/' + ch.id + '.jpg"><span><b>#' + ch.num + ' ' + esc(ch.name) + '</b><small>第' + ch.exam.stage + '試験「' + esc(ch.exam.title) + '」</small></span>' + (ok ? '<span class="stamp" style="width:34px;height:34px;font-size:.66rem">' + (ok.under ? '秀' : '合格') + '</span>' : '') + '</button>'; }).join('') +
       '</div><p class="muted" style="margin-top:14px"><a href="sheets/">キャラクターシートの一覧ページ</a></p></div></div>';
     show('roster');
@@ -775,7 +775,7 @@
   function renderDress() {
     var el = $('scr-dress'), s = UI.store, p = s.profile;
     function owned(setId) { var set = C.APPRENTICE_SETS.filter(function (x) { return x.id === setId; })[0]; return !set.price || p.owned['outfit_' + setId]; }
-    var h = bar('身じたく', 'home') + '<div class="scroll"><div class="wrap"><div class="dress"><div class="me">' + A.render(C.apprenticeArt(p.outfit, p.hair), { pose: 'stand', yaw: -20, w: 160, h: 192 }) + '</div><div>';
+    var h = bar('身じたく', 'home') + '<div class="scroll"><div class="wrap"><div class="dress"><div class="me">' + A.render(C.apprenticeArt(p.outfit, p.hair), { pose: 'stand', yaw: -20, w: 160, h: 218, viewBox: '0 -32 200 272' }) + '</div><div>';
     h += '<h2 class="sec">装束</h2><div class="choice">' + C.APPRENTICE_SETS.map(function (st) { return '<button data-outfit="' + st.id + '" class="' + (p.outfit === st.id ? 'on' : '') + '"><span class="sw" style="background:' + st.top + '"></span>' + st.name + (owned(st.id) ? '' : '（印' + st.price + '）') + '</button>'; }).join('') + '</div>';
     h += '<h2 class="sec">髪型</h2><div class="choice">' + C.APPRENTICE_HAIR.map(function (hh) { return '<button data-hair="' + hh.id + '" class="' + (p.hair === hh.id ? 'on' : '') + '">' + hh.name + '</button>'; }).join('') + '</div>';
     h += '<h2 class="sec">合格の演出</h2><div class="choice"><button data-fx="" class="' + (!p.fx ? 'on' : '') + '">いつもの紙ふぶき</button>' + D.SHOP.filter(function (x) { return x.kind === 'fx'; }).map(function (x) { return '<button data-fx="' + x.id + '" class="' + (p.fx === x.id ? 'on' : '') + '">' + x.name + (p.owned[x.id] ? '' : '（印' + x.price + '）') + '</button>'; }).join('') + '</div>';

@@ -29,30 +29,31 @@ python3 -m http.server 8765
 | `data.js` | 数値と中身（施設・家具・庭の物、依頼15種、里レベル、週のお題、店、見本の里） |
 | `rules.js` | ルール（置ける・置けない、生産、時刻、受け取り箱、依頼、住民、里レベル、店、見学コード）。画面に依存しないので、サーバーへ移しても同じ判定ができる |
 | `clerk.js` | 依頼係（ルールで選ぶ／AI案は試験機能。検証・1日2回・8秒で打ち切り・ルールに戻る） |
-| `art.js` | 忍者の絵（SVG で描く。向き・表情・動き） |
+| `art.js` | 人物の絵（SVG）。ニンジャ相棒道場・ニンジャからくり工房と同じファイル（どれかを直したら3つとも同じにする）。絵柄は公式イラストに忠実な絵柄（既定。約2.7頭身・横に広い大きな頭・低い位置の大きな目・前髪の下の影・太い輪郭線。キャラごとの公式に合わせた見た目は `chars.js` の `off`）で、ちびキャラ（`style: 'cute'`）にも切りかえられる。向き・表情・動き |
 | `chars.js` | 39体のデータ（番号・名前・クラン・忍術・武器・誕生日・紹介）と、絵の設定・里での好み・セリフ |
-| `sheet.js` | キャラクターシート（1536×1024）の組み立て |
+| `sheet.js` | キャラクターシート（1536×1800）の組み立て。上は原型＝公式イラストと公式3Dフィギュア（全身・CC0）・顔のアップ・色・見た目のポイント・公式の紹介、下は「ゲームの中の姿」（まえ・ななめ・よこ・うしろ・あるく、表情4種、かくれる（擬態））。ニンジャ相棒道場のシートと同じ並び |
 | `iso.js` | 里の見下ろし図（地面・物・人物の描画） |
 | `game.js` | 里の画面（カメラ・歩く・タップ・建築モード・収穫・保存） |
 | `ui.js` | パネル・会話・来訪者・修行・写真・タイトル・着がえ |
 | `tutorial.js` | 最初の10分の案内（片付け → 小屋・畑 → 収穫 → 柴の依頼 → 提灯 → 写真か見学 → 咲耶） |
-| `sw.js` / `manifest.webmanifest` / `icons/` | ホーム画面に追加・オフライン |
+| `sw.js` / `manifest.webmanifest` / `icons/` | ホーム画面に追加・オフライン（アイコンは `tools/build_icons.mjs` で作る） |
 | `img/art/` | 名鑑で見せる公式イラスト（39体） |
-| `sheets/` | キャラクターシート（`<id>.jpg`）・縮小版（`thumb/`）・一覧（`index.html`） |
+| `sheets/` | キャラクターシート（`<id>.jpg`）・縮小版（`thumb/`）・一覧（`index.html`。`build_sheets.mjs` が作る） |
 | `tools/test_rules.mjs` | 設計書 §11 の受け入れテスト |
-| `tools/build_sheets.mjs` | キャラクターシートの画像を作り直す |
+| `tools/build_sheets.mjs` / `tools/build_icons.mjs` | キャラクターシートの画像と一覧ページ・アイコンを作り直す |
 
 ## テスト
 
 ```sh
-node ninja-sato-life/tools/test_rules.mjs   # 結果: 69 件合格 / 0 件不合格
+node ninja-sato-life/tools/test_rules.mjs   # 結果: 76 件合格 / 0 件不合格
 ```
 
 配置の検査（範囲・重なり・入口・水辺・理由の表示）と、§11 の6項目（移動中に終了しても複製・消失しない／収穫の連打・再送・時計の変更で増やせない／訪問者は配置と在庫を変えられない／上限のときは受け取り先を先に見せて報酬を捨てない／AI停止・不正な施設ID・遂行不能な依頼で通常の依頼に戻る／購入済みを再購入させず購入の復元で戻る）、生産・最初の10分・里レベル・住民の流れを確かめます。
 
 ## キャラクターシートを作り直す
 
-`art.js` / `chars.js` / `sheet.js` を変えたら画像を作り直します。Chromium と playwright-core、Zen Maru Gothic のフォント（TTF）を使います。
+`art.js` / `chars.js` / `sheet.js` を変えたら画像を作り直します。Chromium と playwright-core、フォント（TTF。名前の筆文字は Yuji Boku、見出しは Zen Kaku Gothic New 700/900、絵の中の小さな字は Zen Maru Gothic。どれも Google Fonts・SIL OFL）を使います。
+シートの原型（CC0）は、ニンジャ相棒道場と同じものを使います。公式イラストは `ninja-aibou-dojo/img/official/<id>.jpg`（高画質化したもの。なければ `img/art/<id>.jpg`。置き場所は `OFFICIAL_ART` で変えられます）、全身の公式3Dフィギュアは `ninja-aibou-dojo/img/official/fig/<id>.jpg`（`OFFICIAL_FIG` で変えられます）。「見た目のポイント」と顔のアップの範囲も `ninja-aibou-dojo/chars.js`（`LOOK`・`faceBox`）から読みます。作り方は `ninja-aibou-dojo/README.md` の「キャラクターシート・アイコンを作り直す」を見てください。
 
 ```sh
 PLAYWRIGHT_CORE=/path/to/node_modules/playwright-core \
@@ -63,7 +64,7 @@ node ninja-sato-life/tools/build_sheets.mjs
 
 ## 更新するとき
 
-- 中身を変えたら `index.html` の `?v=1` と `sw.js` の `CACHE` / `CORE` の番号を上げる（上げないと、ホーム画面に追加した人に古い版が残る）
+- 中身を変えたら `index.html` の `?v=2` と `sw.js` の `CACHE` / `CORE` の番号を上げる（上げないと、ホーム画面に追加した人に古い版が残る）
 - `version.txt` は時刻あわせに使う（中身は何でもよい）
 
 ## 設計書との対応

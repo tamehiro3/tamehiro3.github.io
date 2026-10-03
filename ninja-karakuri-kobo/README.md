@@ -37,11 +37,11 @@ python3 -m http.server 8765
 | `editor.js` | 作る画面（パーツ・マス目・設定の板・取り消し・自動保存） |
 | `ui.js` | 画面の切りかえとダイアログ（見本・検証・提案・試験コード・攻略メモ・通報・運営画面） |
 | `tutorial.js` | 最初の10分の案内（試験官長ハヤテ・工房の親方 金鬼） |
-| `art.js` / `chars.js` / `sheet.js` | 忍者の絵（SVG）、39体のデータと試験官の設定、キャラクターシート（1536×1024）の組み立て |
+| `art.js` / `chars.js` / `sheet.js` | 人物の絵（SVG）。ニンジャ相棒道場・ニンジャからくり工房と同じファイル（どれかを直したら3つとも同じにする）。絵柄は公式イラストに忠実な絵柄（既定。約2.7頭身・横に広い大きな頭・低い位置の大きな目・前髪の下の影・太い輪郭線。キャラごとの公式に合わせた見た目は `chars.js` の `off`）で、ちびキャラ（`style: 'cute'`）にも切りかえられる。横スクロールのうごき（走る・跳ぶ・落ちる・着地・びっくり）つき。39体のデータと試験官の設定、キャラクターシート（1536×1800）の組み立て（上は原型＝公式イラストと公式3Dフィギュア（全身・CC0）・顔のアップ・色・見た目のポイント・公式の紹介・本作での役、下は「ゲームの中の姿」（まえ・ななめ・よこ・うしろ・あるく、しぐさ4種、かくれる（擬態））。ニンジャ相棒道場のシートと同じ並び） |
 | `sound.js` | 効果音（WebAudio で作る音。音声ファイルなし） |
 | `sw.js` / `manifest.webmanifest` / `icons/` | ホーム画面に追加・オフライン |
-| `img/art/` | 公式イラスト（39体。キャラクターシートの参考） |
-| `sheets/` | キャラクターシート（`<id>.jpg`）・縮小版（`thumb/`）・一覧（`index.html`） |
+| `img/art/` | 公式イラスト（39体・360×360） |
+| `sheets/` | キャラクターシート（`<id>.jpg`）・縮小版（`thumb/`）・一覧（`index.html`。`build_sheets.mjs` が作る） |
 | `tools/test_rules.mjs` | 設計書 §13 の受け入れテスト |
 | `tools/solve_stages.mjs` | 運営の試験と見本を検証と解答機で確かめ、`solutions.js` を書き出す |
 | `tools/build_sheets.mjs` / `tools/build_icons.mjs` | キャラクターシート・アイコンの画像を作り直す |
@@ -49,7 +49,7 @@ python3 -m http.server 8765
 ## テスト
 
 ```sh
-node ninja-karakuri-kobo/tools/test_rules.mjs     # 結果: 156 件合格 / 0 件不合格
+node ninja-karakuri-kobo/tools/test_rules.mjs     # 結果: 163 件合格 / 0 件不合格
 node ninja-karakuri-kobo/tools/solve_stages.mjs   # 運営の試験39本＋見本6本がクリアできるか（数分かかる）
 ```
 
@@ -82,7 +82,8 @@ node ninja-karakuri-kobo/tools/solve_stages.mjs --write    # 全部を確かめ�
 
 ## キャラクターシートを作り直す
 
-`art.js` / `chars.js` / `sheet.js` を変えたら画像を作り直します。Chromium と playwright、Zen Old Mincho・Zen Maru Gothic のフォント（TTF）を使います。
+`art.js` / `chars.js` / `sheet.js` を変えたら画像を作り直します。Chromium と playwright、フォント（TTF。名前の筆文字は Yuji Boku、見出しは Zen Kaku Gothic New 700/900、絵の中の小さな字は Zen Maru Gothic。どれも Google Fonts・SIL OFL）を使います。
+シートの原型（CC0）は、ニンジャ相棒道場と同じものを使います。公式イラストは `ninja-aibou-dojo/img/official/<id>.jpg`（高画質化したもの。なければ `img/art/<id>.jpg`。置き場所は `OFFICIAL_ART` で変えられます）、全身の公式3Dフィギュアは `ninja-aibou-dojo/img/official/fig/<id>.jpg`（`OFFICIAL_FIG` で変えられます）。「見た目のポイント」と顔のアップの範囲も `ninja-aibou-dojo/chars.js`（`LOOK`・`faceBox`）から読みます。作り方は `ninja-aibou-dojo/README.md` の「キャラクターシート・アイコンを作り直す」を見てください。
 
 ```sh
 CHROME=/path/to/chrome SHEET_FONT_DIR=/path/to/fonts node ninja-karakuri-kobo/tools/build_sheets.mjs
@@ -90,7 +91,7 @@ CHROME=/path/to/chrome SHEET_FONT_DIR=/path/to/fonts node ninja-karakuri-kobo/to
 
 ## 更新するとき
 
-- 中身を変えたら `index.html` の `?v=1` と `sw.js` の `CACHE` / `V` の番号を上げる（上げないと、ホーム画面に追加した人に古い版が残る）
+- 中身を変えたら `index.html` の `?v=2` と `sw.js` の `CACHE` / `V` の番号を上げる（上げないと、ホーム画面に追加した人に古い版が残る）
 
 ## 設計書との対応
 

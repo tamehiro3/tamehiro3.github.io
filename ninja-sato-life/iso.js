@@ -563,7 +563,9 @@
 
   /* ---------- キャラクターの画像（SVG → 画像 → キャンバス） ---------- */
   var charCache = {};
-  var CW = 64, CHh = 77; // ズーム1での表示サイズ
+  var CW = 64, CHh = 77; // ズーム1での表示サイズ（人物の 200×240 の枠）
+  var TOPPAD = 32;       // 髪・耳・小物が上で切れないよう、絵の上に足す余白（art.js の座標）
+  var CHt = CHh * (240 + TOPPAD) / 240, GY = (232 + TOPPAD) / (240 + TOPPAD); // 余白をふくめた高さと、足もとの位置（高さに対する割合）
   // 読みこみ中は、同じ人物の読みこみ済みの絵（向き・大きさちがい）で代わりに描く
   var charLast = {}, charPending = 0;
   function charSprite(key, defFn, opt, scale) {
@@ -572,7 +574,7 @@
     if (e) return e.ready ? e : (charLast[key] || null);
     e = charCache[k] = { ready: false };
     charPending++;
-    var svg = A.render(defFn(), { yaw: opt.yaw, pose: opt.pose, frame: opt.frame, expr: opt.expr, w: Math.round(CW * scale), h: Math.round(CHh * scale), shadow: false, prop: false, companions: opt.companions !== false });
+    var svg = A.render(defFn(), { yaw: opt.yaw, pose: opt.pose, frame: opt.frame, expr: opt.expr, viewBox: '0 ' + (-TOPPAD) + ' 200 ' + (240 + TOPPAD), w: Math.round(CW * scale), h: Math.round(CHt * scale), shadow: false, prop: false, companions: opt.companions !== false });
     var img = new Image();
     img.onload = function () {
       var cv = makeCanvas(img.width, img.height); cv.getContext('2d').drawImage(img, 0, 0);
@@ -627,6 +629,6 @@
     return out;
   }
 
-  var api = { HW: HW, HH: HH, iso: iso, unIso: unIso, THEMES: THEMES, DRAW: DRAW, G: G, spriteFor: spriteFor, charSprite: charSprite, charPending: function () { return charPending; }, clearChar: clearChar, drawGround: drawGround, drawDebris: drawDebris, drawOuterTree: drawOuterTree, drawGatherSpot: drawGatherSpot, outerTrees: outerTrees, gateOf: gateOf, makeCanvas: makeCanvas, CW: CW, CHh: CHh, hash: hash, spriteCache: spriteCache };
+  var api = { HW: HW, HH: HH, iso: iso, unIso: unIso, THEMES: THEMES, DRAW: DRAW, G: G, spriteFor: spriteFor, charSprite: charSprite, charPending: function () { return charPending; }, clearChar: clearChar, drawGround: drawGround, drawDebris: drawDebris, drawOuterTree: drawOuterTree, drawGatherSpot: drawGatherSpot, outerTrees: outerTrees, gateOf: gateOf, makeCanvas: makeCanvas, CW: CW, CHh: CHh, CHt: CHt, GY: GY, hash: hash, spriteCache: spriteCache };
   root.NSL_ISO = api;
 })(typeof window !== 'undefined' ? window : globalThis);

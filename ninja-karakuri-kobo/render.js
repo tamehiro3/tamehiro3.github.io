@@ -416,7 +416,8 @@
 
   /* ---------- 人物の絵（SVG → 画像。読みこみ中は null） ---------- */
   var sprites = {}, pending = 0, onReady = null;
-  var SPRITE_UNITS = 196; // 足もとから頭のてっぺんまで（art.js の座標で約196）
+  var SPRITE_UNITS = 208; // 足もとから頭のてっぺんまで（art.js の座標。公式に忠実な絵柄（約2.7頭身）で約208）
+  var TOPPAD = 32;        // 髪・耳・小物が上で切れないよう、絵の上に足す余白（art.js の座標）
   function sprite(key, def, pose, frame, yaw, hPx, expr) {
     var hp = Math.max(8, Math.round(hPx));
     var k = key + '|' + pose + '|' + (frame || 0) + '|' + yaw + '|' + hp + '|' + (expr || '');
@@ -424,13 +425,13 @@
     if (e) return e.ready ? e : null;
     e = sprites[k] = { ready: false };
     if (!A || typeof Image === 'undefined') return null;
-    var scale = hp / SPRITE_UNITS, w = Math.ceil(200 * scale), h = Math.ceil(240 * scale);
-    var svg = A.render(def, { yaw: yaw, pose: pose, frame: frame || 0, expr: expr, w: w, h: h, shadow: false, prop: pose === 'stand' || pose === 'serious', companions: pose === 'stand' });
+    var scale = hp / SPRITE_UNITS, w = Math.ceil(200 * scale), h = Math.ceil((240 + TOPPAD) * scale);
+    var svg = A.render(def, { yaw: yaw, pose: pose, frame: frame || 0, expr: expr || (pose === 'cheer' ? 'happy' : undefined), viewBox: '0 ' + (-TOPPAD) + ' 200 ' + (240 + TOPPAD), w: w, h: h, shadow: false, prop: pose === 'stand' || pose === 'serious', companions: pose === 'stand' });
     var img = new Image();
     pending++;
     img.onload = function () {
       var cv = makeCanvas(w, h); cv.getContext('2d').drawImage(img, 0, 0, w, h);
-      e.cv = cv; e.w = w; e.h = h; e.ax = 100 * scale; e.ay = 232 * scale; e.ready = true; pending--;
+      e.cv = cv; e.w = w; e.h = h; e.ax = 100 * scale; e.ay = (232 + TOPPAD) * scale; e.ready = true; pending--;
       if (onReady) onReady();
     };
     img.onerror = function () { pending--; };

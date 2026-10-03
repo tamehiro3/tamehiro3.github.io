@@ -236,7 +236,7 @@ h2.sec { font-size: 1.02rem; margin: 18px 0 8px; padding-left: 10px; border-left
 .tpl { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
 .roster { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
 .rcard { background: var(--paper); border: 1.5px solid var(--line); border-radius: 12px; overflow: hidden; padding: 0; text-align: left; position: relative; }
-.rcard img { width: 100%; display: block; aspect-ratio: 3 / 2; object-fit: cover; background: #efe5d2; }
+.rcard img { width: 100%; display: block; aspect-ratio: 3 / 2; object-fit: cover; object-position: top; background: #efe5d2; }
 .rcard span { display: block; padding: 5px 8px 7px; font-size: .82rem; }
 .rcard small { display: block; color: var(--sub); font-size: .7rem; }
 .sheet-img { width: 100%; border-radius: 10px; border: 1px solid var(--line); display: block; }
@@ -245,7 +245,7 @@ h2.sec { font-size: 1.02rem; margin: 18px 0 8px; padding-left: 10px; border-left
 .kv dd { margin: 0; }
 .dress { display: grid; grid-template-columns: 180px 1fr; gap: 14px; }
 .dress .me { background: var(--paper); border-radius: 14px; border: 1.5px solid var(--line); display: flex; align-items: center; justify-content: center; min-height: 220px; }
-.dress .me svg { width: 160px; height: 192px; }
+.dress .me svg { width: 160px; height: 218px; }
 @media (max-width: 560px) { .dress { grid-template-columns: 1fr; } }
 .shop { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
 .item { background: var(--paper); border: 1.5px solid var(--line); border-radius: 12px; padding: 8px 10px; }

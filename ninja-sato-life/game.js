@@ -236,11 +236,11 @@
     var yaw = w.path.length ? w.yaw : (w.faceYaw != null ? w.faceYaw : (Math.abs(w.yaw) > 90 ? w.yaw : (w.yaw > 0 ? 24 : -24)));
     var key = w.id === 'me' ? 'me:' + (G.S.player.set + G.S.player.hair + (G.S.player.outfit ? G.S.player.outfit.id || 'o' : '')) : w.id;
     var spr = I.charSprite(key, artFor(w), { yaw: yaw, pose: pose, frame: w.path.length ? w.frame : 0, expr: w.expr || null, companions: false }, q);
-    var cw = I.CW * G.cam.z, chh = I.CHh * G.cam.z;
+    var cw = I.CW * G.cam.z, chh = I.CHh * G.cam.z, cht = I.CHt * G.cam.z;
     var bob = w.path.length ? 0 : Math.sin(w.t * 2.2) * 0.6 * G.cam.z;
     // 影
     ctx.beginPath(); ctx.ellipse(s.x, s.y, cw * 0.26, cw * 0.1, 0, 0, Math.PI * 2); ctx.fillStyle = 'rgba(40,30,20,.2)'; ctx.fill();
-    if (spr) ctx.drawImage(spr.cv, s.x - cw / 2, s.y - chh * 0.965 + bob, cw, chh);
+    if (spr) ctx.drawImage(spr.cv, s.x - cw / 2, s.y - cht * I.GY + bob, cw, cht);
     else { ctx.beginPath(); ctx.arc(s.x, s.y - chh * 0.5, cw * 0.2, 0, 7); ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.fill(); }
     G.hits.push({ kind: 'walker', w: w, x0: s.x - cw * 0.3, x1: s.x + cw * 0.3, y0: s.y - chh * 0.9, y1: s.y, z: 2 });
     w.sx = s.x; w.sy = s.y - chh;

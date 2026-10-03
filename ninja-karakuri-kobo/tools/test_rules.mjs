@@ -22,6 +22,17 @@ let pass = 0, fail = 0;
 function ok(cond, msg) { if (cond) pass++; else { fail++; console.log('  NG: ' + msg); } }
 function eq(a, b, msg) { ok(JSON.stringify(a) === JSON.stringify(b), msg + '  (' + JSON.stringify(a) + ' != ' + JSON.stringify(b) + ')'); }
 function section(t) { console.log('■ ' + t); }
+// JPEG の幅と高さ（SOF の見出しから読む）
+function jpegSize(file) {
+  const b = fs.readFileSync(file);
+  for (let i = 2; i + 9 < b.length;) {
+    if (b[i] !== 0xff) { i++; continue; }
+    const m = b[i + 1], len = b.readUInt16BE(i + 2);
+    if (m >= 0xc0 && m <= 0xc3) return [b.readUInt16BE(i + 7), b.readUInt16BE(i + 5)];
+    i += 2 + len;
+  }
+  return null;
+}
 const codes = v => (v.errors || []).map(e => e.code);
 
 const T0 = Date.parse('2026-09-28T01:00:00Z');
@@ -451,6 +462,13 @@ section('§2・§12 運営の試験（投稿が少なくても遊べる）：39�
   eq(bad, [], '全試験が検証に通る（部品80・仕掛け10・チェックポイント2 以内）');
   const sheets = C.CHARS.filter(c => !fs.existsSync(path.join(ROOT, 'sheets', c.id + '.jpg')) || !fs.existsSync(path.join(ROOT, 'sheets', 'thumb', c.id + '.jpg'))).map(c => c.id);
   eq(sheets, [], '39体のキャラクターシート（本体と縮小版）がある');
+  const SH = require(path.join(ROOT, 'sheet.js'));
+  const sv = SH.sheetSvg(C.BY_ID.kohaku, { officialHref: 'x.jpg', figureHref: 'f.jpg', look: ['赤い耳と青い模様の白い狐面'] });
+  ok(sv.indexOf('<image href="x.jpg"') >= 0 && sv.indexOf('原型　公式イラスト') >= 0 && sv.indexOf('<image href="f.jpg"') >= 0 && sv.indexOf('原型　公式3Dフィギュア（全身）') >= 0 &&
+    sv.indexOf('本作での役') >= 0 && sv.indexOf('第二の試験「足場わたり」試験官') >= 0 && sv.indexOf('ゲームの中の姿') >= 0 && sv.indexOf('しぐさ') >= 0, 'シートの主役は原型（公式イラストと公式3Dフィギュア）で、担当の試験とゲームの中の姿をそえる');
+  ok(C.CHARS.every(c => { const s = SH.sheetSvg(c, {}); return s.indexOf('NaN') < 0 && s.indexOf('undefined') < 0; }), '39体すべてのシートを描ける');
+  const wrong = C.CHARS.filter(c => JSON.stringify(jpegSize(path.join(ROOT, 'sheets', c.id + '.jpg'))) !== JSON.stringify([SH.W, SH.H])).map(c => c.id);
+  eq(wrong, [], 'シートの画像は今の並び（' + SH.W + '×' + SH.H + '）で作り直してある');
 }
 
 console.log(`\n結果: ${pass} 件合格 / ${fail} 件不合格`);

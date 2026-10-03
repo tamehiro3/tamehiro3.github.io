@@ -364,7 +364,7 @@
       '<dl class="kv"><dt>クラン</dt><dd>' + esc(ch.clan) + '</dd><dt>忍術</dt><dd>' + esc(ch.jutsu) + '</dd><dt>武器</dt><dd>' + esc(ch.weapon) + '</dd><dt>誕生日</dt><dd>' + esc(ch.birthday) + '</dd><dt>来訪</dt><dd>' + (m.visits || 0) + '回' + (S.residents[id] ? '（住民）' : '') + '</dd></dl>' +
       (ch.bio ? '<p style="clear:both">' + esc(ch.bio) + '</p>' : '<p style="clear:both"></p>') +
       '<p class="muted">里での様子（ゲームの設定）：' + esc(ch.note) + '<br>好きなもの：' + ch.likes.map(function (t) { return '<span class="tag">' + esc(D.TAG_NAMES[t]) + '</span>'; }).join('') + '　居場所：' + esc(D.ITEM[ch.home].name) + '</p>' +
-      '<h3>キャラクターシート</h3><a href="sheets/' + id + '.jpg" target="_blank" rel="noopener"><img class="sheet-img" src="sheets/thumb/' + id + '.jpg" alt="' + esc(ch.name) + 'のキャラクターシート" loading="lazy"></a><p class="muted">タップで大きな画像（1536×1024）。公式のイラストをもとにしたゲーム用アレンジ案です。</p>';
+      '<h3>キャラクターシート</h3><a href="sheets/' + id + '.jpg" target="_blank" rel="noopener"><img class="sheet-img" src="sheets/thumb/' + id + '.jpg" alt="' + esc(ch.name) + 'のキャラクターシート" loading="lazy"></a><p class="muted">タップで大きな画像（1536×1800）。上は原型の公式イラストと公式3Dフィギュア（CC0）、下はゲーム用に描き起こしたゲームの中の姿です。</p>';
     G.modal(html, [{ label: 'とじる', cls: 'primary' }]);
   }
   G.zukanDetail = zukanDetail;

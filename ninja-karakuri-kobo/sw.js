@@ -1,7 +1,7 @@
 // Service Worker：一度読みこめばオフラインでも遊べるようにする
 // 更新時は CACHE の番号と index.html の ?v=N を両方上げる
-const CACHE = 'ninja-karakuri-kobo-v1';
-const V = '?v=1';
+const CACHE = 'ninja-karakuri-kobo-v2';
+const V = '?v=2';
 const CORE = [
   './', './index.html', './about.html', './manifest.webmanifest',
   './style.css' + V, './data.js' + V, './engine.js' + V, './rules.js' + V, './store.js' + V, './art.js' + V, './chars.js' + V,

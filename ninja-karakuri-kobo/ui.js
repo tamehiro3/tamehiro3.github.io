@@ -754,7 +754,7 @@
   function renderRoster() {
     var el = $('scr-roster'), p = UI.store.profile;
     var n = Object.keys(p.cleared).length;
-    el.innerHTML = bar('試験官名鑑', 'home') + '<div class="scroll"><div class="wrap"><p class="muted">CryptoNinja の忍者39体が、からくり工房の試験官です。合格すると印がつきます（合格 ' + n + '／39）。キャラクターシートは公式イラストを参考にゲーム用に描き起こしたアレンジ案です。</p><div class="roster">' +
+    el.innerHTML = bar('試験官名鑑', 'home') + '<div class="scroll"><div class="wrap"><p class="muted">CryptoNinja の忍者39体が、からくり工房の試験官です。合格すると印がつきます（合格 ' + n + '／39）。キャラクターシートには、原型の公式イラストと公式3Dフィギュア（CC0）と、ゲーム用に描き起こしたゲームの中の姿をのせています。</p><div class="roster">' +
       C.CHARS.map(function (ch) { var ok = p.cleared[ch.exam.stage]; return '<button class="rcard" data-c="' + ch.id + '"><img loading="lazy" alt="' + esc(ch.name) + '" src="sheets/thumb/' + ch.id + '.jpg"><span><b>#' + ch.num + ' ' + esc(ch.name) + '</b><small>第' + ch.exam.stage + '試験「' + esc(ch.exam.title) + '」</small></span>' + (ok ? '<span class="stamp" style="width:34px;height:34px;font-size:.66rem">' + (ok.under ? '秀' : '合格') + '</span>' : '') + '</button>'; }).join('') +
       '</div><p class="muted" style="margin-top:14px"><a href="sheets/">キャラクターシートの一覧ページ</a></p></div></div>';
     show('roster');

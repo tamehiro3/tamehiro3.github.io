@@ -9,6 +9,7 @@
 - **プライバシーポリシー**(`privacy.html`・AdSense審査の必須要件)
 - **ニンジャ里ライフ(試作版)の置き場所**(`ninja-sato-life/` → https://tamehiro3.github.io/ninja-sato-life/ )。ほかの2本のゲームは別リポジトリですが、このゲームはこのリポジトリの中にあります。中身と作り直し方は [`ninja-sato-life/README.md`](ninja-sato-life/README.md)
 - **ニンジャ夜明け隊(試作版)の置き場所**(`ninja-yoake-tai/` → https://tamehiro3.github.io/ninja-yoake-tai/ )。キャラクターの絵(`ninja-sato-life/art.js`・`chars.js`)と39体のキャラクターシート(`ninja-sato-life/sheets/`)は、ニンジャ里ライフと共有しています。中身は [`ninja-yoake-tai/README.md`](ninja-yoake-tai/README.md)
+- **ニンジャからくり工房(試作版)の置き場所**(`ninja-karakuri-kobo/` → https://tamehiro3.github.io/ninja-karakuri-kobo/ )。忍者の試験を遊んで作るアスレチック・パズル。中身・テスト・作り直し方は [`ninja-karakuri-kobo/README.md`](ninja-karakuri-kobo/README.md)
 
 ## AdSense の状況と残りの手順
 
@@ -21,6 +22,7 @@
 - 遊び方ページ(`/ninja-mission-kobo/about.html`・`/shinobi-nazomeguri/about.html`)… ゲーム画面はJSで描画され文字が少ないため、審査で「有用性の低いコンテンツ」と判定されないよう文章ページを追加
 - ニンジャ里ライフ(2026-09-27 追加)… 審査コードは遊び方ページ(`/ninja-sato-life/about.html`)だけ。ゲーム画面(`/ninja-sato-life/`)には広告のコードを入れていません(トップページの紹介「プレイ画面に広告は表示しません」と合わせるため。広告を出すなら紹介文と事実台帳も直す)
 - ニンジャ夜明け隊(2026-09-28 追加)… 同じく、審査コードは遊び方ページ(`/ninja-yoake-tai/about.html`)だけ。ゲーム画面(`/ninja-yoake-tai/`)には広告のコードを入れていません
+- ニンジャからくり工房(2026-09-28 追加)… 里ライフと同じく、審査コードは遊び方ページ(`/ninja-karakuri-kobo/about.html`)だけ。ゲーム画面(`/ninja-karakuri-kobo/`)とキャラクターシートの一覧には広告のコードを入れていません
 
 残りの手順(AdSense管理画面での作業):
 

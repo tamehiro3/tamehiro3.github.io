@@ -44,4 +44,5 @@ Typelessで話した下書きを GitHub の Issue に置くと、機械検品 �
 
 ## 次のゲームの設計図（Roblox版・企画段階）
 
-- [`_design/roblox-koka-scroll-wars/BLUEPRINT.md`](_design/roblox-koka-scroll-wars/BLUEPRINT.md) — 「巻物争奪・甲賀の街」(仮題「忍びの蔵と結びの術」)。盗る・守る型にAI要素（術合わせ・推理・課題カード）を乗せた設計。コードはまだなく、着手前の確認項目が15章にある
+- [`_design/roblox-koka-scroll-wars/BLUEPRINT.md`](_design/roblox-koka-scroll-wars/BLUEPRINT.md) — 「巻物争奪・甲賀の街」(仮題「忍びの蔵と結びの術」)。盗る・守る型にAI要素（術合わせ・推理・課題カード）を乗せた設計。着手前の確認項目が15章にある
+- [`_design/roblox-koka-scroll-wars/prototype/`](_design/roblox-koka-scroll-wars/prototype/README.md) — Roblox Studio に貼り付けて動かす骨組み（昼夜・欠片・蔵・結界・運搬・風魔の影・見張り）。入れ方とテストの観点は同フォルダの README

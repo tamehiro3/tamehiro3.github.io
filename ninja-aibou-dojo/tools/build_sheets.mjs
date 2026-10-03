@@ -7,9 +7,10 @@
 //   SHEET_FONT_DIR  … フォントの置き場所。名前は筆文字（YujiBoku.ttf）、見出しは角ゴシック（ZenKakuGothicNew-700/900.ttf）、
 //                     小物の字は丸ゴシック（ZenMaruGothic-500/700/900.ttf）。どれも Google Fonts（SIL OFL）
 //   SHEET_STYLE     … cool にすると、かっこいい版（約5頭身・1536×1680）、cute にすると、かわいい版（ちびキャラ・1536×1410）で作る
-//   OFFICIAL_ART    … 原型（公式イラスト・CC0）の置き場所。省略時は ninja-aibou-dojo/img/official（高画質化した <id>.jpg）、
+//   OFFICIAL_ART    … 原型の公式イラスト（CC0）の置き場所。省略時は ninja-aibou-dojo/img/official（高画質化した <id>.jpg）、
 //                     なければ ninja-sato-life/img/art（元の 360×360）
-// 出力：ninja-aibou-dojo/sheets/<id>.jpg（既定の原型版は 1536×1860）と sheets/thumb/<id>.jpg（幅480）
+//   OFFICIAL_FIG    … 原型の公式3Dフィギュア（全身・CC0）の置き場所。省略時は ninja-aibou-dojo/img/official/fig（<id>.jpg）
+// 出力：ninja-aibou-dojo/sheets/<id>.jpg（既定の原型版は 1536×1800）と sheets/thumb/<id>.jpg（幅480）
 import { createRequire } from 'module';
 import path from 'path';
 import fs from 'fs';
@@ -27,6 +28,7 @@ NinjaArt.style = STYLE;
 const S = require(path.join(ROOT, 'sheet.js'));
 const { W, H } = S.size(STYLE);
 const ART_DIRS = process.env.OFFICIAL_ART ? [process.env.OFFICIAL_ART] : [path.join(ROOT, 'img', 'official'), path.join(ROOT, '..', 'ninja-sato-life', 'img', 'art')];
+const FIG_DIRS = [process.env.OFFICIAL_FIG || path.join(ROOT, 'img', 'official', 'fig')];
 // 原型（公式イラスト）は data URI でシートに入れる。背景色は左上のすみの色（顔のアップの背景にも使う）
 const official = {};
 const sheetSvg = ch => S.sheetSvg(ch, Object.assign({ style: STYLE }, official[ch.id] || {}));
@@ -68,6 +70,9 @@ if (STYLE === 'official') {
       return '#' + h(r) + h(gg) + h(b);
     }, uri);
     official[ch.id] = { officialHref: uri, officialBg: bg };
+    const fig = FIG_DIRS.map(d => path.join(d, ch.id + '.jpg')).find(p => fs.existsSync(p));
+    if (fig) official[ch.id].figureHref = 'data:image/jpeg;base64,' + fs.readFileSync(fig).toString('base64');
+    else console.warn('公式3Dフィギュアがありません: ' + ch.id);
   }
 }
 let n = 0;

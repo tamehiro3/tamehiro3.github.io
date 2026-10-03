@@ -284,9 +284,12 @@ section('データ');
   // キャラクターシート：公式イラストと、見た目のポイント
   ok(C.CHARS.every(c => Array.isArray(c.look) && c.look.length >= 3 && c.look.every(t => typeof t === 'string' && t.length > 3)), '39体すべて、キャラクターシートにのせる「見た目のポイント」がある');
   const Sh = require(path.join(ROOT, 'sheet.js'));
-  const sv = Sh.sheetSvg(C.BY_ID.kohaku, { officialHref: 'x.jpg', officialBg: '#2a4a7a' });
-  ok(sv.indexOf('<image href="x.jpg"') >= 0 && sv.indexOf('原型　公式イラスト（CryptoNinja・CC0）') >= 0 && sv.indexOf('顔のアップ') >= 0 && sv.indexOf('NaN') < 0 && Sh.size().H === Sh.H, 'キャラクターシートの主役は原型（公式イラスト・CC0）で、顔のアップと並ぶ');
+  const sv = Sh.sheetSvg(C.BY_ID.kohaku, { officialHref: 'x.jpg', officialBg: '#2a4a7a', figureHref: 'f.jpg' });
+  ok(sv.indexOf('<image href="x.jpg"') >= 0 && sv.indexOf('原型　公式イラスト') >= 0 && sv.indexOf('<image href="f.jpg"') >= 0 && sv.indexOf('原型　公式3Dフィギュア（全身）') >= 0 && sv.indexOf('顔のアップ') >= 0 && sv.indexOf('NaN') < 0 && Sh.size().H === Sh.H, 'キャラクターシートの主役は原型（公式イラストと公式3Dフィギュア・CC0）で、顔のアップと並ぶ');
+  const sp = Sh.sheetSvg({ id: 'partner', name: '相棒（見本）', partner: true, info: '見習い忍者', palette: ['#f7dcc2', '#2f4a7a'], art: C.partnerArt({ outfit: 'ai', hair: 'buns', hairColor: 'cha', acc: 'scarf' }) }, {});
+  ok(sp.indexOf('相棒（見本）') >= 0 && sp.indexOf('NaN') < 0 && sp.indexOf('undefined') < 0, '相棒のシートは、えらべる装束を並べて描ける');
   ok(C.CHARS.every(c => fs.existsSync(path.join(ROOT, 'img', 'official', c.id + '.jpg'))), '原型（公式イラスト）を高画質化した画像が39体そろっている');
+  ok(C.CHARS.every(c => fs.existsSync(path.join(ROOT, 'img', 'official', 'fig', c.id + '.jpg'))), '原型（公式3Dフィギュア・全身）の画像が39体そろっている');
 }
 
 console.log(`\n結果: ${pass} 件合格 / ${fail} 件不合格`);

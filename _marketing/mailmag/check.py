@@ -24,8 +24,15 @@ def _line_of(text, pos):
     return text.count("\n", 0, pos) + 1
 
 
+COMMENT_RE = re.compile(r"<!--.*?-->", re.S)
+
+
 def check(text):
-    """(level, message) のリストを返す。level は block / warn。"""
+    """(level, message) のリストを返す。level は block / warn。
+
+    原稿冒頭の <!-- --> は配信しないメモなので照合しない（行番号は保つ）。
+    """
+    text = COMMENT_RE.sub(lambda m: "\n" * m.group(0).count("\n"), text)
     out = []
     for level in ("block", "warn"):
         for rule in RULES[level]:

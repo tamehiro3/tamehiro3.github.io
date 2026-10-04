@@ -8,7 +8,7 @@
 - **ads.txt の正式な置き場所**(AdSenseはドメイン直下 `tamehiro3.github.io/ads.txt` しか読まないため、ここに置く)
 - **プライバシーポリシー**(`privacy.html`・AdSense審査の必須要件)
 - **ニンジャ里ライフ(試作版)の置き場所**(`ninja-sato-life/` → https://tamehiro3.github.io/ninja-sato-life/ )。ほかの2本のゲームは別リポジトリですが、このゲームはこのリポジトリの中にあります。中身と作り直し方は [`ninja-sato-life/README.md`](ninja-sato-life/README.md)
-- **ニンジャ夜明け隊(試作版)の置き場所**(`ninja-yoake-tai/` → https://tamehiro3.github.io/ninja-yoake-tai/ )。キャラクターの絵(`ninja-sato-life/art.js`・`chars.js`)と39体のキャラクターシート(`ninja-sato-life/sheets/`)は、ニンジャ里ライフと共有しています。中身は [`ninja-yoake-tai/README.md`](ninja-yoake-tai/README.md)
+- **ニンジャ夜明け隊(試作版)の置き場所**(`ninja-yoake-tai/` → https://tamehiro3.github.io/ninja-yoake-tai/ )。39人の忍者が仲間になるコマンド式のRPG(2026-10-04 に協力防衛の試作から作り直し)。キャラクターの絵(`ninja-sato-life/art.js`・`chars.js`)と39体のキャラクターシート(`ninja-sato-life/sheets/`)は、ニンジャ里ライフと共有しています。中身は [`ninja-yoake-tai/README.md`](ninja-yoake-tai/README.md)
 - **ニンジャからくり工房(試作版)の置き場所**(`ninja-karakuri-kobo/` → https://tamehiro3.github.io/ninja-karakuri-kobo/ )。忍者の試験を遊んで作るアスレチック・パズル。中身・テスト・作り直し方は [`ninja-karakuri-kobo/README.md`](ninja-karakuri-kobo/README.md)
 
 ## AdSense の状況と残りの手順

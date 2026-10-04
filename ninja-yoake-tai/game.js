@@ -1,345 +1,653 @@
-/* ニンジャ夜明け隊 — 全体の流れ（広場 → 編成 → 出撃 → 結果 → 再出撃）と、毎フレームの処理
- * 試合は sim.js が決まった刻み（1/60秒）で進める。画面が見えなくなったら止める（短い無操作を放置あつかいにしない）。
+/* ニンジャ夜明け隊（RPG） — 全体の流れ
+ * タイトル → はじめる → 地図を歩く（話す・調べる・妖怪に当たると戦い）→ 旅の地図 → … → 夜明け。
+ * イベント（data_story.js）は script.js が動かし、このファイルの host（H）が画面の仕事をする。
  */
 (function (root) {
   'use strict';
-  var D = root.NYT_DATA, SIM = root.NYT_SIM, RN = root.NYT_RENDER, IN = root.NYT_INPUT, AU = root.NYT_AUDIO, UI = root.NYT_UI;
-  var PR = root.NYT_PROGRESS, DIR = root.NYT_DIRECTOR, TUT = root.NYT_TUTORIAL, CH = root.NSL_CHARS;
-  var STEP = 1 / 60;
-  var store = null;
-  try { store = root.localStorage; store.setItem('nyt_probe', '1'); store.removeItem('nyt_probe'); } catch (e) { store = null; }
+  var ST = root.NYT_STATE, FD = root.NYT_FIELD, SC = root.NYT_SCRIPT, MP = root.NYT_MAPS, STORY = root.NYT_STORY;
+  var RF = root.NYT_RFIELD, RB = root.NYT_RBATTLE, BUI = root.NYT_BUI, UI = root.NYT_UI, MENU = root.NYT_MENU, IN = root.NYT_INPUT, AU = root.NYT_AUDIO;
+  var SPR = root.NYT_SPRITES, IT = root.NYT_ITEMS, BS = root.NYT_BASE, CHD = root.NYT_CHARS, EN = root.NYT_ENEMIES;
+  function $(id) { return document.getElementById(id); }
 
+  var WALK = 4.6;   // 1秒に進むマス
   var G = {
-    P: PR.load(store, Date.now()), M: null, me: null, screen: 'title', paused: false, acc: 0, last: 0, t: 0,
-    choice: 'normal', kind: null, normal: null, weekly: null, proposalState: null, mentorShow: null,
-    loTimer: 0, nearSpot: null, ctxKeys: {}, tut: null, ending: 0, mentorFresh: false, panelOpen: null
+    scene: 'boot', S: null, F: null, P: null, fol: [], trail: [], runner: null, busy: 0, t: 0, last: 0,
+    rng: BS.rng((Date.now() >>> 0) % 100000 + 1), snap: null, emotes: [], timers: [], queue: [], talkNpc: null,
+    shakeT: 0, banner: null, title: null
   };
   root.NYT_GAME = G;
+  function setS(S) { G.S = S; UI.S = S; if (MENU.ctx) MENU.ctx.S = S; }
+  function sfx(n) { AU.play(n); }
+  function later(sec, fn) { G.timers.push({ t: sec, fn: fn }); }
 
-  function sid() { return 'nyt-' + Date.now().toString(36) + '-' + Math.floor(Math.random() * 1e9).toString(36); }
-  G.save = function () { if (!PR.save(store, G.P) && !G.warnedSave) { G.warnedSave = true; UI.toast('この端末では記録を保存できません（遊ぶことはできます）', 3500); } };
-  G.applySettings = function () { var s = G.P.settings; AU.set(s.sound); RN.R.opts.shake = s.shake; };
-  G.touchLoadout = function () { G.save(); };
-  G.difficultyChanged = function () { G.normal = DIR.normalMission(G.P); };
-
-  // 次に出撃する任務
-  G.pendingMission = function () {
-    var P = G.P;
-    if (G.choice === 'weekly') { G.weekly = G.weekly || D.weeklyMission(Date.now()); var w = G.weekly.mission; w.client_id = w.client_id || 'hayate'; return w; }
-    if (G.choice === 'proposal' && P.director.pending && DIR.validate(P.director.pending.p, P.loadout.difficulty).ok) return P.director.pending.p;
-    if (G.choice === 'proposal') G.choice = 'normal';
-    G.normal = G.normal || DIR.normalMission(P);
-    return G.normal;
-  };
-
-  /* ---------- 画面の切りかえ ---------- */
-  G.toTitle = function () { G.screen = 'title'; G.M = null; UI.title(); };
-  G.toPlaza = function () {
-    G.screen = 'plaza'; G.M = null; G.me = null; IN.I.enabled = false;
-    if (!G.normal) G.normal = DIR.normalMission(G.P);
-    UI.plaza();
-  };
-  G.toLoadout = function () {
-    G.screen = 'loadout'; G.M = null; G.loTimer = D.LOADOUT_SEC;
-    UI.loadout();
-  };
-
-  /* ---------- 出撃 ---------- */
-  function buildMembers(P) {
-    var L = P.loadout, roles = [L.role];
-    var mems = [{ id: 'p1', kind: 'human', name: 'あなた', role: L.role, jutsu: L.jutsu.slice(), look: P.look }];
-    D.BUDDIES.forEach(function (b, i) {
-      var r = L.buddies[i] && L.buddies[i] !== 'auto' ? L.buddies[i] : D.COMPLEMENT[L.role][i];
-      var dup = roles.indexOf(r) >= 0; roles.push(r);
-      mems.push({ id: b.id, kind: 'npc', name: b.name, role: r, jutsu: (dup ? D.NPC_JUTSU_ALT : D.NPC_JUTSU)[r].slice(), look: b.look });
-    });
-    return mems;
+  // ====================== はじまり ======================
+  function boot() {
+    var cv = $('cv');
+    RF.init(cv); RB.init(cv);
+    IN.init(cv, { onKey: onKey, onTap: onTap, onPress: onPress, stickOK: function () { return G.scene === 'field' && !blocked(); } });
+    root.addEventListener('resize', function () { RF.resize(); RB.resize(); });
+    $('dlg').addEventListener('click', function () { UI.dlgNext(); });
+    $('btn-menu').onclick = function () { onPress(); openMenu(); };
+    $('btn-act').onclick = function () { onPress(); if (!blocked()) interactFront(); };
+    document.addEventListener('visibilitychange', function () { if (document.hidden && G.S && G.scene === 'field') autosave(); });
+    toTitle();
+    requestAnimationFrame(loop);
+    // オフラインでも遊べるように（公開ページのときだけ）
+    if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && !root.NYT_NO_SW) { try { navigator.serviceWorker.register('sw.js').catch(function () { }); } catch (e) { } }
   }
-  G.startMatch = function () {
-    var P = G.P, now = Date.now();
-    if (!PR.validLoadout(P, P.loadout)) P.loadout = PR.fresh(now).loadout;
-    var kind = G.choice, m = G.pendingMission(), weekly = false, seed = (now ^ Math.floor(Math.random() * 1e9)) >>> 0, diff = P.loadout.difficulty;
-    kind = G.choice;
-    if (kind === 'weekly') { seed = G.weekly.seed; diff = 'normal'; weekly = true; }
-    if (kind === 'proposal') {
-      P.stats.proposalsPicked++;
-      PR.logEvent(P, 'mission_proposal_selected', { mission: m.mission_template_id, set: m.enemy_set_id, mode: P.director.mode, gen: P.director.pending ? P.director.pending.gen : null }, now);
-      G.propGen = P.director.pending ? P.director.pending.gen : 'rule';
-      DIR.consume(P);
-    } else if (kind === 'normal') { P.director.rot = (P.director.rot || 0) + 1; }
-    G.normal = null;
-    var members = buildMembers(P);
-    PR.logEvent(P, 'role_selected', { role: P.loadout.role, jutsu: P.loadout.jutsu, team: members.map(function (x) { return x.role; }) }, now);
-    var M = SIM.createMatch({ session_id: sid(), seed: seed, difficulty: diff, mission: m, mentor: P.mentor, client: m.client_id, members: members, weekly: weekly });
-    begin(M, kind);
-  };
-  G.startTutorial = function () {
-    var T = TUT.create({
-      tut: function (h) { UI.tut(h); },
-      done: function () { AU.play('combo'); },
-      step: function (id, i) { PR.logEvent(G.P, 'tutorial_step', { step: id, i: i }, Date.now()); }
-    });
-    var cfg = TUT.config({ session_id: sid(), look: G.P.look, mentor: G.P.mentor });
-    cfg.script = T.script;
-    var M = SIM.createMatch(cfg);
-    G.tut = T;
-    begin(M, 'tutorial');
-  };
-  function begin(M, kind) {
-    G.M = M; G.me = M.members[0]; G.kind = kind; G.ending = 0; G.mentorShow = null;
-    RN.buildGround(M.tpl);
-    var px = RN.pxFor();
-    M.members.forEach(function (mm) { RN.warm(mm.id + JSON.stringify(mm.look || {}), function () { return RN.memberDef(mm); }, px); });
-    RN.R.cam.x = G.me.x; RN.R.cam.y = G.me.y;
-    RN.R.fx = [];
-    UI.hudReset(); UI.tut(null);
-    UI.show('hud'); G.screen = 'battle'; G.paused = false; G.acc = 0;
-    IN.clear(); IN.I.enabled = true;
-    SIM.start(M);
-    consume(M);
-    AU.unlock(); AU.play('drum');
-  }
-  G.skipTutorial = function () {
-    var P = G.P;
-    P.stats.tutorialSkipped = true; PR.logEvent(P, 'tutorial_skipped', {}, Date.now()); G.save();
-    G.M = null; G.me = null; G.tut = null; IN.I.enabled = false; IN.clear(); UI.tut(null);
-    G.choice = 'normal'; G.normal = DIR.normalMission(P);
-    G.toLoadout();
-  };
-  G.rematch = function () {
-    PR.countRematch(G.P);
-    PR.logEvent(G.P, 'rematch_start', { kind: G.choice }, Date.now());
-    G.save();
-    G.startMatch();
-  };
-  G.quitMatch = function () {
-    if (!G.M || G.M.state === 'Result') return;
-    SIM.finalize(G.M, 'lose', 'quit');
-    consume(G.M);
-  };
+  function onPress() { AU.unlock(); }
 
-  /* ---------- 試合のできごと → 音・演出・表示 ---------- */
-  var PHASE_TXT = {
-    prep1: ['準備', '素材を集めて、罠を置こう。赤い矢印が妖怪の来る道'],
-    wave1: ['襲撃 1', '西と東から、ころ玉が来る！'],
-    prep2: ['準備', '結界の修理と、この夜だけの強化をえらぼう'],
-    wave2: ['襲撃 2', 'からかさは背中が弱点。ふだ狸は音と赤い予告に注意'],
-    prep3: ['最終準備', '補給と罠の置き直し。夜明けは近い'],
-    boss: ['夜明け前', '大だるまが来る！ 夜明けまで守りきれ']
-  };
-  function sayOf(id, key) { var b = D.BUDDIES.filter(function (x) { return x.id === id; })[0]; return b && b.lines[key] ? b.lines[key] : ''; }
-  function consume(M) {
-    var evs = M.events;
-    if (!evs.length) return;
-    evs.forEach(function (e) {
-      if (e.type === 'say') e.text = sayOf(e.id, e.key);
-      if (e.type === 'revive' && e.by && e.id !== 'p1') { var mm = M.members.filter(function (x) { return x.id === e.id; })[0]; if (mm) evs.push({ type: 'say', id: e.id, text: sayOf(e.id, 'thanks'), x: mm.x, y: mm.y }); }
+  function toTitle() {
+    G.scene = 'title';
+    $('hud').hidden = true; $('bt').hidden = true; $('credits').hidden = true;
+    UI.hideDlg(); MENU.close();
+    var dummy = ST.fresh('ヒナタ'); setS(dummy);
+    G.F = FD.load(dummy, 'koka'); FD.spawnEnemies(dummy, G.F, G.rng); RF.setMap(G.F);
+    G.title = { t: 0 };
+    G.P = mkP(15, 9, 'down'); G.fol = [];
+    var has = ST.hasSave() && !!ST.load();
+    var hs = {
+      onNew: function () { UI.hideTitle(); UI.showNewGame(has, { onBack: function () { UI.showTitle(has, hs); }, onStart: newGame }); },
+      onContinue: function () { var S = ST.load(); if (!S) { UI.toast('記録を読めなかった'); return; } UI.hideTitle(); startGame(S); },
+      onHelp: function () { showHelp(); }
+    };
+    UI.showTitle(has, hs);
+    AU.bgm('title');
+  }
+  function showHelp() {
+    var p = $('panel'); p.innerHTML = ''; p.hidden = false;
+    var box = UI.el('div', 'pbox win');
+    box.innerHTML = '<header><h2>遊び方</h2><button class="x" type="button" aria-label="閉じる">×</button></header><div class="pbody">' + UI.helpHTML() + '</div>';
+    p.appendChild(box);
+    box.querySelector('.x').onclick = function () { p.hidden = true; p.innerHTML = ''; UI.sfx('back'); };
+  }
+  function newGame(o) {
+    var S = ST.fresh(o.name, o.look);
+    S.diff = o.diff;
+    S.map = { id: 'koka', x: 15, y: 7, dir: 'up' };
+    startGame(S);
+  }
+  function startGame(S) {
+    setS(S);
+    AU.setSound(S.settings.sound); AU.setMusic(S.settings.bgm); RB.R.noShake = S.settings.shake === false;
+    G.scene = 'field';
+    $('hud').hidden = false;
+    G.busy = 0; G.runner = null; G.queue = [];
+    UI.fade('out', function () { enterMap(S.map.id, S.map.x, S.map.y, S.map.dir || 'down'); UI.fade('in'); });
+  }
+
+  // ====================== 地図 ======================
+  function mkP(x, y, dir) { return { x: x, y: y, fx: x, fy: y, dir: dir || 'down', moving: false, mv: null, walk: 0, walkT: 0, path: null, onArrive: null, def: null }; }
+  function enterMap(id, x, y, dir) {
+    var S = G.S;
+    S.map = { id: id, x: x, y: y, dir: dir };
+    var F = G.F = FD.load(S, id);
+    FD.spawnEnemies(S, F, G.rng);
+    F.objs.forEach(function (o) { if (o.k === 'npc') { o.home = [o.x, o.y]; o.wt = 1 + G.rng() * 3; } if (o.k === 'enemy') o.wt = 0.5 + G.rng(); });
+    RF.setMap(F);
+    G.P = mkP(x, y, dir); G.P.def = SPR.heroDef(S);
+    G.trail = []; G.fol = []; makeFollowers();
+    G.emotes = [];
+    var def = F.def;
+    AU.bgm(S.flags.dawn && def.town ? 'ending' : def.bgm);
+    showLoc();
+    if (def.town) { S.lastTown = { id: id, x: x, y: y, dir: dir }; autosave(); }
+    // ついたときのイベント
+    (def.auto || []).forEach(function (a) { if (FD.cond(S, a.show)) G.queue.push(a.ev); });
+    warmSprites();
+    runQueue();
+  }
+  function warmSprites() {
+    var h = 46 * RF.R.s;
+    SPR.warm(G.P.def, h);
+    G.fol.forEach(function (f) { SPR.warm(f.def, h); });
+  }
+  function makeFollowers() {
+    var S = G.S, act = ST.active(S).filter(function (id) { return id !== 'hero'; }).slice(0, 3);
+    var old = G.fol;
+    G.fol = act.map(function (id, i) {
+      var prev = old.filter(function (f) { return f.id === id; })[0];
+      var f = prev || { id: id, x: G.P.x, y: G.P.y, fx: G.P.x, fy: G.P.y, fromX: G.P.x, fromY: G.P.y, dir: G.P.dir, walk: 0, moving: false };
+      f.def = SPR.memberDef(id, S);
+      return f;
     });
-    RN.onEvents(M, evs, 'p1');
-    evs.forEach(function (e) {
-      switch (e.type) {
-        case 'phase':
-          var pt = PHASE_TXT[e.phase];
-          if (pt && !M.tutorial) UI.banner(pt[0], pt[1], 3000);
-          if (e.state === 'Wave' || e.state === 'Boss') AU.play('drum');
-          break;
-        case 'cast':
-          var snd = { fire: 'fire', fireline: 'fire', water: 'water', mist: 'water', wind: 'wind', pull: 'wind', stone: 'stone', decoy: 'stone', thunder: 'thunder', thundertrap: 'thunder', leaf: 'heal', guardleaf: 'heal', issen: 'issen', dome: 'dome', ring: 'heal' }[e.skill];
-          if (snd) AU.play(snd);
-          break;
-        case 'slash': if (e.id === 'p1') AU.play('slash'); break;
-        case 'hit': AU.play('hit'); break;
-        case 'purify': AU.play('purify'); break;
-        case 'combo': AU.play('combo'); break;
-        case 'down': AU.play('down'); if (e.id === 'p1' && !M.tutorial) UI.banner('ダウン！', '仲間が助けに来る。タップで「安全」ピン', 2200); break;
-        case 'revive': if (e.by) AU.play('rescue'); break;
-        case 'warn': AU.play('warn'); break;
-        case 'bossWarn': AU.play('bossWarn'); break;
-        case 'bossAppear': UI.banner(D.ENEMY[e.kind].name + 'が来た！', '赤い予告の「安全」な所へよけよう', 2600); AU.play('bossWarn'); break;
-        case 'bossDown': UI.banner(D.ENEMY[e.kind].name + 'をしずめた！', '', 2200); break;
-        case 'support':
-          UI.cutin(M.mentor, e.sup); AU.play('support');
-          G.mentorShow = { id: M.mentor, x: M.barrier.x + 76, y: M.barrier.y + 50, t: 0, life: 3.6, pose: 'serious' };
-          break;
-        case 'trap': AU.play(e.what === 'boom' ? 'trap' : 'click'); break;
-        case 'gather': if (e.id === 'p1') AU.play('gather'); break;
-        case 'repair': AU.play('repair'); break;
-        case 'dodge': if (e.id === 'p1') AU.play('dodge'); break;
-        case 'short': if (e.id === 'p1') { UI.toast('素材が足りません（あと ' + (e.need - M.materials) + '）'); var mb = document.querySelector('.mat-box'); if (mb) { mb.classList.remove('short'); void mb.offsetWidth; mb.classList.add('short'); } } break;
-        case 'block': AU.play('blocked'); break;
-        case 'barrierHit': var bb = document.querySelector('.bar-box'); if (bb && !bb._t) { bb.classList.add('hit'); bb._t = setTimeout(function () { bb.classList.remove('hit'); bb._t = 0; }, 300); } break;
-        case 'ping':
-          if (e.by === 'p1') { AU.play('ping'); var key = e.kind; M.members.forEach(function (mm, i) { if (mm.kind === 'npc' && !mm.down && i === 1 + (G.pingN = ((G.pingN || 0) + 1) % 2)) RN.onEvents(M, [{ type: 'say', id: mm.id, text: sayOf(mm.id, key), x: mm.x, y: mm.y }], 'p1'); }); }
-          break;
-        case 'grace': UI.banner('全員ダウン！', '救済時間：結界まで這えば、1回だけ起き上がれる', 2600); break;
-        case 'graceRevive': UI.banner('結界の加護！', '起き上がった', 1800); AU.play('rescue'); break;
-        case 'villager': if (e.what === 'appear') UI.toast('里人が結界へ避難してくる。守ろう！'); if (e.what === 'down') UI.toast('里人がダウン！ そばで助けよう'); break;
-        case 'pillar': if (e.what === 'broken') UI.banner('結界柱がこわれた…', '結界が傷み、妖怪の攻撃が強くなる', 2400); break;
-        case 'upgrade': if (e.id === 'p1') UI.toast('強化：' + D.UPGRADES[e.up].name + '（' + D.UPGRADES[e.up].desc + '）'); break;
-        case 'interrupt': AU.play('blocked'); break;
-        case 'ready': UI.toast('準備完了！'); break;
-        case 'result':
-          G.ending = 2.2;
-          if (e.outcome === 'win') { UI.banner(M.tutorial ? '夜が明けた！' : '夜明け！', e.reason === 'boss' ? '大だるまをしずめた' : '里を守りきった', 2400); AU.play('win'); }
-          else { UI.banner(e.reason === 'quit' ? '出撃をやめた' : '結界が破れた…', e.reason === 'allDown' ? '全員ダウン' : '', 2400); AU.play('lose'); }
-          break;
+  }
+  function showLoc() {
+    var S = G.S, def = G.F.def, loc = $('loc');
+    var sky = ''; for (var i = 0; i < 5; i++) sky += '<i class="' + (i < S.frag ? 'on' : '') + '"></i>';
+    loc.innerHTML = '<b>' + UI.esc(def.name) + '</b><span class="sky" title="暁のかけら">' + sky + '</span>';
+    var ob = $('obj'); if (ob) { ob.textContent = '目的：' + objective(); }
+  }
+
+  // ---- 1コマ ----
+  function loop(ts) {
+    var dt = Math.min(0.05, ((ts - G.last) / 1000) || 0.016); G.last = ts; G.t += dt;
+    var due = []; G.timers = G.timers.filter(function (tm) { tm.t -= dt; if (tm.t <= 0) { due.push(tm); return false; } return true; });
+    due.forEach(function (tm) { tm.fn(); });
+    try {
+      if (G.scene === 'battle') { if (G.S) G.S.time += dt; BUI.update(dt); BUI.draw(G.t, dt, RF.dawnLevel(G.S), G.F ? G.F.def.bbg : 'village'); }
+      else if (G.scene === 'field') { G.S.time += dt; updateField(dt); drawField(dt); }
+      else if (G.scene === 'title') drawTitle(dt);
+    } catch (e) { if (!G.errShown) { G.errShown = true; console.error(e); } }
+    requestAnimationFrame(loop);
+  }
+  function blocked() { return G.busy > 0 || !!G.runner || MENU.open || MENU.travelOpen() || UI.dlgOpen() || UI.cardOpen() || UI.faded() || G.scene !== 'field'; }
+
+  function updateField(dt) {
+    var S = G.S, F = G.F, P = G.P;
+    // 主人公
+    if (P.moving) stepMove(P, dt);
+    if (!P.moving) {
+      if (P.path && !P.path.length) { P.path = null; var fn = P.onArrive; P.onArrive = null; if (fn) fn(); }
+      var d = null, held = blocked() ? null : IN.dir();
+      if (held && P.path && !P.scripted) { P.path = null; P.onArrive = null; }
+      if (P.path && P.path.length) {
+        var nx = P.path[0][0], ny = P.path[0][1];
+        d = FD.dirOf(nx - P.x, ny - P.y);
+        if (Math.abs(nx - P.x) + Math.abs(ny - P.y) !== 1) { P.path = null; P.onArrive = null; d = null; }
+      } else d = held;
+      if (d && (P.scripted || !blocked())) tryStep(d);
+    }
+    // ついてくる仲間
+    var k = P.mv ? Math.min(1, P.mv.t) : 1;
+    G.fol.forEach(function (f) {
+      f.fx = f.fromX + (f.x - f.fromX) * k; f.fy = f.fromY + (f.y - f.fromY) * k;
+      f.moving = P.moving && (f.x !== f.fromX || f.y !== f.fromY);
+      f.walk = P.walk;
+    });
+    // 村の人・妖怪
+    var paused = blocked() && !P.scripted;
+    F.objs.forEach(function (o) {
+      if (o.mv) { o.mv.t += dt * (o.k === 'enemy' ? 3.2 : 2.6); var q = Math.min(1, o.mv.t); o.fx = o.mv.x0 + (o.x - o.mv.x0) * q; o.fy = o.mv.y0 + (o.y - o.mv.y0) * q; o.moving = q < 1; o.walk = Math.floor(o.mv.t * 4) % 4; if (q >= 1) { o.mv = null; o.fx = null; o.fy = null; o.moving = false; } }
+      if (o.cool > 0) o.cool -= dt;
+      if (paused || !o.on) return;
+      if (o.k === 'npc' && o.wander && !o.mv && !o.script) {
+        o.wt -= dt;
+        if (o.wt <= 0) { o.wt = 2 + G.rng() * 3; npcWander(o); }
+      }
+      if (o.k === 'enemy' && !o.beaten && !o.mv && !(o.cool > 0)) {
+        o.wt -= dt;
+        if (o.wt <= 0) {
+          o.wt = 0.45 + G.rng() * 0.6;
+          var x0 = o.x, y0 = o.y, r = FD.enemyStep(S, F, o, P.x, P.y, G.rng);
+          if (r) {
+            // 仲間のいるマスには入らない（主人公とはぶつかって戦い）
+            o.mv = { x0: x0, y0: y0, t: 0 };
+            var tgx = P.moving ? P.mv.tx : P.x, tgy = P.moving ? P.mv.ty : P.y;
+            if (o.x === tgx && o.y === tgy) { symbolBattle(o, o.dir === P.dir ? 'enemy' : null); }
+          }
+        }
       }
     });
-    M.events.length = 0;
+    // 吹き出し
+    G.emotes = G.emotes.filter(function (e) { e.t += dt; return e.t < e.dur; });
+    if (G.shakeT > 0) G.shakeT -= dt;
+    updAction();
   }
-
-  /* ---------- 試合の終わり ---------- */
-  function endMatch() {
-    var M = G.M, P = G.P, res = M.result, now = Date.now();
-    IN.I.enabled = false; IN.clear(); UI.tut(null);
-    M.log.forEach(function (l) { PR.logEvent(P, l.ev, l.data, now); });
-    if (M.tutorial) {
-      var first = !P.stats.tutorial;
-      P.stats.tutorial = true;
-      var bonus = first ? 100 : 0;
-      P.tokens += bonus;
-      PR.logEvent(P, 'tutorial_done', { first: first }, now);
-      G.save();
-      G.M = null; G.me = null; G.tut = null;
-      UI.toast(first ? '最初の任務をクリア！ 修行札+100。次は忍術を2つえらんで出撃しよう' : '最初の任務をクリア！', 4200);
-      G.choice = 'normal'; G.normal = DIR.normalMission(P);
-      G.mentorFresh = first;
-      G.toLoadout();
+  function stepMove(P, dt) {
+    P.mv.t += dt * WALK;
+    var k = Math.min(1, P.mv.t);
+    P.fx = P.mv.x0 + (P.mv.tx - P.mv.x0) * k; P.fy = P.mv.y0 + (P.mv.ty - P.mv.y0) * k;
+    P.walkT += dt * WALK * 2; P.walk = Math.floor(P.walkT) % 4;
+    if (k >= 1) { P.moving = false; P.x = P.mv.tx; P.y = P.mv.ty; P.fx = P.x; P.fy = P.y; P.mv = null; arrive(); }
+  }
+  function tryStep(d) {
+    var S = G.S, F = G.F, P = G.P, v = FD.DIRS[d], nx = P.x + v[0], ny = P.y + v[1];
+    P.dir = d;
+    var en = FD.enemyAt(F, nx, ny);
+    if (en && !(en.cool > 0)) { if (P.path) P.path = null; symbolBattle(en, en.dir === d ? 'party' : null); return; }
+    if (!FD.walkable(F, nx, ny)) {
+      if (P.path) {
+        var fn = P.onArrive; P.path = null; P.onArrive = null;
+        if (fn && Math.abs(P.x - (P.goal ? P.goal[0] : -9)) + Math.abs(P.y - (P.goal ? P.goal[1] : -9)) === 1) fn();
+      }
       return;
     }
-    var claim = PR.claimReward(P, res, 'p1', now);
-    var rec = PR.recordMatch(P, res, 'p1', { mentor: P.mentor, mode: G.kind === 'proposal' ? (G.propGen || P.director.mode) : G.kind, proposal: G.kind === 'proposal' }, now);
-    if (P.stats.afterTutorial == null) P.stats.afterTutorial = P.stats.matches;
-    (rec.gifts || []).forEach(function (g) { if (g.indexOf('outfit_cn_') === 0) UI.ensureCnOutfit(g, CH.BY_ID[g.slice(10)]); });
-    G.save();
-    G.screen = 'result';
-    G.proposalState = 'wait';
-    G.choice = 'normal'; G.normal = DIR.normalMission(P);
-    UI.result(res, claim, rec);
-    // 任務監督：結果の画面で、次の任務を考える（試合中には問い合わせない）
-    DIR.generate(P, res, { now: now }).then(function (r) {
-      G.proposalState = r;
-      if (r.proposal) { G.choice = 'proposal'; P.stats.proposalsShown++; }
-      G.save();
-      if (G.screen === 'result') UI.nextBox();
+    if (P.path) P.path.shift();
+    // 仲間：ひとつ前の位置へ
+    G.trail.unshift([P.x, P.y]); G.trail.length = Math.min(G.trail.length, 6);
+    G.fol.forEach(function (f, i) { f.fromX = f.x; f.fromY = f.y; var t = G.trail[i]; if (t) { if (t[0] !== f.x || t[1] !== f.y) f.dir = FD.dirOf(t[0] - f.x, t[1] - f.y); f.x = t[0]; f.y = t[1]; } });
+    P.moving = true; P.mv = { x0: P.x, y0: P.y, tx: nx, ty: ny, t: 0 };
+  }
+  function arrive() {
+    var S = G.S, F = G.F, P = G.P;
+    S.steps = (S.steps || 0) + 1;
+    S.map.x = P.x; S.map.y = P.y; S.map.dir = P.dir;
+    if (P.scripted) return;
+    // 拾う
+    F.objs.forEach(function (o) {
+      if (o.k === 'pickup' && o.on && o.x === P.x && o.y === P.y) {
+        S.opened[o.key] = 1; ST.addItem(S, o.get, o.n || 1); FD.refresh(S, F); sfx('item');
+        say(null, ST.itemName(o.get) + (o.n > 1 ? '×' + o.n : '') + 'を見つけた！');
+      }
+    });
+    var hits = FD.stepAt(S, F, P.x, P.y);
+    for (var i = 0; i < hits.length; i++) {
+      var t = hits[i];
+      if (t.k === 'exit') { P.path = null; doExit(t); return; }
+      if (t.k === 'step') { P.path = null; if (t.once) S.flags['step_' + t.key] = 1; runEvent(t.ev); return; }
+    }
+  }
+  function npcWander(o) {
+    var F = G.F, P = G.P, dirs = FD.DIR_LIST, d = dirs[Math.floor(G.rng() * 4)], v = FD.DIRS[d];
+    var nx = o.x + v[0], ny = o.y + v[1];
+    if (Math.abs(nx - o.home[0]) + Math.abs(ny - o.home[1]) > o.wander) return;
+    if (nx === P.x && ny === P.y) return;
+    if (P.moving && nx === P.mv.tx && ny === P.mv.ty) return;
+    if (G.fol.some(function (f) { return f.x === nx && f.y === ny; })) return;
+    o.on = false; var ok = FD.walkable(F, nx, ny) && !FD.stepAt(G.S, F, nx, ny).length; o.on = true;
+    if (!ok) { o.dir = d; return; }
+    o.mv = { x0: o.x, y0: o.y, t: 0 }; o.dir = d; o.x = nx; o.y = ny;
+  }
+
+  // ---- 調べる ----
+  function frontObj() {
+    var P = G.P, f = FD.front(P.x, P.y, P.dir);
+    var o = FD.interactAt(G.F, f[0], f[1]);
+    if (o && o.k === 'obst' && o.kind === 'hidden' && !FD.hasAbility(G.S, 'hawk')) return null;
+    if (o && o.k === 'pickup') return null;
+    return o;
+  }
+  var ACT = { npc: '話す', chest: '開ける', sign: '読む', obst: '調べる', gate: '調べる', pit: '調べる', enemy: '戦う' };
+  function updAction() {
+    var b = $('btn-act'), o = blocked() ? null : frontObj();
+    var lab = o ? (o.k === 'npc' && o.yokai ? '調べる' : o.k === 'chest' && o.open ? '調べる' : ACT[o.k] || '調べる') : '調べる';
+    if (b.dataset.lab !== lab) { b.dataset.lab = lab; b.innerHTML = UI.esc(lab) + '<small>Enter</small>'; }
+    b.classList.toggle('dim', !o);
+    G.hint = o && o.k !== 'enemy' ? { x: o.x, y: o.y, icon: o.k === 'npc' && !o.yokai ? '…' : '！' } : null;
+  }
+  function interactFront() {
+    var o = frontObj();
+    if (!o) { var en = (function () { var f = FD.front(G.P.x, G.P.y, G.P.dir); return FD.enemyAt(G.F, f[0], f[1]); })(); if (en) symbolBattle(en, 'party'); return; }
+    interact(o);
+  }
+  function interact(o) {
+    var S = G.S, F = G.F, P = G.P;
+    if (o.k === 'enemy') { symbolBattle(o, 'party'); return; }
+    sfx('click');
+    if (o.k === 'npc') {
+      if (!o.yokai && !o.sleep && !o.big) o.dir = FD.opposite(P.dir);
+      G.talkNpc = o;
+      if (o.ev) { runEvent(o.ev, o); return; }
+      if (o.say) { o.sayI = (o.sayI || 0) % o.say.length; var line = o.say[o.sayI++]; say('npc:' + (o.name || '里の人'), line, null, o.look); return; }
+      return;
+    }
+    if (o.k === 'chest') {
+      if (o.open || S.opened[o.key]) { say(null, '宝箱は、からっぽだ。'); return; }
+      S.opened[o.key] = 1; FD.refresh(S, F); sfx('chest');
+      if (o.get === 'gold') { ST.addGold(S, o.n || 0); say(null, '宝箱を開けた！ ' + o.n + '両を手に入れた！'); }
+      else { ST.addItem(S, o.get, o.n || 1); say(null, '宝箱を開けた！ ' + ST.itemName(o.get) + (o.n > 1 ? '×' + o.n : '') + 'を手に入れた！'); }
+      return;
+    }
+    if (o.k === 'sign') { say(null, o.text); return; }
+    if (o.k === 'gate') { say(null, F.def.theme === 'under' ? 'ふしぎな光の壁にふさがれている。どこかで封印を解かないと…' : 'かたく閉ざされている。今は通れない。'); return; }
+    if (o.k === 'pit') { say(null, '深い穴だ。何かで埋められれば、渡れそう。'); return; }
+    if (o.k === 'obst') { obstacle(o); return; }
+  }
+  var NEED = {
+    boulder: '大きな岩だ。力持ちの仲間がいれば、押して動かせそう。', fog: '濃い霧で、先が見えない。風を起こせる仲間がいれば…',
+    crack: 'ひびの入った岩だ。何かで、こわせないかな。', hidden: ''
+  };
+  var DONE = {
+    boulder: ['xiaolan', 'リーリー、おねがい！ 大岩を押した！'], fog: ['fuuta', '風遁で、霧を吹きはらった！'],
+    crack: ['hinanojoh', '焙烙玉で、岩をこわした！'], hidden: ['hayate', '鷹の目で、見えない道を見つけた！']
+  };
+  function obstacle(o) {
+    var S = G.S, F = G.F, P = G.P, T = RF.T;
+    var r = FD.useObstacle(S, F, o, P.x, P.y);
+    if (!r) return;
+    if (!r.ok) {
+      if (r.stuck) { say(null, 'これ以上は、押せないようだ。'); return; }
+      if (NEED[o.kind]) say(null, NEED[o.kind]);
+      return;
+    }
+    var dn = DONE[o.kind], x = o.x * T + 16, y = o.y * T + 16;
+    if (o.kind === 'boulder') { sfx('push'); RF.addFx({ kind: 'smoke', x: x, y: y, dur: 0.6 }); if (r.filled) { later(0.3, function () { sfx('stone'); }); say(null, '大岩が穴に落ちて、道になった！'); return; } }
+    if (o.kind === 'fog') { sfx('windfx'); RF.addFx({ kind: 'wind', x: x, y: y, dur: 0.9 }); }
+    if (o.kind === 'crack') { sfx('bomb'); RF.addFx({ kind: 'boom', x: x, y: y, dur: 0.6 }); G.shakeT = 0.3; }
+    if (o.kind === 'hidden') { sfx('hawk'); RF.addFx({ kind: 'reveal', x: x, y: y, dur: 0.8 }); }
+    if (o.kind !== 'boulder') say(dn[0], dn[1].replace('リーリー、おねがい！ ', ''));
+    else say(dn[0], dn[1]);
+  }
+  // 1行だけ話す（イベントでないとき）
+  function say(who, text, done, look) {
+    G.busy++;
+    UI.say(who, text, function () { G.busy--; if (done) done(); }, { look: look });
+  }
+
+  // ---- 出口・旅の地図 ----
+  function doExit(t) {
+    var S = G.S;
+    if (t.to === 'travel') {
+      G.scene = 'travel';
+      sfx('door');
+      var back = G.trail[0] || [G.P.x, G.P.y - 1];
+      MENU.travel(S, S.map.id, function (n) {
+        G.scene = 'field';
+        if (!n) { G.P = mkP(back[0], back[1], FD.opposite(G.P.dir)); G.P.def = SPR.heroDef(S); G.trail = []; makeFollowers(); G.fol.forEach(function (f) { f.x = f.fromX = back[0]; f.y = f.fromY = back[1]; f.fx = f.x; f.fy = f.y; }); return; }
+        UI.fade('out', function () { enterMap(n.map, n.at[0], n.at[1], n.at[2]); UI.fade('in'); });
+      });
+      return;
+    }
+    G.busy++;
+    sfx('door');
+    UI.fade('out', function () { G.busy--; enterMap(t.to, t.tx, t.ty, t.dir || 'down'); UI.fade('in'); });
+  }
+
+  // ====================== イベント ======================
+  function runQueue() { if (G.runner || !G.queue.length) return; runEvent(G.queue.shift()); }
+  function runEvent(id, npc) {
+    var cmds = STORY.EVENTS[id];
+    if (!cmds) { console.warn('イベントがない', id); return; }
+    if (G.runner) { G.queue.push(id); return; }
+    G.talkNpc = npc || null;
+    IN.clear();
+    G.P.path = null;
+    var R = SC.create(H, cmds, {
+      name: id, onDone: function () {
+        if (G.runner === R) G.runner = null;
+        UI.hideDlg();
+        FD.refresh(G.S, G.F);
+        makeFollowers();
+        G.talkNpc = null;
+        showLoc();
+        later(0.05, runQueue);
+      }
+    });
+    G.runner = R;
+    try { SC.run(R); } catch (e) { console.error(e); G.runner = null; UI.hideDlg(); }
+  }
+  var H = {
+    get S() { return G.S; },
+    say: function (who, t, done, c) { UI.say(who, t, done, { look: G.talkNpc && G.talkNpc.look }); },
+    ask: function (who, q, opts, done) { UI.ask(who, q, opts, done, { look: G.talkNpc && G.talkNpc.look }); },
+    battle: function (o, done) { UI.hideDlg(); startBattle(o, done, null); },
+    join: function (id, lv, done) { UI.hideDlg(); makeFollowers(); showJoin(id, lv, done); },
+    got: function (id, n, done) { sfx('item'); UI.say(null, (id === 'gold' ? n + '両' : ST.itemName(id) + (n > 1 ? '×' + n : '')) + 'を手に入れた！', done); },
+    healFx: function (done) { sfx('heal'); RF.addFx({ kind: 'heal', x: G.P.x * 32 + 16, y: G.P.y * 32 + 24, dur: 1 }); UI.say(null, 'みんなの体力が回復した！', done); },
+    inn: function (t, done) { innFlow(t, done); },
+    shop: function (t, done) { UI.hideDlg(); MENU.shop(ctx(), t, done); },
+    forge: function (done) { UI.hideDlg(); MENU.forge(ctx(), done); },
+    warp: function (map, x, y, dir, done) {
+      UI.hideDlg();
+      if (UI.faded()) { enterMapQuiet(map, x, y, dir); done(); return; }
+      UI.fade('out', function () { enterMapQuiet(map, x, y, dir); UI.fade('in', done); });
+    },
+    travel: function (done) { UI.hideDlg(); G.scene = 'travel'; MENU.travel(G.S, G.S.map.id, function (n) { G.scene = 'field'; if (!n) { done(); return; } UI.fade('out', function () { enterMapQuiet(n.map, n.at[0], n.at[1], n.at[2]); UI.fade('in', done); }); }); },
+    npc: function (c, done) { npcCmd(c, done); },
+    face: function (d) { G.P.dir = d; },
+    walk: function (pts, done) { scriptWalk(pts, done); },
+    wait: function (s, done) { later(s, done); },
+    fade: function (d, done) { UI.hideDlg(); UI.fade(d, done); },
+    sfx: function (n) { sfx(n); },
+    bgm: function (n) { AU.bgm(n); },
+    shake: function (a) { G.shakeT = a || 0.3; },
+    flash: function (col) { UI.flash(col); },
+    emote: function (who, e, done) { emote(who, e, 0.9); later(0.9, done); },
+    fragment: function (n, sk, done) { UI.hideDlg(); showFragment(n, sk, done); },
+    title: function (t, sub, done) { UI.hideDlg(); sfx('bell'); UI.card(t, sub, done); },
+    ending: function (done) { UI.hideDlg(); showEnding(done); },
+    cut: function (ids, t, done) { UI.hideDlg(); showCut(ids, t, done); },
+    formation: function (done) { UI.hideDlg(); MENU.formation(ctx(), function () { makeFollowers(); done(); }); },
+    refresh: function () { if (G.F) FD.refresh(G.S, G.F); },
+    save: function () { if (autosave()) UI.toast('記録しました'); }
+  };
+  // イベントの中の移動（自動イベントは走らせない）
+  function enterMapQuiet(map, x, y, dir) {
+    var q = G.queue; G.queue = [];
+    var keepAuto = MP.MAPS[map].auto; MP.MAPS[map].auto = null;
+    try { enterMap(map, x, y, dir); } finally { MP.MAPS[map].auto = keepAuto; }
+    G.queue = q;
+  }
+  function npcCmd(c, done) {
+    var o = G.F.objs.filter(function (q) { return q.k === 'npc' && q.id === c.npc; })[0];
+    if (!o) { done(); return; }
+    if (c.hide) { o.on = false; RF.addFx({ kind: 'smoke', x: o.x * 32 + 16, y: o.y * 32 + 16, dur: 0.5 }); }
+    if (c.show) o.on = true;
+    if (c.dir) o.dir = c.dir;
+    if (!c.move) { done(); return; }
+    var pts = c.move.slice();
+    o.script = true;
+    (function next() {
+      if (!pts.length) { o.script = false; done(); return; }
+      var p = pts.shift();
+      o.dir = FD.dirOf(p[0] - o.x, p[1] - o.y);
+      o.mv = { x0: o.x, y0: o.y, t: 0 }; o.x = p[0]; o.y = p[1];
+      later(0.4, next);
+    })();
+  }
+  function scriptWalk(pts, done) {
+    var P = G.P, list = pts.slice();
+    P.scripted = true;
+    (function next() {
+      if (!list.length) { P.scripted = false; done(); return; }
+      var p = list.shift();
+      var path = FD.path(G.F, P.x, P.y, p[0], p[1], { ignoreNpc: true }) || [];
+      P.path = path; P.goal = p;
+      P.onArrive = next;
+      if (!path.length) { P.path = null; P.onArrive = null; next(); }
+    })();
+  }
+  function emote(who, e, dur) {
+    var x, y;
+    if (who === 'hero') { x = G.P.x; y = G.P.y; }
+    else { var o = G.F.objs.filter(function (q) { return q.id === who && q.on; })[0]; if (!o) return; x = o.x; y = o.y; }
+    G.emotes.push({ x: x, y: y, e: e, t: 0, dur: dur || 0.9 });
+  }
+
+  // ---- 宿 ----
+  function innFlow(t, done) {
+    var S = G.S, price = IT.INN[t] || 0, who = 'npc:' + (G.talkNpc && G.talkNpc.name || '宿の人');
+    UI.ask(who, price ? 'ようこそ。一晩 ' + price + '両です。泊まっていきますか？（いま ' + S.gold + '両）' : 'ゆっくり休んでいってくださいね。泊まりますか？', ['泊まる', 'やめる'], function (i) {
+      if (i !== 0) { UI.say(who, 'またどうぞ。', done, { look: G.talkNpc && G.talkNpc.look }); return; }
+      if (!ST.spend(S, price)) { UI.say(who, 'あら、お金が足りないみたい……。妖怪をたおすと、両がもらえますよ。', done, { look: G.talkNpc && G.talkNpc.look }); return; }
+      UI.hideDlg();
+      AU.bgm(null);
+      UI.fade('out', function () {
+        ST.healAll(S); sfx('heal');
+        later(1.0, function () {
+          S.lastTown = { id: S.map.id, x: G.P.x, y: G.P.y, dir: G.P.dir };
+          autosave();
+          AU.bgm(G.F.def.bgm);
+          UI.fade('in', function () { UI.say(null, 'ぐっすり休んで、みんな元気いっぱいになった！（記録しました）', done); });
+        });
+      });
+    }, { look: G.talkNpc && G.talkNpc.look });
+  }
+
+  // ---- 仲間になった・かけら・おわり ----
+  function showJoin(id, lv, done) {
+    var c = $('card'), S = G.S, nsl = root.NSL_CHARS && root.NSL_CHARS.BY_ID[id], cd = CHD.CHARS[id];
+    var roles = cd.roles.map(function (r) { return BS.ROLES[r].name; }).join('・');
+    var first = S.order.length === 5 && !S.flags.tip_form;
+    if (first) S.flags.tip_form = 1;
+    c.innerHTML = '<div class="join-box"><div class="join-ph"><img alt="" src="' + UI.portrait(id) + '"></div><h2>' + UI.esc(nsl ? nsl.name : id) + 'が仲間になった！</h2><p>' + (nsl ? UI.esc(nsl.clan) + '・' : '') + roles + '・Lv' + lv + (cd.field ? '<br>探索の術：' + UI.esc(FD.ABILITY_NAME[cd.field]) : '') + '</p>' + (first ? '<p class="note">5人目からは「控え」。メニューの「隊列」で、戦う4人をえらべます。</p>' : '') + '<p class="note">タップでつづける</p></div>';
+    c.hidden = false;
+    AU.jingle('join');
+    var fin = function () { if (c.hidden) return; c.hidden = true; c.onclick = null; UI.cardSkip = null; done(); };
+    var opened = performance.now();
+    c.onclick = function () { if (performance.now() - opened > 500) fin(); };
+    UI.cardSkip = function () { if (performance.now() - opened > 500) fin(); };
+  }
+  function showFragment(n, sk, done) {
+    var c = $('card'), s = sk ? root.NYT_SKILLS.SKILLS[sk] : null;
+    c.innerHTML = '<div class="join-box frag"><div class="frag-gem"></div><h2>暁のかけらを取り戻した！（' + n + '/5）</h2><p>' + (n >= 5 ? '5つのかけらが、そろった！' : '空が、少しだけ明るくなった。') + '</p>' + (s ? '<p><b>' + UI.esc(G.S.name) + '</b>は「' + UI.esc(s.n) + '」を覚えた！<br><span class="note">' + UI.esc(s.d) + '</span></p>' : '') + '<p class="note">タップでつづける</p></div>';
+    c.hidden = false;
+    AU.jingle('frag');
+    showLoc();
+    var opened = performance.now();
+    var fin = function () { if (c.hidden || performance.now() - opened < 600) return; c.hidden = true; c.onclick = null; UI.cardSkip = null; done(); };
+    c.onclick = fin; UI.cardSkip = fin;
+  }
+  function showCut(ids, t, done) {
+    var c = $('card');
+    c.innerHTML = '<div class="join-box"><div class="cut-row">' + (ids || []).map(function (id) { return '<img alt="" src="' + UI.portrait(id) + '">'; }).join('') + '</div><h2>' + UI.esc(t || '') + '</h2></div>';
+    c.hidden = false;
+    later(1.6, function () { c.hidden = true; done(); });
+  }
+  function showEnding(done) {
+    var S = G.S, cr = $('credits');
+    AU.bgm('ending');
+    var n = CHD.ORDER.filter(function (id) { return S.members[id]; }).length;
+    var grid = CHD.ORDER.map(function (id) { return '<div class="' + (S.members[id] ? '' : 'no') + '"><img alt="" src="' + UI.portrait(id) + '"></div>'; }).join('');
+    cr.innerHTML = '<h2>夜明け</h2><p>暁の鐘が鳴り、長い夜が明けた。<br>' + UI.esc(S.name) + 'と仲間たちの旅は、ここでひと区切り。</p>' +
+      '<div class="cr-grid">' + grid + '</div><p>仲間 ' + n + '/39　プレイ時間 ' + Math.floor(S.time / 3600) + '時間' + Math.floor(S.time / 60) % 60 + '分　戦い ' + S.battles + '回</p>' +
+      '<p style="font-size:13px">キャラクター：CryptoNinja（CC0・Ninja DAO）<br>非公式ファンゲーム。技・セリフ・物語はゲームの創作で、公式の設定ではありません。</p>' +
+      '<button class="btn gold" type="button" id="cr-ok">つづける</button>';
+    cr.hidden = false;
+    $('cr-ok').onclick = function () { cr.hidden = true; sfx('ok'); done(); };
+    if (UI.kbd) $('cr-ok').focus();
+  }
+
+  // ====================== 戦い ======================
+  function symbolBattle(o, amb) {
+    if (G.scene !== 'field' || G.runner || o.cool > 0) return;
+    var P = G.P;
+    P.path = null;
+    startBattle({ enemies: o.enemies.slice(), ambush: amb, symbol: true }, null, o);
+  }
+  function startBattle(o, done, sym) {
+    var S = G.S;
+    G.snap = JSON.stringify(S);
+    G.scene = 'battle';
+    IN.clear();
+    $('hud').hidden = true;
+    UI.flash('#ffffff');
+    BUI.start(S, { enemies: o.enemies, ambush: o.ambush, noFlee: !!o.noFlee, guests: o.guests, guestLv: o.guestLv, boss: o.boss, bbg: o.bbg || G.F.def.bbg, bgm: o.bgm, tut: o.tut, story: !!o.story, lose: o.symbol ? 'town' : (o.lose || 'retry') }, function (res, out, choice) {
+      afterBattle(res, out, choice, o, done, sym);
     });
   }
-
-  /* ---------- 毎フレーム ---------- */
-  function frame(ts) {
-    var dt = Math.min(0.1, Math.max(0, (ts - (G.last || ts)) / 1000)); G.last = ts; G.t += dt;
-    IN.tick(G.t);
-    var M = G.M;
-    if (G.screen === 'battle' && M) {
-      if (!G.paused) {
-        G.acc += dt;
-        var n = 0;
-        while (G.acc >= STEP && n < 6) {
-          var me = G.me;
-          var it = IN.intent(me, M, { autoAtk: G.P.settings.autoAtk, ctx1: G.ctxKeys.ctx1, ctx2: G.ctxKeys.ctx2, rangeOf: rangeOf });
-          SIM.step(M, STEP, { p1: it });
-          consume(M);
-          G.acc -= STEP; n++;
-          if (M.state === 'Result') break;
-        }
-        if (n >= 6) G.acc = 0;
-        if (G.mentorShow) { G.mentorShow.t += dt; if (G.mentorShow.t > G.mentorShow.life) G.mentorShow = null; }
-        if (M.state === 'Result' && G.ending > 0) { G.ending -= dt; if (G.ending <= 0) { endMatch(); } }
-        var mood = M.state === 'Boss' ? 'boss' : M.state === 'Wave' ? 'fight' : M.state === 'Result' ? 'dawn' : 'calm';
-        AU.bgm(dt, mood);
+  function afterBattle(res, out, choice, o, done, sym) {
+    var S = G.S;
+    if (res === 'lose' && choice && choice !== 'ok') {
+      var restored = ST.validate(JSON.parse(G.snap));
+      setS(restored); S = restored;
+      FD.refresh(S, G.F);
+      if (choice === 'town') {
+        ST.healAll(S);
+        G.scene = 'field'; $('hud').hidden = false;
+        if (sym) { sym.cool = 3; }
+        var lt = S.lastTown || { id: 'koka', x: 14, y: 18, dir: 'up' };
+        UI.fade('out', function () { enterMap(lt.id, lt.x, lt.y, lt.dir); UI.fade('in', function () { say(null, '宿で目をさました。みんな元気になった。'); }); });
+        return;
       }
-      if (G.M) {
-        var tut = G.tut && M.tutorial ? G.tut : null;
-        var view = { me: G.me, route: routeInfo(M), nearSpot: G.nearSpot, reticle: reticle(), mentorShow: G.mentorShow };
-        RN.frame(M, dt, view);
-        if (tut && tut.marker) markerHint(tut.marker);
-        UI.hud(M, G.me);
-        if ((G.mm = (G.mm || 0) + dt) > 0.12) { G.mm = 0; RN.minimap(document.getElementById('minimap'), M, 'p1'); }
-      }
-    } else {
-      RN.frame(null, dt, { night: 0.55 });
-      AU.bgm(dt, 'calm');
-      if (G.screen === 'loadout' && !G.panelOpen) {
-        G.loTimer -= dt;
-        var el = document.getElementById('lo-timer'); if (el) el.textContent = Math.max(0, Math.ceil(G.loTimer));
-        if (G.loTimer <= 0) { UI.toast('時間になったので出撃します'); G.startMatch(); }
-      }
+      ST.healAll(S);
+      if (choice === 'easy') { S.diff = 'easy'; UI.toast('難しさを「やさしい」にした'); }
+      if (choice === 'prep') { G.scene = 'field'; MENU.menu(ctx(), 'form', function () { startBattle(o, done, sym); }); return; }
+      startBattle(o, done, sym);
+      return;
     }
-    root.requestAnimationFrame(frame);
-  }
-  function rangeOf(slot) {
-    var me = G.me; if (!me) return 200;
-    if (slot === 'sp') { var S = D.ROLES[me.role].special; return S.len || S.range || 150; }
-    if (slot === 'bomb') return D.SUPPLY.bomb.range;
-    var J = D.JUTSU[me.jutsu[slot === 'j0' ? 0 : 1]]; return J ? (J.range || J.len || 150) : 200;
-  }
-  function reticle() {
-    var me = G.me; if (!me || me.down) return null;
-    var r = IN.I.drag && IN.I.drag.aiming ? rangeOf(IN.I.drag.slot) : 220;
-    var rt = IN.reticle(me, r);
-    if (rt) rt.r = 18;
-    return rt;
-  }
-  // 準備中：次の襲撃で来る妖怪と道（ルート確認・次の襲撃の予告）
-  function routeInfo(M) {
-    if (M.tutorial || !(M.state === 'Preparation' || M.state === 'Intermission')) return null;
-    var nx = M.phases[M.pi + 1]; if (!nx || !nx.wave) return null;
-    var comp = M.set[nx.wave] || {}, west = [], east = [];
-    Object.keys(comp).forEach(function (t) { var n = Math.max(1, Math.round(comp[t] * M.diff.countMul)); var h = Math.ceil(n / 2); west.push({ type: t, n: h }); east.push({ type: t, n: n - h }); });
-    if (nx.wave === 'boss') west.unshift({ type: 'daruma', n: 1 });
-    return { west: west.slice(0, 3), east: east.filter(function (x) { return x.n > 0; }).slice(0, 3) };
-  }
-  function markerHint(mk) {
-    var c = RN.R.ctx, s = RN.w2s(mk.x, mk.y), r = mk.r * RN.R.zoom, t = G.t;
-    c.save(); c.strokeStyle = 'rgba(255,230,120,' + (0.6 + Math.sin(t * 6) * 0.3) + ')'; c.lineWidth = 4; c.beginPath(); c.arc(s.x, s.y, r + Math.sin(t * 4) * 4, 0, Math.PI * 2); c.stroke();
-    c.fillStyle = 'rgba(255,230,120,.9)'; c.beginPath(); c.moveTo(s.x, s.y - r - 8); c.lineTo(s.x - 10, s.y - r - 26); c.lineTo(s.x + 10, s.y - r - 26); c.closePath(); c.fill(); c.restore();
+    if (res === 'lose') ST.healAll(S);   // 腕だめしに負けたとき
+    G.scene = 'field';
+    $('hud').hidden = false;
+    AU.bgm(G.F.def.bgm);
+    makeFollowers();
+    if (sym) {
+      if (res === 'win') { sym.beaten = true; sym.on = false; }
+      else sym.cool = 3;
+    }
+    if (done) done(res);
   }
 
-  /* ---------- 一時停止 ---------- */
-  G.pause = function () {
-    if (G.screen !== 'battle' || !G.M || G.M.state === 'Result') return;
-    G.paused = true; IN.clear(); UI.panel('pause');
-  };
-  G.onPanelClose = function (kind) {
-    if (kind === 'pause' || kind === 'help') { G.paused = false; G.last = 0; }
-    if (G.screen === 'plaza') G.toPlaza();
-  };
-  G.resetAll = function () {
-    try { if (store) store.removeItem(PR.KEY); } catch (e) { /* 保存できない端末 */ }
-    G.P = PR.load(store, Date.now()); G.normal = null; G.applySettings(); UI.closePanel(); G.toTitle();
-  };
-
-  /* ---------- はじまり ---------- */
-  function boot() {
-    var cv = document.getElementById('game');
-    RN.init(cv); RN.buildGround(null);
-    IN.init(cv, { stickEl: document.getElementById('stick'), onKey: function (a) { if (a === 'pause' && G.screen === 'battle') { if (G.paused) UI.closePanel(); else G.pause(); } } });
-    IN.bindSkill(document.getElementById('sk-j0'), 'j0'); IN.bindSkill(document.getElementById('sk-j1'), 'j1'); IN.bindSkill(document.getElementById('sk-sp'), 'sp');
-    var dg = document.getElementById('sk-dodge');
-    var dodge = function (e) { e.preventDefault(); IN.I.edge.dodge = true; };
-    dg.addEventListener('touchstart', dodge, { passive: false }); dg.addEventListener('mousedown', dodge);
-    document.getElementById('btn-ready').onclick = function () { IN.setAct('ready'); };
-    document.getElementById('btn-pause').onclick = function () { G.pause(); };
-    UI.init(G);
-    // 絆で手に入れた装束を表に足す
-    Object.keys(G.P.owned).forEach(function (id) { if (id.indexOf('outfit_cn_') === 0 && CH.BY_ID[id.slice(10)]) UI.ensureCnOutfit(id, CH.BY_ID[id.slice(10)]); });
-    G.applySettings();
-    document.getElementById('btn-start').onclick = function () { AU.unlock(); AU.play('click'); G.startTutorial(); };
-    document.getElementById('btn-continue').onclick = function () { AU.unlock(); AU.play('click'); G.toPlaza(); };
-    document.getElementById('btn-help').onclick = function () { AU.unlock(); UI.panel('help'); };
-    document.getElementById('pl-go').onclick = function () { AU.play('click'); G.toLoadout(); };
-    document.getElementById('lo-back').onclick = function () { G.toPlaza(); };
-    document.getElementById('lo-go').onclick = function () { AU.unlock(); G.startMatch(); };
-    document.getElementById('rs-plaza').onclick = function () { G.toPlaza(); };
-    document.getElementById('rs-edit').onclick = function () { G.toLoadout(); };
-    document.getElementById('rs-again').onclick = function () { AU.unlock(); G.rematch(); };
-    root.addEventListener('resize', function () { RN.resize(); });
-    document.addEventListener('visibilitychange', function () { if (document.hidden) G.pause(); });
-    // 初回はタイトルから最初の任務へ。2回目からは「つづきから」
-    G.toTitle();
-    if (G.P.stats.tutorial || G.P.stats.tutorialSkipped) document.getElementById('btn-continue').hidden = false;
-    root.requestAnimationFrame(frame);
-    if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(function () {});
+  // ====================== メニュー ======================
+  function ctx() { return { S: G.S, objective: objective, save: function () { return autosave(); }, toTitle: toTitle }; }
+  function openMenu() {
+    if (G.scene !== 'field' || blocked()) return;
+    sfx('ok');
+    MENU.menu(ctx(), null, function () { makeFollowers(); FD.refresh(G.S, G.F); });
   }
+  function autosave() {
+    var S = G.S; if (!S || G.scene === 'title') return false;
+    if (G.P) { S.map.x = G.P.moving ? G.P.mv.tx : G.P.x; S.map.y = G.P.moving ? G.P.mv.ty : G.P.y; S.map.dir = G.P.dir; }
+    return ST.save(S);
+  }
+  // いまの目的
+  function objective() {
+    var S = G.S, f = function (c) { return FD.cond(S, c); };
+    var L = [
+      ['ending', 'クリア！ まだ会っていない仲間をさがしたり、図鑑をうめたりしよう'],
+      ['ch4_clear&ne_seal_l&ne_seal_r', '根の国の奥で、夜鴉と決着をつけよう'],
+      ['ch4_clear&has:jin', '根の国の奥へ。左右の封印の石を解いて、扉を開けよう'],
+      ['ch4_clear&ten_entered', '天の社で、気配を消した忍をさがそう'],
+      ['ch4_clear', '旅の地図から「天の社」へ'],
+      ['ch3_clear&has:kohaku', '風魔の砦の奥へ進もう'],
+      ['ch3_clear&ch4_duel1', '黒嶺の山道をこえて、風魔の砦へ'],
+      ['ch3_clear&kuromine_entered', '黒嶺の山道で、道をふさぐ二人と話そう'],
+      ['ch3_clear', '旅の地図から「黒嶺の山道」へ（孫市の船）'],
+      ['ch2_clear&has:fuuta&has:hinanojoh', '潮風の浜の奥、海鳴りの洞で海坊主を退治しよう'],
+      ['ch2_clear&has:fuuta', '潮風の浜で、岩をこわせる仲間をさがそう'],
+      ['ch2_clear&saika_entered', '潮風の浜で、霧を晴らせる仲間をさがそう'],
+      ['ch2_clear', '旅の地図から「雑賀の港」へ'],
+      ['ch1_clear&has:hayate', '霧の山道をこえて、大蜘蛛の岩屋の霧蜘蛛を退治しよう'],
+      ['ch1_clear&iga_entered', '霧の山道の入口で、鷹匠に会おう'],
+      ['ch1_clear', '旅の地図から「伊賀の里」へ'],
+      ['op_done&has:xiaolan', '稲荷の洞の奥へ。光が落ちた場所をめざそう'],
+      ['op_done', '旅の地図から「狐火の森」へ。大岩の前で困っている子がいるらしい'],
+      ['op_started', '岩爺の話を聞こう']
+    ];
+    for (var i = 0; i < L.length; i++) if (f(L[i][0])) return L[i][1];
+    return '岩爺の話を聞こう';
+  }
+
+  // ====================== 描く ======================
+  function drawField(dt) {
+    var V = {
+      S: G.S, F: G.F, P: { fx: G.P.fx, fy: G.P.fy + (G.shakeT > 0 ? Math.sin(G.t * 60) * 0.05 : 0), dir: G.P.dir, def: G.P.def, moving: G.P.moving, walk: G.P.walk },
+      party: G.fol.slice().reverse(), t: G.t, dt: dt, hint: G.hint, emotes: G.emotes
+    };
+    RF.frame(V);
+  }
+  function drawTitle(dt) {
+    var T = G.title; T.t += dt;
+    var F = G.F, x = 4 + (Math.sin(T.t * 0.05) * 0.5 + 0.5) * (F.w - 8), y = 6 + (Math.cos(T.t * 0.035) * 0.5 + 0.5) * (F.h - 12);
+    RF.frame({ S: G.S, F: F, P: { fx: x, fy: y, dir: 'down', def: null }, party: [], t: G.t, dt: dt, hint: null, emotes: [] });
+  }
+
+  // ====================== 入力 ======================
+  function onKey(k) {
+    AU.unlock();
+    if (!$('panel').hidden && !MENU.open) { if (k === 'back' || k === 'menu' || k === 'ok') { $('panel').hidden = true; $('panel').innerHTML = ''; } else if (/up|down|left|right/.test(k)) UI.nav($('panel'), k); return; }
+    if (!$('title').hidden) { if (/up|down|left|right/.test(k)) UI.nav($('title'), k); else if (k === 'ok') { var a = document.activeElement; if (a && $('title').contains(a)) a.click(); else UI.focusFirst($('title')); } return; }
+    if (!$('newgame').hidden) { if (/up|down|left|right/.test(k) && document.activeElement.tagName !== 'INPUT') UI.nav($('newgame'), k); else if (k === 'ok' && document.activeElement.tagName === 'INPUT') $('ng-start').focus(); return; }
+    if (!$('credits').hidden) { if (k === 'ok') $('cr-ok').click(); return; }
+    if (UI.cardOpen()) { if (k === 'ok' || k === 'back') { if (UI.cardSkip) UI.cardSkip(); } return; }
+    if (MENU.travelOpen()) { MENU.travelKey(k); return; }
+    if (UI.choiceOpen()) { if (/up|down|left|right/.test(k)) UI.nav($('choice'), k); else if (k === 'ok') { var b = document.activeElement; if (b && $('choice').contains(b)) b.click(); else UI.focusFirst($('choice')); } return; }
+    if (UI.dlgOpen()) { if (k === 'ok' || k === 'back') UI.dlgNext(); return; }
+    if (!$('panel').hidden) {
+      if (k === 'back' || k === 'menu') { if (MENU.open) MENU.close(); else { $('panel').hidden = true; $('panel').innerHTML = ''; } return; }
+      if (/up|down|left|right/.test(k)) UI.nav($('panel'), k);
+      return;
+    }
+    if (G.scene === 'battle') { BUI.key(k); return; }
+    if (G.scene !== 'field' || blocked()) return;
+    if (k === 'ok') { interactFront(); return; }
+    if (k === 'menu' || k === 'back') { openMenu(); return; }
+  }
+  function onTap(x, y) {
+    AU.unlock();
+    if (G.scene === 'battle') { BUI.tap(x, y); return; }
+    if (UI.dlgOpen()) { UI.dlgNext(); return; }
+    if (G.scene !== 'field' || blocked()) return;
+    var t = RF.screenToTile(x, y);
+    tapTile(t.x, t.y);
+  }
+  // マスをタップ（そこまで歩く。人や物なら、となりまで行って話す・調べる）
+  function tapTile(tx, ty) {
+    var t = { x: tx, y: ty }, P = G.P, F = G.F;
+    if (t.x === P.x && t.y === P.y) { interactFront(); return; }
+    var objs = FD.objsAt(F, t.x, t.y).filter(function (o) { return o.k !== 'exit' && o.k !== 'step' && o.k !== 'pickup' && !(o.k === 'obst' && o.kind === 'hidden' && !FD.hasAbility(G.S, 'hawk')); });
+    var target = objs[0] || null;
+    var adj = Math.abs(t.x - P.x) + Math.abs(t.y - P.y) === 1;
+    if (target && adj) { P.dir = FD.dirOf(t.x - P.x, t.y - P.y); if (target.k === 'enemy') symbolBattle(target, 'party'); else interact(target); return; }
+    var path = FD.path(F, P.x, P.y, t.x, t.y, target ? { adjacent: true } : {});
+    if (!path) { sfx('ng'); return; }
+    P.path = path; P.goal = [t.x, t.y];
+    P.onArrive = target ? function () { P.dir = FD.dirOf(t.x - P.x, t.y - P.y); var o2 = FD.objsAt(F, t.x, t.y).filter(function (o) { return o === target && o.on; })[0]; if (o2) { if (o2.k === 'enemy') symbolBattle(o2, null); else interact(o2); } } : null;
+    RF.addFx({ kind: 'reveal', x: t.x * 32 + 16, y: t.y * 32 + 16, dur: 0.4 });
+  }
+
+  // テスト用の窓口
+  G.debug = { tapTile: tapTile, interact: interact, stepOn: function (x, y) { G.P.x = x; G.P.y = y; G.P.fx = x; G.P.fy = y; arrive(); }, enterMap: enterMap, runEvent: runEvent, startBattle: startBattle, objective: objective, get H() { return H; }, setS: setS, toTitle: toTitle, startGame: startGame };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -1,14 +1,16 @@
 // Service Worker：一度読みこめばオフラインでも遊べるようにする
 // 更新時は CACHE の番号と index.html の ?v=N を両方上げる（ニンジャ里ライフの art.js / chars.js も使う）
-const CACHE = 'ninja-yoake-tai-v1';
-const V = '?v=1';
+const CACHE = 'ninja-yoake-tai-v3';
+const V = '?v=3';
+const FILES = ['data_base.js', 'data_skills.js', 'data_chars.js', 'data_items.js', 'data_enemies.js', 'data_maps.js', 'data_story.js',
+  'state.js', 'field.js', 'script.js', 'battle.js', 'sprites.js', 'draw_world.js', 'draw_yokai.js', 'render_field.js', 'render_battle.js',
+  'audio.js', 'input.js', 'ui.js', 'ui_menu.js', 'battle_ui.js', 'game.js'];
 const CORE = [
-  './', './index.html', './about.html', './manifest.webmanifest', './style.css' + V,
-  './data.js' + V, './lines.js' + V, './ai.js' + V, './sim.js' + V, './director.js' + V, './progress.js' + V,
-  './render.js' + V, './input.js' + V, './audio.js' + V, './tutorial.js' + V, './ui.js' + V, './game.js' + V,
+  './', './index.html', './about.html', './manifest.webmanifest', './style.css' + V
+].concat(FILES.map(f => './' + f + V)).concat([
   '../ninja-sato-life/art.js?v=2', '../ninja-sato-life/chars.js?v=2',
   './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'
-];
+]);
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => Promise.all(CORE.map(u => c.add(new Request(u, { cache: 'reload' })).catch(() => {})))).then(() => self.skipWaiting()));
 });
@@ -21,8 +23,8 @@ self.addEventListener('fetch', e => {
   if (url.origin !== self.location.origin) return;
   e.respondWith(
     caches.match(e.request).then(hit => hit || fetch(e.request).then(res => {
-      // 忍者の絵（公式イラスト・シートの縮小版）は、見たものだけためておく
-      if (res.ok && (url.pathname.includes('/img/art/') || url.pathname.includes('/sheets/thumb/'))) { const copy = res.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); }
+      // 忍者の絵（公式イラスト）は、見たものだけためておく
+      if (res.ok && url.pathname.includes('/img/art/')) { const copy = res.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); }
       return res;
     }).catch(() => caches.match('./index.html')))
   );

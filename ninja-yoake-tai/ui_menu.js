@@ -60,7 +60,7 @@
   }
   M.menu = function (ctx, tab, onClose) {
     M.ctx = ctx; M.onClose = onClose; M.kind = 'menu';
-    show(tab || M.tab || 'party');
+    show(tab || (M.tab && M.tab !== 'member' ? M.tab : 'party'));   // 仲間のくわしい画面で閉じたときは、一覧から
   };
   function show(tab, arg) {
     var S = M.ctx.S;

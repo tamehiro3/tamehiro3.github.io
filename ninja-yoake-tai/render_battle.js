@@ -1,7 +1,7 @@
 /* ニンジャ夜明け隊（RPG） — 戦闘の描画
  * 背景（場所と夜明けの明るさ）・妖怪と仲間・術の光・ダメージの数字。
  * 判定は battle.js、流れ（どのできごとを、いつ見せるか）は battle_ui.js。
- * 仲間は右に並んで左を向き、妖怪は左。どこまでを戦いの場面に使うか（area）は battle_ui.js が決める。
+ * 仲間は右に並んで左を向き、妖怪は左で右を向く（向かい合う）。どこまでを戦いの場面に使うか（area）は battle_ui.js が決める。
  */
 (function (root) {
   'use strict';
@@ -174,34 +174,53 @@
   };
 
   // ====================== 並び ======================
-  var PSLOT = [[0.70, 0.52], [0.86, 0.63], [0.68, 0.79], [0.85, 0.92]];
-  var EFORM = {
-    1: [[0.30, 0.78]],
-    2: [[0.20, 0.62], [0.38, 0.82]],
-    3: [[0.16, 0.58], [0.38, 0.72], [0.18, 0.92]],
-    4: [[0.12, 0.56], [0.33, 0.62], [0.16, 0.84], [0.40, 0.90]],
-    5: [[0.10, 0.52], [0.28, 0.58], [0.45, 0.70], [0.14, 0.80], [0.32, 0.92]]
-  };
-  function partyH(A) { return clamp(Math.min(A.h * 0.36, A.w * 0.25), 54, 168); }
+  // 向かい合う並び：仲間は右で左を向き、妖怪（腕だめしの忍者も）は左で右を向く。
+  // 両方とも同じ高さの列に立たせて、正面からにらみ合う形にする。3人（3体）以上は前後にずらす（ジグザグ）。
+  // 横に広い画面では、まん中の「舞台」の幅だけを使って、両方が離れすぎないようにする。
+  function stageOf(A) { var w = Math.min(A.w, Math.max(A.h * 1.9, 560)); return { x: A.x + (A.w - w) / 2, w: w }; }
+  function partyH(A) { return clamp(Math.min(A.h * 0.34, stageOf(A).w * 0.35), 70, 220); }
+  // 列の高さ（戦う場所の上からの割合）。縦長の画面ほど上から広く使う。人数が少ないときは間をつめて、少し下に置く
+  function rowsY(n, A) {
+    var s = clamp(A.h / A.w - 0.5, 0, 1), top = lerp(0.56, 0.46, s), bot = 0.93;
+    var gap = n > 1 ? Math.min((bot - top) / (n - 1), lerp(0.13, 0.17, s)) : 0, span = gap * (n - 1);
+    var y0 = bot - span - (bot - top - span) * 0.35, out = [];
+    for (var i = 0; i < n; i++) out.push(y0 + gap * i);
+    return out;
+  }
+  // 横の位置（px）。前の列（相手に近い）と後ろの列を交互に。side: 1 = 仲間（右）、-1 = 妖怪（左）
+  function colX(i, n, st, side, ph) {
+    var front = st.x + st.w * (side > 0 ? 0.7 : 0.3);
+    // 後ろの列へのずれ。妖怪は横に太いので少し広く。ただし画面の端からはみ出さない
+    var room = side > 0 ? st.x + st.w - ph * 0.3 - front : front - (st.x + ph * 0.42);
+    var back = side * clamp(ph * (side > 0 ? 0.55 : 0.72), 0, Math.max(0, room));
+    var x = n === 1 ? front + back * 0.3 : front + (i % 2 ? back : 0) + side * i * st.w * 0.012;
+    return side > 0 ? Math.min(x, st.x + st.w - ph * 0.3) : Math.max(x, st.x + ph * 0.42);
+  }
   function layout(V) {
-    var A = V.area, D = V.D, ph = partyH(A), P = {};
-    var ens = [], nmax = 0;
-    for (var id in D) { var d = D[id]; if (d.side === 'e' && !d.gone) { ens.push(d); nmax = Math.max(nmax, d.slot + 1); } }
+    var A = V.area, D = V.D, ph = partyH(A), st = stageOf(A), P = {};
+    var ens = [], nmax = 0, front = [];
+    for (var id in D) {
+      var d = D[id];
+      if (d.side === 'e' && !d.gone) { ens.push(d); nmax = Math.max(nmax, d.slot + 1); }
+      if (d.side === 'p' && !d.bench) front.push(d);
+    }
     nmax = clamp(nmax, 1, 5);
+    front.sort(function (a, b) { return a.slot - b.slot; });
+    var np = clamp(front.length, 1, 4);
     for (var k in D) {
       var u = D[k], p;
       if (u.side === 'p') {
         if (u.bench) continue;
-        var sl = PSLOT[clamp(u.slot, 0, 3)];
-        p = { x: A.x + A.w * sl[0], y: A.y + A.h * sl[1], h: ph, side: 'p' };
+        var i = clamp(front.indexOf(u), 0, 3);
+        p = { x: colX(i, np, st, 1, ph), y: A.y + A.h * rowsY(np, A)[i], h: ph, side: 'p' };
       } else {
         if (u.gone) continue;
-        var e = EN()[u.eid] || {}, size = e.size || 1, f;
-        if (u.boss && ens.length === 1) f = [0.28, 0.86];
-        else f = (EFORM[nmax] || EFORM[5])[clamp(u.slot, 0, 4)];
-        var hh = e.cn ? ph * (size > 1 ? 1.1 : 1) : ph * 0.82 * size * (nmax >= 4 ? 0.88 : 1);
-        if (u.boss) hh = Math.min(hh, A.h * 0.8);
-        p = { x: A.x + A.w * f[0], y: A.y + A.h * f[1], h: hh, side: 'e', cn: e.cn || null, shape: e.shape, col: e.col };
+        var e = EN()[u.eid] || {}, size = e.size || 1, j = clamp(u.slot, 0, nmax - 1), ex, ey;
+        if (u.boss && ens.length === 1) { ex = st.x + st.w * 0.27; ey = 0.84; }
+        else { ex = colX(j, nmax, st, -1, ph); ey = rowsY(nmax, A)[j]; }
+        var hh = e.cn ? ph * (size > 1 ? 1.1 : 1) : ph * 0.72 * size * (nmax >= 4 ? 0.9 : 1);
+        if (u.boss) hh = Math.min(hh, A.h * 0.72, st.w * 0.6);
+        p = { x: ex, y: A.y + A.h * ey, h: hh, side: 'e', cn: e.cn || null, shape: e.shape, col: e.col };
       }
       p.cx = p.x; p.cy = p.y - p.h * 0.5;
       P[k] = p;
@@ -273,8 +292,9 @@
     var x = p.x + v.ox + (v.shk > 0 ? Math.sin(v.shk * 60) * 4 : 0), y = p.y + v.oy;
     var isCur = V.cur === +uid, isTg = V.tgts && V.tgts.indexOf(+uid) >= 0;
     // 足もとの輪
-    if (isCur && !d.ko) { DW.ell(c, x, y, p.h * 0.36, p.h * 0.09, 'rgba(255,224,130,.28)', 'rgba(255,230,150,.95)', 2.2); }
-    if (isTg) { var a = 0.6 + Math.sin(R.t * 8) * 0.3; DW.ell(c, x, y, p.h * 0.38, p.h * 0.1, null, d.side === 'e' ? 'rgba(255,110,90,' + a + ')' : 'rgba(130,255,170,' + a + ')', 3); }
+    var rw = p.side === 'p' || p.cn ? 0.27 : 0.36;   // 忍者は細いので輪も小さく
+    if (isCur && !d.ko) { DW.ell(c, x, y, p.h * rw, p.h * rw * 0.25, 'rgba(255,224,130,.28)', 'rgba(255,230,150,.95)', 2.2); }
+    if (isTg) { var a = 0.6 + Math.sin(R.t * 8) * 0.3; DW.ell(c, x, y, p.h * (rw + 0.02), p.h * (rw + 0.02) * 0.26, null, d.side === 'e' ? 'rgba(255,110,90,' + a + ')' : 'rgba(130,255,170,' + a + ')', 3); }
     if (v.glow > 0) { var gg = c.createRadialGradient(x, y - p.h * 0.4, 4, x, y - p.h * 0.4, p.h * 0.7); gg.addColorStop(0, 'rgba(' + v.glowCol + ',' + Math.min(0.5, v.glow) + ')'); gg.addColorStop(1, 'rgba(' + v.glowCol + ',0)'); c.fillStyle = gg; c.fillRect(x - p.h, y - p.h * 1.2, p.h * 2, p.h * 1.4); }
     var alpha = 1;
     if (d.side === 'e' && d.ko) { v.koT = Math.min(1, v.koT + (V.dt || 0.016) * 2.2); alpha = 1 - v.koT; if (alpha <= 0.01) { R.rects[uid] = null; return; } }
@@ -287,7 +307,7 @@
       c.translate(x, y + (d.side === 'e' && d.ko ? v.koT * 10 : 0));
       var sz = (YK.SIZE[p.shape] || 44), sc = p.h / sz;
       var broken = d.broken;
-      YK.draw(c, p.shape, p.col, { t: R.t + (+uid) * 0.37, s: sc, dir: 1, hit: v.hitT > 0, daze: broken, ko: d.ko, charge: d.charging, boss: d.boss });
+      YK.draw(c, p.shape, p.col, { t: R.t + (+uid) * 0.37, s: sc, dir: 1, turn: 1, hit: v.hitT > 0, daze: broken, ko: d.ko, charge: d.charging, boss: d.boss });   // 右（仲間のほう）を向く
     }
     c.restore();
     if (v.hitT > 0 && p.side === 'e' && !p.cn) { c.save(); c.globalCompositeOperation = 'lighter'; DW.circle(c, x, y - p.h * 0.45, p.h * 0.4, 'rgba(255,255,255,' + v.hitT * 1.2 + ')'); c.restore(); }
@@ -296,7 +316,7 @@
       var by = y - p.h - 12 + Math.sin(R.t * 6) * 4;
       DW.poly(c, [[x - 8, by - 10], [x + 8, by - 10], [x, by]], isTg ? (d.side === 'e' ? '#ff7a5a' : '#8af0b0') : '#ffe08a', '#2a1a10', 1.5);
     }
-    R.rects[uid] = { x0: x - p.h * 0.45, x1: x + p.h * 0.45, y0: y - p.h * 1.05, y1: y + 8 };
+    R.rects[uid] = { x0: x - p.h * rw * 1.15, x1: x + p.h * rw * 1.15, y0: y - p.h * 1.0, y1: y + 8 };
     // 状態の印
     var sts = [];
     if (d.st) for (var k in d.st) if (d.st[k] && STATUS()[k]) sts.push(k);
@@ -308,10 +328,10 @@
     if (!def || !def.def) return;
     var pose = v.pose || (d.ko ? 'surprised' : V.win && d.side === 'p' ? 'happy' : 'stand');
     var expr = v.pose ? null : (d.ko ? 'surprised' : d.side === 'e' || V.cur === d.uid ? 'serious' : null);
-    var yaw = d.side === 'p' ? 62 : -62;
+    var yaw = d.side === 'p' ? -62 : 62;   // 正の yaw は右向き。仲間（右）は左を、相手（左）は右を向いて向かい合う
     var img = SPR.get(def, { yaw: yaw, pose: pose, h: p.h * R.dpr, expr: expr || undefined });
-    var w = p.h * 200 / 240;
-    DW.ell(c, x, y, p.h * 0.26, p.h * 0.06, 'rgba(0,0,0,.3)');
+    var w = p.h * SPR.ASPECT;
+    DW.ell(c, x, y, p.h * 0.2, p.h * 0.05, 'rgba(0,0,0,.3)');
     if (!img) return;
     c.save();
     c.translate(x, y);
@@ -333,7 +353,8 @@
   function enemyInfo(c, V, uid, p) {
     var d = V.D[uid], v = vis(uid);
     if (d.ko || d.fled) return;
-    var x = p.x, y = p.y + 10, bw = clamp(p.h * 0.9, 56, 150);
+    var bw = clamp(p.h * 0.9, 56, 150), y = p.y + 10, A = R.area;
+    var x = A ? clamp(p.x, A.x + bw / 2 + 30, A.x + A.w - bw / 2 - 6) : p.x;   // 盾の印まで画面に入れる
     if (v.hpShown == null) v.hpShown = d.hp;
     v.hpShown += (d.hp - v.hpShown) * Math.min(1, (V.dt || 0.016) * 8);
     var r = clamp(v.hpShown / d.mhp, 0, 1);
@@ -373,7 +394,7 @@
         case 'proj': {
           var x = lerp(f.x0, f.x1, ease(k)), y = lerp(f.y0, f.y1, ease(k)) - Math.sin(k * Math.PI) * (f.arc || 0);
           for (var i = 1; i <= 4; i++) { var kk = Math.max(0, k - i * 0.06), tx = lerp(f.x0, f.x1, ease(kk)), ty = lerp(f.y0, f.y1, ease(kk)) - Math.sin(kk * Math.PI) * (f.arc || 0); DW.circle(c, tx, ty, (f.r || 6) * (1 - i * 0.18), 'rgba(' + col + ',' + (0.35 - i * 0.07) + ')'); }
-          glyph(c, f.g, x, y, f.r || 6, col, R.t * 14);
+          glyph(c, f.g, x, y, f.r || 6, col, R.t * 14, Math.atan2(f.y1 - f.y0, f.x1 - f.x0));
           break;
         }
         case 'burst': {
@@ -461,11 +482,11 @@
     c.beginPath(); c.moveTo(x, y - r * 2); c.lineTo(x + r * 0.4, y - r * 0.4); c.lineTo(x + r * 2, y); c.lineTo(x + r * 0.4, y + r * 0.4); c.lineTo(x, y + r * 2); c.lineTo(x - r * 0.4, y + r * 0.4); c.lineTo(x - r * 2, y); c.lineTo(x - r * 0.4, y - r * 0.4); c.closePath(); c.fillStyle = fill; c.fill();
   }
   // 飛ぶ物の形
-  function glyph(c, g, x, y, r, col, rot) {
+  function glyph(c, g, x, y, r, col, rot, ang) {
     c.save(); c.translate(x, y);
     switch (g) {
       case 'shuriken': c.rotate(rot); for (var i = 0; i < 4; i++) { c.rotate(Math.PI / 2); DW.poly(c, [[0, -r * 1.8], [r * 0.5, -r * 0.4], [-r * 0.5, -r * 0.4]], '#d8dde8', '#2a2a34', 1); } DW.circle(c, 0, 0, r * 0.35, '#2a2a34'); break;
-      case 'arrow': c.rotate(Math.atan2(0, 1) + Math.PI); c.strokeStyle = '#e8d8b0'; c.lineWidth = 2; c.beginPath(); c.moveTo(-r * 2, 0); c.lineTo(r * 2, 0); c.stroke(); DW.poly(c, [[-r * 2.6, 0], [-r * 1.6, -r * 0.7], [-r * 1.6, r * 0.7]], '#c8ccd8'); break;
+      case 'arrow': c.rotate((ang == null ? 0 : ang) + Math.PI); c.strokeStyle = '#e8d8b0'; c.lineWidth = 2; c.beginPath(); c.moveTo(-r * 2, 0); c.lineTo(r * 2, 0); c.stroke(); DW.poly(c, [[-r * 2.6, 0], [-r * 1.6, -r * 0.7], [-r * 1.6, r * 0.7]], '#c8ccd8'); break;
       case 'paper': c.rotate(rot * 0.3); DW.rrect(c, -r * 0.7, -r, r * 1.4, r * 2, 1, '#fff6dc', '#a83a2a', 1); c.fillStyle = '#c83a2a'; c.fillRect(-1, -r * 0.7, 2, r * 1.4); break;
       case 'leaf': c.rotate(rot * 0.5); DW.ell(c, 0, 0, r * 1.2, r * 0.55, 'rgb(' + col + ')', 'rgba(0,0,0,.4)', 1); break;
       case 'note': DW.text(c, '♪', 0, 0, r * 3, 'rgb(' + col + ')'); break;

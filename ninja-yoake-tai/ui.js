@@ -21,18 +21,19 @@
   UI.portrait = portrait;
   // 絵（忍者）を小さなキャンバスに。作り終わるまで何度か描きなおす
   function spriteCanvas(def, size, o) {
-    var cv = document.createElement('canvas'), dpr = Math.min(2, root.devicePixelRatio || 1);
-    cv.width = Math.round(size * dpr); cv.height = Math.round(size * dpr);
-    cv.style.width = size + 'px'; cv.style.height = size + 'px';
+    var cv = document.createElement('canvas'), dpr = Math.min(2, root.devicePixelRatio || 1), full = o && o.full;
+    var hh = full ? Math.round(size * 1.2) : size;   // 全身は縦長（幅:高さ = 5:6）
+    cv.width = Math.round(size * dpr); cv.height = Math.round(hh * dpr);
+    cv.style.width = size + 'px'; cv.style.height = hh + 'px';
     var tries = 0;
     (function draw() {
-      var SP = root.NYT_SPRITES, h = (o && o.full ? size : size * 1.9) * dpr;
+      var SP = root.NYT_SPRITES, h = (full ? hh : size * SP.FACE.h) * dpr;
       var img = SP && SP.get(def, { yaw: (o && o.yaw) || 0, pose: (o && o.pose) || 'stand', h: h, expr: o && o.expr });
       if (img) {
         var c = cv.getContext('2d'); c.clearRect(0, 0, cv.width, cv.height);
-        var w = h * 200 / 240;
-        if (o && o.full) c.drawImage(img, (cv.width - w) / 2, cv.height - h * SP.FOOT_Y, w, h);
-        else c.drawImage(img, (cv.width - w) / 2, -h * 0.06, w, h);
+        var w = h * SP.ASPECT;
+        if (full) c.drawImage(img, (cv.width - w) / 2, cv.height * 0.99 - h * SP.FOOT_Y, w, h);
+        else c.drawImage(img, (cv.width - w) / 2, cv.height * 0.54 - h * SP.FACE.cy, w, h);   // 頭が枠のまん中に来るように
         var st = SP.state.cache;   // まだ作っている途中なら、もう一度
         if (++tries < 40 && SP.state.pending > 0) setTimeout(draw, 120);
       } else if (++tries < 60) setTimeout(draw, 80);

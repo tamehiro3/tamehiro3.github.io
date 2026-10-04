@@ -1,4 +1,5 @@
 /* ニンジャ夜明け隊（RPG） — 忍者の絵（art.js の SVG → 画像 → キャンバス）
+ * 2.7頭身で描く。左右を向くときは横顔に近い斜め（yaw ±70）。
  * 向き・しぐさ・歩きのコマ・大きさごとに、一度だけ作って使い回す。作っているあいだは、前に作った絵を出す。
  * 主人公・村の人の見た目もここで決める（村の人は apprenticeArt を色がえして使う）。
  */
@@ -6,6 +7,13 @@
   'use strict';
   var A = root.NinjaArt, CH = root.NSL_CHARS;
   var SP = { cache: {}, last: {}, pending: 0, defs: {} };
+
+  // 2.7頭身で描く（art.js の heads）。絵の枠は、頭の飾り・耳・長い襟巻きまで入るように広めにとる
+  var HEADS = 2.7;
+  var VB = [-14, -30, 228, 272];            // art.js の座標で x, y, 幅, 高さ
+  var ASPECT = VB[2] / VB[3];               // 幅 ÷ 高さ
+  var FOOT_Y = (232 - VB[1]) / VB[3];       // 足もと（地面 y=232）の高さの割合。まん中は x=100
+  var FACE = { h: 2.7, cy: 0.33 };          // 顔の切り抜き：絵の高さ（枠の何倍）と、頭のまん中の高さの割合
 
   function mk(w, h) { var c = document.createElement('canvas'); c.width = Math.max(1, Math.round(w)); c.height = Math.max(1, Math.round(h)); return c; }
 
@@ -62,10 +70,10 @@
     var lastKey = d.key + '|' + h;
     if (e) return e.cv ? e.cv : (SP.last[lastKey] || null);
     e = SP.cache[k] = { cv: null };
-    var w = Math.round(h * 200 / 240);
+    var w = Math.round(h * ASPECT);
     var svg;
     try {
-      svg = A.render(d.def, { yaw: o.yaw || 0, pose: o.pose || 'stand', frame: o.frame || 0, w: w, h: h, shadow: false, companions: !!o.companions, prop: o.prop, expr: o.expr });
+      svg = A.render(d.def, { yaw: o.yaw || 0, pose: o.pose || 'stand', frame: o.frame || 0, w: w, h: h, shadow: false, companions: !!o.companions, prop: o.prop, expr: o.expr, heads: HEADS, viewBox: VB.join(' ') });
     } catch (err) { return null; }
     var img = new Image();
     SP.pending++;
@@ -81,12 +89,9 @@
       for (var f = 0; f < 4; f++) get(d, { yaw: y, pose: 'walk', frame: f, h: h });
     });
   }
-  // 足もとの位置（SVG の地面は y=232/240、まん中は x=100/200）
-  var FOOT_Y = 232 / 240;
+  // 向き → art.js の yaw（正の yaw は画面の右を向く）
+  var YAW = { down: 0, up: 180, left: -70, right: 70 };
 
-  // 向き → art.js の yaw
-  var YAW = { down: 0, up: 180, left: 70, right: -70 };   // 正の yaw は画面の左を向く
-
-  var api = { get: get, warm: warm, heroDef: heroDef, cnDef: cnDef, villagerDef: villagerDef, defFor: defFor, memberDef: memberDef, YAW: YAW, FOOT_Y: FOOT_Y, VILLAGER: VILLAGER, mk: mk, state: SP };
+  var api = { get: get, warm: warm, heroDef: heroDef, cnDef: cnDef, villagerDef: villagerDef, defFor: defFor, memberDef: memberDef, YAW: YAW, FOOT_Y: FOOT_Y, ASPECT: ASPECT, FACE: FACE, HEADS: HEADS, VILLAGER: VILLAGER, mk: mk, state: SP };
   root.NYT_SPRITES = api;
 })(typeof window !== 'undefined' ? window : globalThis);

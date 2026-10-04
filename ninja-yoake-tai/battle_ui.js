@@ -618,7 +618,7 @@
   function draw(t, dt, dawn, bbg) {
     if (!Q) return;
     var vw = root.innerWidth, vh = root.innerHeight;
-    document.body.classList.toggle('bt-side', vw > vh * 1.25 && vh < 560);
+    document.body.classList.toggle('bt-side', vw > vh * 1.2 && vw >= 640);   // 横長の画面：コマンドは右の列、戦う場所は左に広く
     RB().frame({ B: Q.B, D: Q.D, area: area(), dawn: dawn, bbg: Q.opts.bbg || bbg || 'village', t: t, dt: dt, cur: Q.curUid, tgts: Q.tgts, hover: Q.hover, win: Q.win });
   }
   // k: 'up','down','left','right','ok','back','menu','fast'(F),'auto'(R),'minus'(Q),'plus'(E)

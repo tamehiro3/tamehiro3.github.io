@@ -4,6 +4,7 @@
 // 必要：playwright-core と Chromium（環境変数 CHROME に実行ファイルのパス）。
 // フォント：環境変数 SHEET_FONT_DIR に Zen Maru Gothic（ZenMaruGothic-500/700/900.ttf）を置くと、見出しが丸ゴシックになる。
 // 出力：ninja-sato-life/sheets/<id>.jpg（1536×1024）と sheets/thumb/<id>.jpg（幅480）
+// 2.7頭身（ニンジャ夜明け隊の絵）：--heads 2.7 --out ../ninja-yoake-tai/sheets --game ニンジャ夜明け隊
 import { createRequire } from 'module';
 import path from 'path';
 import fs from 'fs';
@@ -18,10 +19,12 @@ globalThis.NinjaArt = NinjaArt;
 const { CHARS } = require(path.join(ROOT, 'chars.js'));
 const { sheetSvg } = require(path.join(ROOT, 'sheet.js'));
 
-const OUT = path.join(ROOT, 'sheets');
+const args = process.argv.slice(2), only = [], flags = {};
+for (let i = 0; i < args.length; i++) { if (args[i].startsWith('--')) flags[args[i].slice(2)] = args[++i]; else only.push(args[i]); }
+const OUT = flags.out ? path.resolve(ROOT, flags.out) : path.join(ROOT, 'sheets');
 const THUMB = path.join(OUT, 'thumb');
 fs.mkdirSync(THUMB, { recursive: true });
-const only = process.argv.slice(2);
+const sheetOpt = { heads: flags.heads ? +flags.heads : null, game: flags.game || '' };
 const fontDir = process.env.SHEET_FONT_DIR || '';
 const face = fontDir ? [500, 700, 900].map(w => `@font-face{font-family:'Zen Maru Gothic';font-weight:${w};src:url('file://${path.join(fontDir, `ZenMaruGothic-${w}.ttf`)}')}`).join('') : '';
 
@@ -30,7 +33,7 @@ const page = await browser.newPage({ viewport: { width: 1536, height: 1024 }, de
 let n = 0;
 for (const ch of CHARS) {
   if (only.length && !only.includes(ch.id)) continue;
-  const html = `<!doctype html><html><head><meta charset="utf-8"><style>${face}html,body{margin:0;background:#f7f1e5}</style></head><body>${sheetSvg(ch)}</body></html>`;
+  const html = `<!doctype html><html><head><meta charset="utf-8"><style>${face}html,body{margin:0;background:#f7f1e5}</style></head><body>${sheetSvg(ch, sheetOpt)}</body></html>`;
   const tmp = path.join(OUT, `.tmp_${ch.id}.html`);
   fs.writeFileSync(tmp, html);
   await page.goto('file://' + tmp);

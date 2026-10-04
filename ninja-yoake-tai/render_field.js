@@ -118,7 +118,7 @@
   }
 
   // 忍者（地図の上）
-  var HCH = 46;   // 高さ（世界の単位）
+  var HCH = 56;   // 絵の枠の高さ（世界の単位）。2.7頭身で、体はマス目の1.5つ分くらい
   function drawChar(c, m, d, V) {
     if (!d || !d.def) return;
     var px = m.fx * T + 16, py = m.fy * T + 30;
@@ -126,8 +126,8 @@
     var hpx = HCH * R.s;
     var img = m.moving ? SPR.get(d, { yaw: yaw, pose: 'walk', frame: m.walk % 4, h: hpx }) : SPR.get(d, { yaw: yaw, pose: 'stand', h: hpx });
     DW.ell(c, px, py, 11, 3.6, 'rgba(0,0,0,.25)');
-    if (img) { var w = HCH * 200 / 240; c.drawImage(img, px - w / 2, py - HCH * SPR.FOOT_Y, w, HCH); }
-    if (m.sleep) { DW.text(c, 'z', px + 12, py - 44 - Math.sin(R.t * 2) * 3, 9, '#e8f0ff'); DW.text(c, 'Z', px + 18, py - 52 - Math.sin(R.t * 2 + 1) * 3, 11, '#e8f0ff'); }
+    if (img) { var w = HCH * SPR.ASPECT; c.drawImage(img, px - w / 2, py - HCH * SPR.FOOT_Y, w, HCH); }
+    if (m.sleep) { DW.text(c, 'z', px + 12, py - HCH * 0.86 - Math.sin(R.t * 2) * 3, 9, '#e8f0ff'); DW.text(c, 'Z', px + 18, py - HCH * 0.86 - 8 - Math.sin(R.t * 2 + 1) * 3, 11, '#e8f0ff'); }
   }
   function chest(c, px, py, open) {
     DW.ell(c, px + 16, py + 27, 12, 3.5, 'rgba(0,0,0,.25)');

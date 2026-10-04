@@ -136,8 +136,10 @@
     var a = yaw * D2R, p = (pitch == null ? 9 : pitch) * D2R;
     this.cyw = Math.cos(a); this.syw = Math.sin(a); this.cp = Math.cos(p); this.sp = Math.sin(p);
     this.ox = 100; this.oy = GROUND;
+    this.wy = null; // 頭身を変えるときの高さの写し方（体の空間の y → y）
   }
   Cam.prototype.p = function (x, y, z) {
+    if (this.wy) y = this.wy(y);
     var xr = x * this.cyw + z * this.syw, zr = -x * this.syw + z * this.cyw;
     return { x: this.ox + xr, y: this.oy - (y * this.cp - zr * this.sp), d: zr * this.cp + y * this.sp, z: zr };
   };
@@ -252,14 +254,59 @@
     chick: { hr: 56, headY: 116, sy: 72, sx: 26, hem: 30, srx: 28, srz: 22, hrx: 32, hrz: 24, hip: 10, legW: 7, armW: 8, hand: 7, obi: [40, 50] }
   };
 
-  function rig(def, pose, frame) {
-    var b = BUILDS[def.build || 'normal'];
+  /* ---------------- 頭身を変える（opt.heads：2.7 など） ----------------
+   * 頭は「あご」を中心に s 倍に縮め、あごより下の体を縦に伸ばす（足首まではそのまま、脚は kL 倍、胴は kT 倍）。
+   * あごより上はそのまま上へずらすので、顔と髪の形はくずれない。伸ばし方の境目はなめらかにつなぐ。
+   * 服や小物は体の空間の高さ（y）で決めてあるので、そのままの数値で長い体に合う。
+   * s：頭の縮め方。kT：胴の伸ばし方（脚の伸ばし方 kL は頭身から決まる）。dh：その体格の頭身の差（小さい子は低め）。
+   * spread：足を開く幅。hip：脚の付け根を外へ。legW：脚の太さ。arm：手を下げる量。out：手を体から離す量。
+   * opt.heads がないとき（ニンジャ里ライフ）は、これまでと同じ2頭身の絵になる。 */
+  var TALL = {
+    normal: { s: 0.86, kT: 1.38, dh: 0, spread: 7, hip: 1.5, legW: 1.18, arm: 4, out: 7 },
+    small: { s: 0.86, kT: 1.3, dh: -0.2, spread: 6, hip: 1.5, legW: 1.15, arm: 3, out: 6 },
+    big: { s: 0.9, kT: 1.3, dh: 0, spread: 8, hip: 1.5, legW: 1.15, arm: 4, out: 6 },
+    chick: { s: 0.94, kT: 1.15, dh: -0.9, spread: 3, hip: 0, legW: 1, arm: 2, out: 3 }
+  };
+  function sstepInt(x, d) { // なめらかな段差（幅 2d）を積分したもの
+    if (x <= -d) return 0;
+    if (x >= d) return x;
+    var u = (x + d) / (2 * d);
+    return 2 * d * (u * u * u - u * u * u * u / 2);
+  }
+  function tallFit(b0, key, heads) {
+    var t = TALL[key] || TALL.normal;
+    var ry = b0.hr * 0.92, chin = b0.headY - ry, H0 = ry * 2, s = t.s;
+    var N = heads + t.dh;
+    var ya = 10, hem = b0.hem, d1 = 4, d2 = 8, d3 = 8, c3 = chin - d3;
+    var chin2 = (N - 1) * H0 * s;
+    var kT = t.kT, kL = (chin2 - ya - d3 - kT * (c3 - hem)) / (hem - ya);
+    if (kL < kT) { kL = kT = (chin2 - ya - d3) / (c3 - ya); }
+    var b = {};
+    for (var k in b0) b[k] = b0[k];
+    b.hr = b0.hr * s; b.headY = chin + (b0.headY - chin) * s;
+    b.legW = b0.legW * t.legW; b.hip = b0.hip + t.hip; b.spread = t.spread; b.armDrop = t.arm; b.armOut = t.out; b.swing = Math.sqrt(kL);
+    var wy = function (y) {
+      return y + (kL - 1) * sstepInt(y - ya, d1) + (kT - kL) * sstepInt(y - hem, d2) + (1 - kT) * sstepInt(y - c3, d3);
+    };
+    return { b: b, wy: wy, hs: s, chin: chin, kL: kL, kT: kT };
+  }
+  function tallY(c, y) { // 頭の高さにある点は、頭と一緒に縮めて動かす
+    return c.tall && y > c.tall.chin ? c.tall.chin + (y - c.tall.chin) * c.tall.hs : y;
+  }
+  function scrY(c, y) { // 画面に直に置いた絵（2頭身の画面座標）を、伸ばした体に合わせる
+    if (!c.tall) return y;
+    var cp = c.cam.cp, by = tallY(c, (GROUND - y) / cp);
+    return GROUND - c.cam.wy(by) * cp;
+  }
+
+  function rig(def, pose, frame, bt) {
+    var b = bt || BUILDS[def.build || 'normal'];
     var R = { b: b, bob: 0, arms: {}, legs: {}, lean: 0 };
     var s, sy = b.sy;
     for (var k = 0; k < 2; k++) {
       s = k ? 1 : -1;
-      R.arms[s] = { S: [s * b.sx, sy - 5, 0], E: [s * (b.sx + 10), sy - 25, 0], H: [s * (b.sx + 17), sy - 43, 5], hand: 'open' };
-      R.legs[s] = { hip: [s * b.hip, b.hem + 8, 0], A: [s * (b.hip + 2.5), 10, 1] };
+      R.arms[s] = { S: [s * b.sx, sy - 5, 0], E: [s * (b.sx + 10 + (b.armOut || 0) * 0.45), sy - 25, 0], H: [s * (b.sx + 17 + (b.armOut || 0)), sy - 43 - (b.armDrop || 0), 5], hand: 'open' };
+      R.legs[s] = { hip: [s * b.hip, b.hem + 8, 0], A: [s * (b.hip + 2.5 + (b.spread || 0)), 10, 1] };
     }
     pose = pose || 'stand';
     if (def.pose && pose === 'stand') pose = def.pose;
@@ -270,7 +317,7 @@
       R.legs[1].A = [b.hip + 5, 26, -16]; R.bob = 4;
     } else if (pose === 'surprised') {
       for (k = 0; k < 2; k++) { s = k ? 1 : -1; R.arms[s].E = [s * (b.sx + 8), sy - 20, 10]; R.arms[s].H = [s * 15, sy - 4, 26]; R.arms[s].hand = 'open'; }
-      R.legs[-1].A = [-(b.hip + 6), 10, 2]; R.legs[1].A = [b.hip + 6, 10, 2];
+      R.legs[-1].A = [-(b.hip + 6 + (b.spread || 0)), 10, 2]; R.legs[1].A = [b.hip + 6 + (b.spread || 0), 10, 2];
     } else if (pose === 'serious' || pose === 'seal') {
       for (k = 0; k < 2; k++) { s = k ? 1 : -1; R.arms[s].E = [s * (b.sx + 6), sy - 22, 12]; R.arms[s].H = [s * 3.5, sy - 14, 28]; R.arms[s].hand = 'fist'; }
       R.seal = true;
@@ -282,8 +329,8 @@
         s = k ? 1 : -1;
         var sw = Math.sin(ph + (s > 0 ? 0 : Math.PI));
         var lift = Math.max(0, Math.cos(ph + (s > 0 ? 0 : Math.PI)));
-        R.legs[s].A = [s * (b.hip + 1.5), 10 + lift * 6, 1 + sw * 13];
-        R.arms[s].H = [s * (b.sx + 14), sy - 42, 5 - sw * 13];
+        R.legs[s].A = [s * (b.hip + 1.5 + (b.spread || 0) * 0.4), 10 + lift * 6, 1 + sw * 13 * (b.swing || 1)];
+        R.arms[s].H = [s * (b.sx + 14), sy - 42 - (b.armDrop || 0), 5 - sw * 13];
         R.arms[s].E = [s * (b.sx + 9), sy - 24, 1 - sw * 6];
       }
       R.bob = 1.6 * Math.abs(Math.cos(ph));
@@ -458,9 +505,11 @@
     var uid = 'n' + (++uidSeq).toString(36) + Math.floor(Math.random() * 1e4).toString(36);
     var S = new Scene(uid);
     var cam = new Cam(yaw, opt.pitch);
-    var R = rig(def, pose, opt.frame);
+    var tall = opt.heads ? tallFit(BUILDS[def.build || 'normal'] || BUILDS.normal, def.build || 'normal', opt.heads) : null;
+    if (tall) cam.wy = tall.wy;
+    var R = rig(def, pose, opt.frame, tall && tall.b);
     var b = R.b;
-    var ctx = { def: def, opt: opt, S: S, cam: cam, R: R, b: b, yaw: yaw, expr: expr, pose: R.pose, back: Math.abs(wrap(yaw)) > 95, uid: uid };
+    var ctx = { def: def, opt: opt, S: S, cam: cam, R: R, b: b, yaw: yaw, expr: expr, pose: R.pose, back: Math.abs(wrap(yaw)) > 95, uid: uid, tall: tall, hs: tall ? tall.hs : 1 };
     ctx.skin = def.skin || SKIN;
     cam.oy = GROUND - R.bob;
 
@@ -481,7 +530,7 @@
   function drawHead(c) {
     var def = c.def, b = c.b, cam = c.cam, S = c.S;
     var hd = def.head || {};
-    var hr = (hd.r || b.hr), H = new Head({ x: 0, y: b.headY + (hd.dy || 0), z: (hd.dz || 0), rx: hr * (hd.sx || 1), ry: hr * (hd.sy || 0.92), rz: hr }, cam);
+    var hr = (hd.r ? hd.r * c.hs : b.hr), H = new Head({ x: 0, y: b.headY + (hd.dy || 0) * c.hs, z: (hd.dz || 0) * c.hs, rx: hr * (hd.sx || 1), ry: hr * (hd.sy || 0.92), rz: hr }, cam);
     c.H = H;
     var kind = hd.kind || 'human';
     var hp = def.hair || null, vol = hp ? (hp.vol == null ? 5 : hp.vol) : 0;
@@ -1737,7 +1786,8 @@
     S.add(Z.OVER + 2, sp(rd, sc.color));
     if (sc.pattern === 'check') {
       var rc = S.clip(rd), pat = '';
-      for (var x = 50; x < 150; x += 8) for (var yy = 110; yy < 150; yy += 8) if (((x - 50) / 8 + (yy - 110) / 8) % 2 === 0) pat += 'M' + x + ' ' + yy + 'h8v8h-8Z';
+      var py0 = c.tall ? Math.floor(scrY(c, 110)) : 110;
+      for (var x = 50; x < 150; x += 8) for (var yy = py0; yy < py0 + 40; yy += 8) if (((x - 50) / 8 + (yy - py0) / 8) % 2 === 0) pat += 'M' + x + ' ' + yy + 'h8v8h-8Z';
       S.add(Z.OVER + 2.01, sf(pat, sc.color2 || '#8a4a1e', { clip: rc }));
     }
     // たなびく端（向かって左後ろへ）
@@ -1787,8 +1837,8 @@
     if (def.tail) drawTail(c, def.tail);
     if (back.panda) drawPanda(c, back.panda);
     if (def.halo) {
-      var hc = cam.pv([0, b.headY + 8, -30]);
-      S.add(Z.BACK - 5, '<circle cx="' + r1(hc.x) + '" cy="' + r1(hc.y) + '" r="58" fill="none" stroke="#fff6c8" stroke-width="10" opacity=".75"/><circle cx="' + r1(hc.x) + '" cy="' + r1(hc.y) + '" r="58" fill="none" stroke="#f3d56a" stroke-width="3" opacity=".9"/>');
+      var hc = cam.pv([0, b.headY + 8 * c.hs, -30]), hrr = r1(58 * c.hs);
+      S.add(Z.BACK - 5, '<circle cx="' + r1(hc.x) + '" cy="' + r1(hc.y) + '" r="' + hrr + '" fill="none" stroke="#fff6c8" stroke-width="10" opacity=".75"/><circle cx="' + r1(hc.x) + '" cy="' + r1(hc.y) + '" r="' + hrr + '" fill="none" stroke="#f3d56a" stroke-width="3" opacity=".9"/>');
     }
   }
   function drawBox(c, bx) {
@@ -1993,7 +2043,7 @@
     (c.def.companions || []).forEach(function (cp) {
       var kind = cp.kind, o = '', side = cp.side || -1;
       var z = Z.FRONT;
-      var anchor = cam.pv(cp.at || [side * 64, b.headY - 8, 6]);
+      var anchor = cam.pv(cp.at ? [cp.at[0], tallY(c, cp.at[1]), cp.at[2]] : [side * 64, b.headY - 8 * c.hs, 6]);
       var x = anchor.x, y = anchor.y;
       if (anchor.z < -10) z = Z.BACK - 2;
       if (kind === 'hawk') {
@@ -2026,7 +2076,7 @@
         o += sl('M' + r1(x - 7) + ' ' + r1(y - 4) + 'l4 0M' + r1(x + 3) + ' ' + r1(y - 4) + 'l4 0', '#3a7a4a', 2.4) + sl('M' + r1(x - 3) + ' ' + r1(y + 3) + 'q3 2 6 0', OUT, 1.6);
       } else if (kind === 'wisps') {
         for (var s = -1; s <= 1; s += 2) {
-          var wx = 100 + s * 70, wy = cp.y || 110 + s * 14;
+          var wx = 100 + s * 70, wy = scrY(c, cp.y || 110 + s * 14);
           o += sf('M' + r1(wx) + ' ' + r1(wy - 26) + 'Q' + r1(wx + 12) + ' ' + r1(wy - 6) + ' ' + r1(wx + 9) + ' ' + r1(wy + 6) + 'Q' + r1(wx) + ' ' + r1(wy + 14) + ' ' + r1(wx - 9) + ' ' + r1(wy + 6) + 'Q' + r1(wx - 11) + ' ' + r1(wy - 8) + ' ' + r1(wx) + ' ' + r1(wy - 26) + 'Z', cp.color || '#8fe0ff', { op: 0.8 }) + sf(ellD(wx, wy + 2, 5, 7), '#ffffff', { op: 0.9 });
         }
       } else if (kind === 'imp') {
@@ -2045,13 +2095,14 @@
       } else if (kind === 'rainbow') {
         var cols = ['#e8423a', '#f59a2a', '#f5d02a', '#4fb34a', '#3a9ad8', '#7a4fc4'];
         var sd = cp.side || 1;
-        var arcPts = function (r) { var pp = []; for (var q = 0; q <= 16; q++) { var an = Math.PI * (0.15 + q / 16 * 1.25); pp.push({ x: 100 + sd * (40 + Math.cos(an) * r * 0.9), y: 150 + Math.sin(an) * r * 0.55 }); } return pp; };
+        var ry0 = scrY(c, 150);
+        var arcPts = function (r) { var pp = []; for (var q = 0; q <= 16; q++) { var an = Math.PI * (0.15 + q / 16 * 1.25); pp.push({ x: 100 + sd * (40 + Math.cos(an) * r * 0.9), y: ry0 + Math.sin(an) * r * 0.55 }); } return pp; };
         cols.forEach(function (cc, ci) { o += sl(smoothD(arcPts(48 - ci * 4), false), cc, 5); });
         z = cp.front ? Z.FRONT : Z.BACK - 3;
       } else if (kind === 'splash') {
         var colsS = ['#e8423a', '#f59a2a', '#f5d02a', '#4fb34a', '#3a9ad8', '#9b4de0'];
         for (var sI = 0; sI < 6; sI++) {
-          var ax = 100 + (sI - 2.5) * 22, ay = 176 - Math.abs(sI - 2.5) * 6;
+          var ax = 100 + (sI - 2.5) * 22, ay = scrY(c, 176) - Math.abs(sI - 2.5) * 6;
           o += sf('M' + r1(ax - 10) + ' ' + r1(ay) + 'Q' + r1(ax) + ' ' + r1(ay - 16) + ' ' + r1(ax + 14) + ' ' + r1(ay - 6) + 'Q' + r1(ax + 4) + ' ' + r1(ay + 6) + ' ' + r1(ax - 10) + ' ' + r1(ay) + 'Z', colsS[sI], { op: 0.95 });
         }
         z = Z.ARM + 0.3;
@@ -2061,11 +2112,14 @@
   }
 
   function drawFx(c, fx) {
-    var S = c.S;
-    if (fx === 'joy') { S.add(Z.FRONT + 5, sl('M40 60l-8 -6M36 74l-10 0M44 48l-4 -9', '#f5a623', 3.4) + sl('M162 58l9 -7M166 72l10 -1M156 46l5 -9', '#f5a623', 3.4)); }
-    if (fx === 'surprise') { S.add(Z.FRONT + 5, sp('M156 20l6 0l-2 30l-3 0Z', '#e8423a', { w: 1.6 }) + sp(ellD(159.5, 57, 3, 3), '#e8423a', { w: 1.6 }) + sp('M170 26l6 1l-5 28l-3 -1Z', '#e8423a', { w: 1.6 }) + sp(ellD(170, 61, 3, 3), '#e8423a', { w: 1.6 })); }
-    if (fx === 'focus') { S.add(Z.FRONT + 5, sl('M34 40l6 8M166 40l-6 8', '#6a8ab8', 2.4, { op: 0.8 })); }
-    if (fx === 'note') { S.add(Z.FRONT + 5, sp('M160 36v-20l14 -4v20', 'none', { w: 2.6 }) + sp(ellD(157, 37, 4.5, 3.5), OUT) + sp(ellD(171, 33, 4.5, 3.5), OUT)); }
+    var o = '';
+    if (fx === 'joy') o = sl('M40 60l-8 -6M36 74l-10 0M44 48l-4 -9', '#f5a623', 3.4) + sl('M162 58l9 -7M166 72l10 -1M156 46l5 -9', '#f5a623', 3.4);
+    if (fx === 'surprise') o = sp('M156 20l6 0l-2 30l-3 0Z', '#e8423a', { w: 1.6 }) + sp(ellD(159.5, 57, 3, 3), '#e8423a', { w: 1.6 }) + sp('M170 26l6 1l-5 28l-3 -1Z', '#e8423a', { w: 1.6 }) + sp(ellD(170, 61, 3, 3), '#e8423a', { w: 1.6 });
+    if (fx === 'focus') o = sl('M34 40l6 8M166 40l-6 8', '#6a8ab8', 2.4, { op: 0.8 });
+    if (fx === 'note') o = sp('M160 36v-20l14 -4v20', 'none', { w: 2.6 }) + sp(ellD(157, 37, 4.5, 3.5), OUT) + sp(ellD(171, 33, 4.5, 3.5), OUT);
+    if (!o) return;
+    if (c.tall) o = '<g transform="translate(' + r1(100 * (1 - c.hs)) + ' ' + r1(scrY(c, 87) - 87 * c.hs) + ') scale(' + c.hs + ')">' + o + '</g>'; // 頭と一緒に動かす
+    c.S.add(Z.FRONT + 5, o);
   }
 
   /* ---------------- 公開 ---------------- */

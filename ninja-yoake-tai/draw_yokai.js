@@ -1,6 +1,6 @@
 /* ニンジャ夜明け隊（RPG） — 妖怪の絵（キャンバスで描く。こわくない・かわいい妖怪）
  * draw(c, shape, col, o)：(0,0) が足もと。o.s = 大きさ（1 で高さ約40）、o.t = 時間、o.hit = 白く光る、o.dir = 1/-1（向き）
- * o.daze = 崩れている（目がぐるぐる）、o.charge = ためている（赤い気）
+ * o.daze = 崩れている（目がぐるぐる）、o.charge = ためている（赤い気）、o.turn = 1 で顔を向き（dir）のほうへ寄せる（戦闘で仲間をにらむ）
  */
 (function (root) {
   'use strict';
@@ -28,14 +28,15 @@
       return;
     }
     if (o.ko) { c.strokeStyle = '#2b1d3a'; c.lineWidth = Math.max(1.2, r * 0.4); for (var k = -1; k <= 1; k += 2) { c.beginPath(); c.moveTo(x + k * gap / 2 - r * 0.6, y - r * 0.6); c.lineTo(x + k * gap / 2 + r * 0.6, y + r * 0.6); c.moveTo(x + k * gap / 2 + r * 0.6, y - r * 0.6); c.lineTo(x + k * gap / 2 - r * 0.6, y + r * 0.6); c.stroke(); } return; }
-    var lx = (o.dir || 0) * r * 0.25;
+    var lx = (o.dir || 0) * r * (o.turn ? 0.34 : 0.25);
+    x += (o.turn || 0) * (o.dir || 1) * (gap * 0.22 + r * 0.25);   // 向いているほうへ顔を寄せる
     for (var i = -1; i <= 1; i += 2) {
       ell(c, x + i * gap / 2, y, r * 0.8, r, '#ffffff', OUT, Math.max(1, r * 0.25));
       circle(c, x + i * gap / 2 + lx, y + r * 0.15, r * 0.45, col || '#2b1d3a');
       circle(c, x + i * gap / 2 + lx - r * 0.15, y - r * 0.15, r * 0.16, '#ffffff');
     }
   }
-  function blush(c, x, y, r, gap) { circle(c, x - gap / 2, y, r, 'rgba(255,140,170,.75)'); circle(c, x + gap / 2, y, r, 'rgba(255,140,170,.75)'); }
+  function blush(c, x, y, r, gap, o) { if (o && o.turn) x += o.turn * (o.dir || 1) * (gap * 0.22 + r * 0.6); circle(c, x - gap / 2, y, r, 'rgba(255,140,170,.75)'); circle(c, x + gap / 2, y, r, 'rgba(255,140,170,.75)'); }
 
   var SH = {};
   SH.blob = function (c, P, o) {
@@ -44,7 +45,7 @@
     c.fillStyle = P[2]; c.beginPath(); c.moveTo(-5, -r + 3); c.quadraticCurveTo(-1, -r - 12 - Math.sin(o.t * 7) * 3, 5, -r - 6); c.quadraticCurveTo(4, -r, 6, -r + 2); c.closePath(); c.fill();
     circle(c, 0, 0, r, o.hit ? '#fff' : P[0], OUT, 2.4);
     ell(c, 0, r * 0.4, r * 0.62, r * 0.38, P[1]);
-    eyes(c, 0, -3, 4.2, o, 10); blush(c, 0, 4, 2.2, 18);
+    eyes(c, 0, -3, 4.2, o, 10); blush(c, 0, 4, 2.2, 18, o);
     c.restore();
   };
   SH.tanuki = function (c, P, o) {
@@ -100,7 +101,7 @@
     circle(c, -10, -18 + b, 10, o.hit ? '#fff' : P[0], OUT, 1.8); circle(c, 10, -18 + b, 10, o.hit ? '#fff' : P[0], OUT, 1.8); circle(c, 0, -28 + b, 13, o.hit ? '#fff' : P[1], OUT, 1.8);
     circle(c, -10, -18 + b, 8.5, P[0]); circle(c, 10, -18 + b, 8.5, P[0]); circle(c, 0, -28 + b, 11.5, P[1]);
     c.globalAlpha = 1;
-    eyes(c, 0, -28 + b, 2.8, o, 9, '#4a5a8a'); blush(c, 0, -22 + b, 2, 16);
+    eyes(c, 0, -28 + b, 2.8, o, 9, '#4a5a8a'); blush(c, 0, -22 + b, 2, 16, o);
   };
   SH.rock = function (c, P, o) {
     poly(c, [[-18, 0], [-20, -16], [-12, -32], [4, -36], [16, -26], [20, -6], [14, 0]], o.hit ? '#fff' : P[0], OUT, 2.4);

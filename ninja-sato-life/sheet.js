@@ -20,10 +20,14 @@
     return '<text x="' + x + '" y="' + y + '" font-size="' + size + '" fill="' + (o.col || INK) + '" font-family="' + FONT + '" font-weight="' + (o.w || 700) + '"' +
       (o.anchor ? ' text-anchor="' + o.anchor + '"' : '') + (o.ls ? ' letter-spacing="' + o.ls + '"' : '') + '>' + esc(s) + '</text>';
   }
-  // キャラ1体を (x,y,w,h) の枠に置く
+  // キャラ1体を (x,y,w,h) の枠に置く。TALL があれば2.7頭身など（枠を縦に広げて描く）
+  var TALL = null;
+  var TALL_VB = '-14 -30 228 272';
   function fig(def, x, y, w, h, opt) {
-    var inner = A.render(def, Object.assign({ raw: true }, opt || {}));
-    return '<svg x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" viewBox="' + (opt && opt.vb || '0 0 200 240') + '" overflow="visible">' + inner + '</svg>';
+    opt = opt || {};
+    if (TALL) opt = Object.assign({ heads: TALL, vb: TALL_VB }, opt);
+    var inner = A.render(def, Object.assign({ raw: true }, opt));
+    return '<svg x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" viewBox="' + (opt.vb || '0 0 200 240') + '" overflow="visible">' + inner + '</svg>';
   }
   // 絵の具のにじんだような色見本
   function blob(cx, cy, r, col, seed) {
@@ -76,6 +80,7 @@
 
   function sheetSvg(ch, opt) {
     opt = opt || {};
+    TALL = opt.heads || null;   // 例：2.7（ニンジャ夜明け隊の絵）。なしなら2頭身（里ライフ）
     var uid = 'sh' + (++seq);
     var def = ch.art;
     var W = 1536, H = 1024, o = '';
@@ -89,9 +94,9 @@
     o += '<path d="M' + (44 + nameW + 14) + ' 44v58" stroke="' + INK + '" stroke-width="3.5"/>';
     o += T(44 + nameW + 40, 92, 'キャラクターシート', 56, { w: 900, ls: 2 });
     o += '<path d="M40 116H' + (44 + nameW + 40 + 540) + '" stroke="' + INK + '" stroke-width="3"/>';
-    o += T(48, 152, 'ゲーム用アレンジ案', 26, { w: 700 });
+    o += T(48, 152, opt.heads ? 'ゲーム用アレンジ案（' + opt.heads + '頭身）' : 'ゲーム用アレンジ案', 26, { w: 700 });
     var info = '#' + ch.num + ' ' + ch.en + '　' + ch.clan + '　忍術：' + ch.jutsu + '　武器：' + ch.weapon + '　誕生日：' + ch.birthday;
-    o += T(300, 152, info, 21, { w: 500, col: '#6a5a48' });
+    o += T(opt.heads ? 470 : 300, 152, info, 21, { w: 500, col: '#6a5a48' });
     // 上段：4方向
     var views = [['まえ', 0], ['ななめ', -38], ['よこ', -90], ['うしろ', 180]];
     var fw = 300, fh = 360, top = 158;
@@ -129,9 +134,10 @@
     o += T(1366, 948, 'かくれる（擬態）', 28, { anchor: 'middle', w: 700 });
     // フッター
     o += '<path d="M36 968H1500" stroke="' + INK + '" stroke-width="2"/>';
-    o += T(768, 1003, 'CryptoNinja ファンゲーム制作資料', 22, { anchor: 'middle', w: 500, ls: 2 });
+    o += T(768, 1003, 'CryptoNinja ファンゲーム制作資料' + (opt.game ? '（' + opt.game + '）' : ''), 22, { anchor: 'middle', w: 500, ls: 2 });
     o += T(1500, 1003, '非公式・キャラクターは CC0（Ninja DAO）', 15, { anchor: 'end', w: 500, col: '#8a7a66' });
     var font = opt.fontFace || '';
+    TALL = null;
     return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" width="' + (opt.w || W) + '" height="' + (opt.h || H) + '">' + (font ? '<style>' + font + '</style>' : '') + o + '</svg>';
   }
 

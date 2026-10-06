@@ -1,0 +1,241 @@
+{
+ "id": "ep21",
+ "theme": "Gemini無料版は10月9日からFlash-Liteのみに。慌てて課金せず、用途で判断する",
+ "style": "studio",
+ "series": "AI初心者の時短ワザ",
+ "voice": {
+  "engine": "openjtalk",
+  "speed": 1.15,
+  "pitch": 2.5,
+  "intonation": 1.5,
+  "fal_model": "fal-ai/minimax/speech-02-hd",
+  "fal_speed": 1.0,
+  "emotion": "happy"
+ },
+ "sources": [
+  "https://www.watch.impress.co.jp/docs/news/2145597.html",
+  "https://helentech.jp/news-gemini-app-limits-model-access-by-plan-92116/",
+  "https://gori.me/google/google-news/170900",
+  "https://www.itmedia.co.jp/news/article/2610/04/2000001987/"
+ ],
+ "lines": [
+  {
+   "text": "無料のGemini、／急に【アホになった？】",
+   "tts": "無料のジェミニ、／急にアホになった？",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🤔",
+    "text": "無料のGemini\n【アホになった？】",
+    "size": 92
+   }
+  },
+  {
+   "text": "10月9日から、無料は／【Lite】だけになるんよ",
+   "tts": "じゅうがつここのかから、無料は／ライトだけになるんよ",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "📉",
+    "text": "無料版は\n【Flash-Liteだけ】",
+    "size": 92,
+    "sub": "10月9日から"
+   }
+  },
+  {
+   "text": "Flash-Liteは、いちばん／【軽くて速い】モデル",
+   "tts": "フラッシュライトは、いちばん／軽くて速いモデル",
+   "heading": "何が変わる？",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "⚡",
+    "text": "【軽くて速い】\nモデル",
+    "size": 100
+   }
+  },
+  {
+   "text": "FlashやProは、／【無料では選べなく】なる",
+   "tts": "フラッシュやプロは、／無料では選べなくなる",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "list",
+    "title": "10/9からの【使えるモデル】",
+    "items": [
+     "無料：【Flash-Lite】だけ",
+     "AI Plus：Lite＋【Flash】",
+     "AI Pro以上：【Proまで全部】"
+    ],
+    "show": 1,
+    "hl": 0
+   }
+  },
+  {
+   "text": "Flashを使うなら、／【AI Plus】で月725円",
+   "tts": "フラッシュを使うなら、／エーアイプラスでつきななひゃくにじゅうごえん",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "list",
+    "title": "10/9からの【使えるモデル】",
+    "items": [
+     "無料：【Flash-Lite】だけ",
+     "AI Plus：Lite＋【Flash】",
+     "AI Pro以上：【Proまで全部】"
+    ],
+    "show": 2,
+    "hl": 1
+   }
+  },
+  {
+   "text": "Proまで使うなら、／【AI Pro】で月2,900円",
+   "tts": "プロまで使うなら、／エーアイプロでつきにせんきゅうひゃくえん",
+   "shot": "wide",
+   "pose": "pose06",
+   "visual": {
+    "type": "list",
+    "title": "10/9からの【使えるモデル】",
+    "items": [
+     "無料：【Flash-Lite】だけ",
+     "AI Plus：Lite＋【Flash】",
+     "AI Pro以上：【Proまで全部】"
+    ],
+    "show": 3,
+    "hl": 2
+   }
+  },
+  {
+   "text": "AI Plusの人も、Proは／【使えなくなる】で",
+   "tts": "エーアイプラスの人も、プロは／使えなくなるで",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "⚠️",
+    "text": "AI Plusでも\n【Proは使えない】",
+    "size": 92
+   }
+  },
+  {
+   "text": "でも慌てて、／【課金せんで】ええんよ",
+   "heading": "どうする？",
+   "shot": "wide",
+   "pose": "pose09",
+   "visual": {
+    "type": "big",
+    "emoji": "😌",
+    "text": "慌てて\n【課金しなくてOK】",
+    "size": 92
+   }
+  },
+  {
+   "text": "要約や短い質問なら、／【Liteで足りる】こともある",
+   "tts": "要約や短い質問なら、／ライトで足りることもある",
+   "shot": "close",
+   "pose": "pose05",
+   "visual": {
+    "type": "big",
+    "emoji": "✅",
+    "text": "要約・短い質問は\n【Liteで足りる】ことも",
+    "size": 84
+   }
+  },
+  {
+   "text": "長い文章や難しい相談で、／【物足りない】かを見る",
+   "shot": "wide",
+   "pose": "pose10",
+   "visual": {
+    "type": "big",
+    "emoji": "🔍",
+    "text": "長文・難しい相談で\n【物足りない？】",
+    "size": 84
+   }
+  },
+  {
+   "text": "1週間使ってみてから、／【課金するか】決めたらええ",
+   "tts": "いっしゅうかん使ってみてから、／課金するか決めたらええ",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "🗓️",
+    "text": "1週間ためして\n【それから決める】",
+    "size": 92
+   }
+  },
+  {
+   "text": "「急にアホになった」のは、／【モデルが変わった】から",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "💡",
+    "text": "中身の\n【モデルが変わった】",
+    "size": 92
+   }
+  },
+  {
+   "text": "調子が悪いと思ったら、／画面の【モデル名】を見てな",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "👀",
+    "text": "画面の\n【モデル名】を見る",
+    "size": 96
+   }
+  },
+  {
+   "text": "課金するなら、／【やめ方】も先に見とこ",
+   "heading": "注意！",
+   "shot": "wide",
+   "pose": "expr_angry",
+   "visual": {
+    "type": "big",
+    "emoji": "📝",
+    "text": "課金するなら\n【やめ方】も確認",
+    "size": 92
+   }
+  },
+  {
+   "text": "変わったのは中身のモデル。／【知ってたら】慌てへん",
+   "heading": "まとめ",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "🧠",
+    "text": "【知ってたら】\n慌てない",
+    "size": 100
+   }
+  },
+  {
+   "text": "Geminiを使ってる友だちに、／【送ってあげて】",
+   "tts": "ジェミニを使ってる友だちに、／送ってあげて",
+   "shot": "wide",
+   "pose": "pose02",
+   "visual": {
+    "type": "cta",
+    "emoji": "📩",
+    "text": "友だちにも\n【送ってあげて】",
+    "size": 100,
+    "bounce": true
+   }
+  },
+  {
+   "text": "じゃあもう一回、／最初の質問に戻るね",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🤔",
+    "text": "無料のGemini\n【アホになった？】",
+    "size": 92
+   }
+  }
+ ]
+}

@@ -1,6 +1,7 @@
 # SNS自動投稿の使い方（Typeless × GitHub）
 
 設計の全体像は [BLUEPRINT.md](BLUEPRINT.md)、点検の記録は [GUNBAI_REVIEW.md](GUNBAI_REVIEW.md) にあります。
+動画を始めるときの設計は [youtube/BLUEPRINT.md](youtube/BLUEPRINT.md)（YouTube チャンネルの設計図）にあります。
 ここは「毎週どう使うか」と「最初の設定」だけをまとめています。
 **はじめての設定を順番どおりに進めるときは [SETUP.md](SETUP.md)（あなたの作業の手順書）を見てください。**
 

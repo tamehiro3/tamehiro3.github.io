@@ -1,0 +1,254 @@
+{
+ "id": "ep24",
+ "theme": "10/14（水）21:30（日本時間）に米国9月分CPI。CPIとは何か、なぜ株やドル円が動くのか（予想はしない）",
+ "style": "studio",
+ "series": "AI初心者の時短ワザ",
+ "voice": {
+  "engine": "openjtalk",
+  "speed": 1.15,
+  "pitch": 2.5,
+  "intonation": 1.5,
+  "fal_model": "fal-ai/minimax/speech-02-hd",
+  "fal_speed": 1.0,
+  "emotion": "happy"
+ },
+ "sources": [
+  "https://www.bls.gov/schedule/news_release/cpi.htm",
+  "https://www.bls.gov/cpi/"
+ ],
+ "lines": [
+  {
+   "text": "ニュースの「CPI」で、／なんで【株が動く】ん？",
+   "tts": "ニュースのシーピーアイで、／なんで株が動くん？",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🤔",
+    "text": "米CPIで\n【なんで株が動く？】",
+    "size": 88
+   }
+  },
+  {
+   "text": "CPIは、アメリカの／【物価の体温計】やねん",
+   "tts": "シーピーアイは、アメリカの／物価の体温計やねん",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "🌡️",
+    "text": "アメリカの\n【物価の体温計】",
+    "size": 92,
+    "sub": "CPI＝消費者物価指数"
+   }
+  },
+  {
+   "text": "モノやサービスの値段が、／【去年より何%】上がったか",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "🛒",
+    "text": "モノやサービスの値段\n【去年より何%？】",
+    "size": 80
+   }
+  },
+  {
+   "text": "毎月1回、アメリカの／【労働統計局】が出すんよ",
+   "tts": "まいつきいっかい、アメリカの／ろうどうとうけいきょくが出すんよ",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "big",
+    "emoji": "🏛️",
+    "text": "毎月1回\n【米労働統計局】が発表",
+    "size": 84
+   }
+  },
+  {
+   "text": "次は9月分。日本時間で／【10月14日の夜9時半】",
+   "tts": "次はくがつぶん。日本時間で／じゅうがつじゅうよっかの夜くじはん",
+   "heading": "次はいつ？",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "🗓️",
+    "text": "【10/14（水）21:30】",
+    "size": 92,
+    "sub": "日本時間・9月分の発表"
+   }
+  },
+  {
+   "text": "なんで株が動くか。／カギは【金利】なんよ",
+   "heading": "なんで動く？",
+   "shot": "wide",
+   "pose": "pose06",
+   "visual": {
+    "type": "list",
+    "title": "CPIで動く【流れ】",
+    "items": [
+     "【物価】の数字が出る",
+     "【金利】の見通しが変わる",
+     "【株・ドル円】が動く"
+    ],
+    "show": 0,
+    "hl": null
+   }
+  },
+  {
+   "text": "物価を見て、アメリカの／中央銀行が【金利】を決める",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "list",
+    "title": "CPIで動く【流れ】",
+    "items": [
+     "【物価】の数字が出る",
+     "【金利】の見通しが変わる",
+     "【株・ドル円】が動く"
+    ],
+    "show": 1,
+    "hl": 0
+   }
+  },
+  {
+   "text": "金利の見通しが変わると、／【お金の流れ】が変わる",
+   "shot": "wide",
+   "pose": "pose09",
+   "visual": {
+    "type": "list",
+    "title": "CPIで動く【流れ】",
+    "items": [
+     "【物価】の数字が出る",
+     "【金利】の見通しが変わる",
+     "【株・ドル円】が動く"
+    ],
+    "show": 2,
+    "hl": 1
+   }
+  },
+  {
+   "text": "それで株やドル円が／【動きやすく】なるんよ",
+   "tts": "それで株やドルえんが／動きやすくなるんよ",
+   "shot": "close",
+   "pose": "pose05",
+   "visual": {
+    "type": "list",
+    "title": "CPIで動く【流れ】",
+    "items": [
+     "【物価】の数字が出る",
+     "【金利】の見通しが変わる",
+     "【株・ドル円】が動く"
+    ],
+    "show": 3,
+    "hl": 2
+   }
+  },
+  {
+   "text": "ただ、動くのは数字より／【予想とのズレ】やねん",
+   "heading": "ここがカギ",
+   "shot": "wide",
+   "pose": "pose10",
+   "visual": {
+    "type": "big",
+    "emoji": "🎯",
+    "text": "数字そのものより\n【予想とのズレ】",
+    "size": 84
+   }
+  },
+  {
+   "text": "発表の前に、専門家の／【予想の数字】が出てるんよ",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "📊",
+    "text": "発表の前に\n【予想の数字】がある",
+    "size": 88
+   }
+  },
+  {
+   "text": "ズレたら上にも下にも、／【大きく動きやすい】",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "🎢",
+    "text": "ズレたら\n【上にも下にも】",
+    "size": 96
+   }
+  },
+  {
+   "text": "特に発表の直後は、／値動きが【荒くなりやすい】",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "⚡",
+    "text": "発表の直後は\n【値動きが荒い】",
+    "size": 92
+   }
+  },
+  {
+   "text": "翌朝「CPIを受けて」と／出たら、【この話】やで",
+   "tts": "翌朝シーピーアイを受けてと／出たら、この話やで",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "big",
+    "emoji": "📰",
+    "text": "「CPIを受けて」は\n【この話】",
+    "size": 88
+   }
+  },
+  {
+   "text": "上か下かは、ここでは／【当てにいかへん】で",
+   "heading": "注意！",
+   "shot": "close",
+   "pose": "expr_angry",
+   "visual": {
+    "type": "big",
+    "emoji": "🙅",
+    "text": "上か下かは\n【当てにいかない】",
+    "size": 92
+   }
+  },
+  {
+   "text": "仕組みを知ってたら、／ニュースで【慌てへん】",
+   "heading": "まとめ",
+   "shot": "wide",
+   "pose": "pose06",
+   "visual": {
+    "type": "big",
+    "emoji": "🧠",
+    "text": "仕組みを知れば\n【慌てない】",
+    "size": 100
+   }
+  },
+  {
+   "text": "保存して、14日の夜に／【見返して】な",
+   "tts": "保存して、じゅうよっかの夜に／見返してな",
+   "shot": "close",
+   "pose": "pose02",
+   "visual": {
+    "type": "cta",
+    "emoji": "📩",
+    "text": "保存して\n【14日の夜に見返して】",
+    "size": 100,
+    "bounce": true
+   }
+  },
+  {
+   "text": "じゃあもう一回、／最初の質問に戻るね",
+   "shot": "wide",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🤔",
+    "text": "米CPIで\n【なんで株が動く？】",
+    "size": 88
+   }
+  }
+ ]
+}

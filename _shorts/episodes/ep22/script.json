@@ -1,0 +1,231 @@
+{
+ "id": "ep22",
+ "theme": "GPT-6が無料版にも順次来た週に注意：本物のモデル名「GPT-6 Astra」をかたる偽サイト（月89〜249ドル、Malwarebytes 9/21報告）",
+ "style": "studio",
+ "series": "AI初心者の時短ワザ",
+ "voice": {
+  "engine": "openjtalk",
+  "speed": 1.15,
+  "pitch": 2.5,
+  "intonation": 1.5,
+  "fal_model": "fal-ai/minimax/speech-02-hd",
+  "fal_speed": 1.0,
+  "emotion": "happy"
+ },
+ "sources": [
+  "https://www.malwarebytes.com/blog/scams/2026/09/the-fake-sites-using-a-cheap-toolkit-to-sell-2000-ai-subscriptions",
+  "https://www.itmedia.co.jp/news/article/2610/08/2000002119/",
+  "https://ai.watch.impress.co.jp/docs/news/2146732.html",
+  "https://help.openai.com/en/articles/20001043-how-do-i-avoid-being-charged-twice-if-i-subscribe-to-chatgpt-on-ios-android-and-the-web"
+ ],
+ "lines": [
+  {
+   "text": "GPT-6、お金払わな／【使えへん】と思てない？",
+   "tts": "ジーピーティーシックス、お金払わな／使えへんと思てない？",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🤔",
+    "text": "GPT-6\n【お金いる？】",
+    "size": 100
+   }
+  },
+  {
+   "text": "無料版にも、／【GPT-6】が順次来てるんよ",
+   "tts": "無料版にも、／ジーピーティーシックスが順次来てるんよ",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "✨",
+    "text": "無料版にも\n【GPT-6】",
+    "size": 104,
+    "sub": "10月8日から順次"
+   }
+  },
+  {
+   "text": "ただ、いつ使えるかは／【アカウントごと】に違う",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "⏳",
+    "text": "使える時期は\n【アカウントごと】",
+    "size": 92
+   }
+  },
+  {
+   "text": "で、この時期に／【気をつけたい】ことがあるんよ",
+   "heading": "落とし穴",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "big",
+    "emoji": "⚠️",
+    "text": "この時期に\n【気をつけたいこと】",
+    "size": 92
+   }
+  },
+  {
+   "text": "9月に、本物のモデル名を／かたる【偽サイト】が見つかった",
+   "tts": "くがつに、本物のモデル名を／かたる偽サイトが見つかった",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "🎭",
+    "text": "本物の名前をかたる\n【偽サイト】",
+    "size": 88,
+    "sub": "セキュリティ会社の報告（9月21日）"
+   }
+  },
+  {
+   "text": "Astraを名乗って、／【月最大249ドル】のプラン",
+   "tts": "アストラを名乗って、／つきさいだいにひゃくよんじゅうきゅうドルのプラン",
+   "shot": "wide",
+   "pose": "pose06",
+   "visual": {
+    "type": "list",
+    "title": "偽サイトのプラン",
+    "items": [
+     "月【89ドル】",
+     "月【169ドル】",
+     "月【249ドル】"
+    ],
+    "show": 3,
+    "hl": 2
+   }
+  },
+  {
+   "text": "しかもログイン画面は、／【本物のGoogle】やねん",
+   "tts": "しかもログイン画面は、／本物のグーグルやねん",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "🔑",
+    "text": "ログイン画面は\n【本物のGoogle】",
+    "size": 92
+   }
+  },
+  {
+   "text": "ログインが本物でも、／【売り手は本物ちゃう】",
+   "shot": "wide",
+   "pose": "pose09",
+   "visual": {
+    "type": "big",
+    "emoji": "🎭",
+    "text": "ログインが本物でも\n【売り手は別】",
+    "size": 88
+   }
+  },
+  {
+   "text": "盗むんやなくて、／【高い課金】が狙いなんよ",
+   "shot": "close",
+   "pose": "pose05",
+   "visual": {
+    "type": "big",
+    "emoji": "💸",
+    "text": "狙いは\n【高い課金】",
+    "size": 104
+   }
+  },
+  {
+   "text": "だから払うのは、／【公式の場所】だけにしてな",
+   "heading": "対策は？",
+   "shot": "wide",
+   "pose": "pose10",
+   "visual": {
+    "type": "big",
+    "emoji": "✅",
+    "text": "払うのは\n【公式の場所だけ】",
+    "size": 96
+   }
+  },
+  {
+   "text": "Webなら、自分で／【chatgpt.com】を入力",
+   "tts": "ウェブなら、自分で／チャットジーピーティードットコムを入力",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "💻",
+    "text": "【chatgpt.com】を\n自分で入力",
+    "size": 88
+   }
+  },
+  {
+   "text": "スマホなら、提供元が／【OpenAI】の公式アプリ",
+   "tts": "スマホなら、提供元が／オープンエーアイの公式アプリ",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "📱",
+    "text": "提供元が\n【OpenAI】のアプリ",
+    "size": 92
+   }
+  },
+  {
+   "text": "広告やDMのリンクからは、／【課金せん】こと",
+   "tts": "広告やディーエムのリンクからは、／課金せんこと",
+   "shot": "close",
+   "pose": "expr_angry",
+   "visual": {
+    "type": "big",
+    "emoji": "🚫",
+    "text": "広告・DMのリンクから\n【課金しない】",
+    "size": 84
+   }
+  },
+  {
+   "text": "おかしい請求があったら、／【カード会社】に相談してな",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "big",
+    "emoji": "☎️",
+    "text": "おかしい請求は\n【カード会社】へ",
+    "size": 92
+   }
+  },
+  {
+   "text": "本物のGPT-6は、／【公式でしか】手に入らん",
+   "tts": "本物のジーピーティーシックスは、／公式でしか手に入らん",
+   "heading": "まとめ",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "🛡️",
+    "text": "本物は\n【公式だけ】",
+    "size": 104
+   }
+  },
+  {
+   "text": "ChatGPTを使ってる友だちに、／【送ってあげて】",
+   "tts": "チャットジーピーティーを使ってる友だちに、／送ってあげて",
+   "shot": "wide",
+   "pose": "pose02",
+   "visual": {
+    "type": "cta",
+    "emoji": "📩",
+    "text": "友だちにも\n【送ってあげて】",
+    "size": 100,
+    "bounce": true
+   }
+  },
+  {
+   "text": "じゃあもう一回、／最初の質問に戻るね",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🤔",
+    "text": "GPT-6\n【お金いる？】",
+    "size": 100
+   }
+  }
+ ]
+}

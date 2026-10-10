@@ -1,0 +1,242 @@
+{
+ "id": "ep23",
+ "theme": "パスキーなら安心？保管先のGoogle・Appleアカウント（Gmail）が乗っ取られた疑いの事案（9/24日経、日証協が注意喚起要請）と金庫の守り方",
+ "style": "studio",
+ "series": "AI初心者の時短ワザ",
+ "voice": {
+  "engine": "openjtalk",
+  "speed": 1.15,
+  "pitch": 2.5,
+  "intonation": 1.5,
+  "fal_model": "fal-ai/minimax/speech-02-hd",
+  "fal_speed": 1.0,
+  "emotion": "happy"
+ },
+ "sources": [
+  "https://www.nikkei.com/",
+  "https://www.itmedia.co.jp/news/",
+  "https://www.smbcnikko.co.jp/",
+  "https://www.jsda.or.jp/",
+  "https://support.apple.com/ja-jp/102195"
+ ],
+ "lines": [
+  {
+   "text": "証券口座、パスキーにしたら／【もう安心】と思てない？",
+   "tts": "しょうけんこうざ、パスキーにしたら／もう安心と思てない？",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🔐",
+    "text": "パスキーにしたら\n【もう安心？】",
+    "size": 92
+   }
+  },
+  {
+   "text": "パスキーは、スマホの／【金庫】にしまってあるんよ",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "🗄️",
+    "text": "パスキーは\n【金庫】の中",
+    "size": 100
+   }
+  },
+  {
+   "text": "その金庫は、／【Google・Apple】のアカウント",
+   "tts": "その金庫は、／グーグルやアップルのアカウント",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "🔐",
+    "text": "金庫は\n【Google・Apple】",
+    "size": 96,
+    "sub": "それぞれのアカウント"
+   }
+  },
+  {
+   "text": "9月、その【金庫側】が乗っ取られた／疑いの事案が出た",
+   "tts": "くがつ、その金庫側が乗っ取られた／疑いの事案が出た",
+   "heading": "何があった？",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "big",
+    "emoji": "😨",
+    "text": "【金庫側】が\n乗っ取られた疑い",
+    "size": 92,
+    "sub": "日経 9月24日報道"
+   }
+  },
+  {
+   "text": "保存したパスキーやメモで、／【証券口座】に入られたかも",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "🏦",
+    "text": "保存したパスキーやメモで\n【不正ログインの疑い】",
+    "size": 76
+   }
+  },
+  {
+   "text": "業界団体が、証券各社に／【注意喚起】を求めたんよ",
+   "tts": "業界団体が、しょうけん各社に／注意喚起を求めたんよ",
+   "shot": "wide",
+   "pose": "pose06",
+   "visual": {
+    "type": "big",
+    "emoji": "📣",
+    "text": "業界団体が\n【注意喚起を要請】",
+    "size": 92
+   }
+  },
+  {
+   "text": "「SBIで被害」は誤解で、／【他社の事案】やで",
+   "tts": "エスビーアイで被害、は誤解で、／他社の事案やで",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "☝️",
+    "text": "SBIの被害ではなく\n【他社の事案】",
+    "size": 88,
+    "sub": "SBI証券 10月8日の説明"
+   }
+  },
+  {
+   "text": "パスキー自体が破られた、／とは【言われてない】",
+   "shot": "wide",
+   "pose": "pose09",
+   "visual": {
+    "type": "big",
+    "emoji": "🛡️",
+    "text": "パスキー自体が\n【破られたわけではない】",
+    "size": 84
+   }
+  },
+  {
+   "text": "Gmailのアカウントが、／【金庫の鍵】なんよ",
+   "tts": "ジーメールのアカウントが、／金庫の鍵なんよ",
+   "heading": "対策は？",
+   "shot": "close",
+   "pose": "pose05",
+   "visual": {
+    "type": "big",
+    "emoji": "🔑",
+    "text": "Gmailのアカウント＝\n【金庫の鍵】",
+    "size": 88
+   }
+  },
+  {
+   "text": "まず、そのアカウントの／【2段階認証】をオンに",
+   "tts": "まず、そのアカウントの／にだんかいにんしょうをオンに",
+   "shot": "wide",
+   "pose": "pose10",
+   "visual": {
+    "type": "list",
+    "title": "金庫の守り方",
+    "items": [
+     "【2段階認証】をオン",
+     "【復旧用の連絡先】を確認",
+     "【知らない端末】がないか"
+    ],
+    "show": 1,
+    "hl": 0
+   }
+  },
+  {
+   "text": "復旧用のメールと電話が、／【自分のもの】か確認",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "list",
+    "title": "金庫の守り方",
+    "items": [
+     "【2段階認証】をオン",
+     "【復旧用の連絡先】を確認",
+     "【知らない端末】がないか"
+    ],
+    "show": 2,
+    "hl": 1
+   }
+  },
+  {
+   "text": "ログイン中の端末に、／【知らないもの】がないか見る",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "list",
+    "title": "金庫の守り方",
+    "items": [
+     "【2段階認証】をオン",
+     "【復旧用の連絡先】を確認",
+     "【知らない端末】がないか"
+    ],
+    "show": 3,
+    "hl": 2
+   }
+  },
+  {
+   "text": "パスワードを【メモアプリ】に／書いとくのもあかんで",
+   "shot": "close",
+   "pose": "expr_angry",
+   "visual": {
+    "type": "big",
+    "emoji": "📝",
+    "text": "パスワードを\n【メモに残さない】",
+    "size": 92
+   }
+  },
+  {
+   "text": "「パスキー再登録して」の／【メールやSMS】は無視",
+   "tts": "パスキー再登録して、の／メールやエスエムエスは無視",
+   "heading": "注意！",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "big",
+    "emoji": "⚠️",
+    "text": "「再登録して」の\n【メール・SMSは無視】",
+    "size": 84
+   }
+  },
+  {
+   "text": "パスキーは強い。でも／【金庫の鍵】も守ってな",
+   "heading": "まとめ",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "🔑",
+    "text": "パスキー＋\n【金庫の鍵】も守る",
+    "size": 92
+   }
+  },
+  {
+   "text": "投資してる友だちに、／【送ってあげて】",
+   "shot": "wide",
+   "pose": "pose02",
+   "visual": {
+    "type": "cta",
+    "emoji": "📩",
+    "text": "友だちにも\n【送ってあげて】",
+    "size": 100,
+    "bounce": true
+   }
+  },
+  {
+   "text": "じゃあもう一回、／最初の質問に戻るね",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🔐",
+    "text": "パスキーにしたら\n【もう安心？】",
+    "size": 92
+   }
+  }
+ ]
+}

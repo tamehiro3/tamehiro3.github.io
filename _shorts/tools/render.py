@@ -856,6 +856,10 @@ class Renderer:
         mc = S.mic(str(PARTS))
         img.alpha_composite(mc, (W - mc.width + 70, H - mc.height + 90))
 
+        # ---- 広告の表示（script.json に disclosure がある回だけ。最初から最後まで左下に出す） ----
+        if self.script.get("disclosure"):
+            img.alpha_composite(S.disclosure_badge(self.script["disclosure"]), (60, 1390))
+
         # ---- 見出しの帯（区切りの最初の約2秒） ----
         sec = ln["section"]
         card_delay = 0.0

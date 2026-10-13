@@ -160,6 +160,19 @@ def heading_bar(text, width=900):
 
 
 @lru_cache(None)
+def disclosure_badge(text, size=40):
+    """広告であることの表示（PR回だけ）。白地に濃紺の太字で、どの背景でも読めるようにする"""
+    import render as R
+    f = R.font(R.F_BLACK, size)
+    w, h = int(f.getlength(text)) + 44, size + 26
+    b = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    d = ImageDraw.Draw(b)
+    d.rounded_rectangle((0, 0, w - 1, h - 1), 14, fill=(255, 255, 255, 238), outline=(18, 22, 44), width=3)
+    d.text((w / 2, h / 2 + 1), text, font=f, fill=(18, 22, 44), anchor="mm")
+    return b
+
+
+@lru_cache(None)
 def sticker(ch, size=220, ring=False):
     import render as R
     em = R.emoji(ch, size)

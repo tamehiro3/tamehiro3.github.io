@@ -160,15 +160,22 @@ def heading_bar(text, width=900):
 
 
 @lru_cache(None)
-def disclosure_badge(text, size=54):
-    """広告であることの表示（PR回だけ）。白地に濃紺の太字で、どの背景でも読めるようにする"""
+def disclosure_badge(text, size=84, sub_size=54):
+    """広告であることの表示（PR回だけ）。「PR・紹介報酬あり」なら、左に濃紺地の白い大きな「PR」、
+    右に白地の濃紺の文字。テロップに負けない大きさで、どの背景でも読めるようにする"""
     import render as R
-    f = R.font(R.F_BLACK, size)
-    w, h = int(f.getlength(text)) + 44, size + 26
-    b = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    head, _, rest = text.partition("・")
+    f1, f2 = R.font(R.F_BLACK, size), R.font(R.F_BLACK, sub_size)
+    h = size + 28
+    w1 = int(f1.getlength(head)) + 40
+    w2 = int(f2.getlength(rest)) + 40 if rest else 0
+    b = Image.new("RGBA", (w1 + w2, h), (0, 0, 0, 0))
     d = ImageDraw.Draw(b)
-    d.rounded_rectangle((0, 0, w - 1, h - 1), 14, fill=(255, 255, 255, 238), outline=(18, 22, 44), width=3)
-    d.text((w / 2, h / 2 + 1), text, font=f, fill=(18, 22, 44), anchor="mm")
+    d.rounded_rectangle((0, 0, w1 + w2 - 1, h - 1), 16, fill=(255, 255, 255, 242), outline=(18, 22, 44), width=4)
+    d.rounded_rectangle((0, 0, w1, h - 1), 16, fill=(18, 22, 44), corners=(True, False, False, True))
+    d.text((w1 / 2, h / 2 + 2), head, font=f1, fill=(255, 255, 255), anchor="mm")
+    if rest:
+        d.text((w1 + w2 / 2, h / 2 + 2), rest, font=f2, fill=(18, 22, 44), anchor="mm")
     return b
 
 

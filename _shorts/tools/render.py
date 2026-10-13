@@ -864,7 +864,7 @@ class Renderer:
             if st < 2.1:
                 a = min(1, st / 0.15, (2.1 - st) / 0.2)
                 bar = S.heading_bar(sec["text"])
-                img.alpha_composite(with_alpha(bar, a), ((W - bar.width) // 2, 286 if self.script.get("disclosure") else 250))
+                img.alpha_composite(with_alpha(bar, a), ((W - bar.width) // 2, 326 if self.script.get("disclosure") else 250))
             card_delay = 1.9
             if log is not None:
                 log["heading"] = sec["text"]

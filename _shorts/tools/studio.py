@@ -160,7 +160,7 @@ def heading_bar(text, width=900):
 
 
 @lru_cache(None)
-def disclosure_badge(text, size=40):
+def disclosure_badge(text, size=54):
     """広告であることの表示（PR回だけ）。白地に濃紺の太字で、どの背景でも読めるようにする"""
     import render as R
     f = R.font(R.F_BLACK, size)

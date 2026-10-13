@@ -1,0 +1,243 @@
+{
+ "id": "ep25",
+ "theme": "【PR】ためひろがいちばん使っている教材、イケハヤさんの「明鏡」（Brain）を紹介。紹介報酬あり。取り入れたのは台本の冒頭と作業の流れの2つだけ。合わない点・値段・返金・受付期間も正直に",
+ "style": "studio",
+ "series": "AI初心者の時短ワザ",
+ "voice": {
+  "engine": "openjtalk",
+  "speed": 1.15,
+  "pitch": 2.5,
+  "intonation": 1.5,
+  "fal_model": "fal-ai/minimax/speech-02-hd",
+  "fal_speed": 1.0,
+  "emotion": "happy"
+ },
+ "sources": [
+  "https://brain-market.com/u/ikehaya/a/bzMjMyMjMgoTZsNWa0JXY",
+  "https://ikedahayato.com/meikyou-official",
+  "https://meikyo.ikedahayato.com/"
+ ],
+ "lines": [
+  {
+   "text": "台本、毎回ゼロから／【うなって】へん？",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🤔",
+    "text": "台本、毎回\n【ゼロから】？",
+    "size": 100
+   }
+  },
+  {
+   "text": "先に言うとくと、この動画は／【PR】やで",
+   "tts": "先に言うとくと、この動画は／ピーアールやで",
+   "heading": "先に言うとくで",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "📢",
+    "text": "この動画は\n【PR】",
+    "size": 110,
+    "sub": "紹介報酬あり"
+   }
+  },
+  {
+   "text": "リンクから買うてもろたら、／僕に【紹介料】が入るねん",
+   "tts": "リンクから、こうてもろたら、／僕に紹介料が入るねん",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "🔗",
+    "text": "リンクから買うと\n【僕に紹介料】",
+    "size": 92
+   }
+  },
+  {
+   "text": "紹介するんは、イケハヤさんの／【明鏡】って教材",
+   "tts": "紹介するんは、イケハヤさんの／めいきょうって教材",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "big",
+    "emoji": "📘",
+    "text": "イケハヤさんの\n【明鏡】",
+    "size": 100,
+    "sub": "Brainで販売している教材"
+   }
+  },
+  {
+   "text": "マーケティングの考え方を、／【土台から】学ぶ教材や",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "🧱",
+    "text": "マーケの考え方を\n【土台から】",
+    "size": 92
+   }
+  },
+  {
+   "text": "僕が取り入れたんは、／【2つ】だけやねん",
+   "tts": "僕が取り入れたんは、／ふたつだけやねん",
+   "heading": "僕が使てるとこ",
+   "shot": "wide",
+   "pose": "pose06",
+   "visual": {
+    "type": "big",
+    "emoji": "✌️",
+    "text": "取り入れたのは\n【2つだけ】",
+    "size": 100
+   }
+  },
+  {
+   "text": "1つ目は、学んだ考え方を／台本の【冒頭】に使てる",
+   "tts": "ひとつめは、学んだ考え方を／台本の冒頭につこてる",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "🎬",
+    "text": "①台本の\n【冒頭】",
+    "size": 104
+   }
+  },
+  {
+   "text": "2つ目は、ネタ探しから投稿までの／【流れ】を決めた",
+   "tts": "ふたつめは、ネタ探しから投稿までの／流れを決めた",
+   "shot": "wide",
+   "pose": "pose09",
+   "visual": {
+    "type": "big",
+    "emoji": "🔁",
+    "text": "②作業の\n【流れ】",
+    "size": 104
+   }
+  },
+  {
+   "text": "その流れで、毎回の作業を／【時短】してるんよ",
+   "shot": "close",
+   "pose": "pose05",
+   "visual": {
+    "type": "big",
+    "emoji": "⏱️",
+    "text": "流れを決めて\n【時短】",
+    "size": 100
+   }
+  },
+  {
+   "text": "ただ、読むだけで動画が／【伸びる】わけやないで",
+   "heading": "正直に言うと",
+   "shot": "wide",
+   "pose": "pose10",
+   "visual": {
+    "type": "big",
+    "emoji": "🙅",
+    "text": "読むだけで\n【伸びるわけやない】",
+    "size": 84
+   }
+  },
+  {
+   "text": "販売ページでは文字だけで／【25万字】。量は多いで",
+   "tts": "販売ページでは文字だけで／にじゅうごまんじ。量は多いで",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "📚",
+    "text": "文字だけで\n【25万字】",
+    "size": 100,
+    "sub": "販売ページの表示より"
+   }
+  },
+  {
+   "text": "値段は2万9,800円。／【安くはない】で",
+   "tts": "値段は、にまんきゅうせんはっぴゃくえん。／安くはないで",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "💴",
+    "text": "【2万9,800円】",
+    "size": 104,
+    "sub": "2026年10月時点の販売ページ"
+   }
+  },
+  {
+   "text": "返金は原則なし。先に無料の／【第1章】で確かめてな",
+   "tts": "返金は原則なし。先に無料の／だいいっしょうで確かめてな",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "📖",
+    "text": "まずは無料の\n【第1章】で確認",
+    "size": 88,
+    "sub": "返金は原則なし"
+   }
+  },
+  {
+   "text": "それに買えるんは、毎月／【1日から5日】だけやで",
+   "tts": "それに買えるんは、毎月／ついたちからいつかだけやで",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "big",
+    "emoji": "🗓️",
+    "text": "買えるのは毎月\n【1日〜5日】だけ",
+    "size": 88
+   }
+  },
+  {
+   "text": "収入の約束はないし、／【合う合わん】もあるで",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "🤝",
+    "text": "収入の約束なし\n【合う合わん】あり",
+    "size": 84
+   }
+  },
+  {
+   "text": "それでも僕は、台本づくりで／【いちばん使てる】教材や",
+   "tts": "それでも僕は、台本づくりで／いちばんつこてる教材や",
+   "heading": "まとめ",
+   "shot": "wide",
+   "pose": "pose06",
+   "visual": {
+    "type": "big",
+    "emoji": "📝",
+    "text": "台本づくりで\n【いちばん使てる】",
+    "size": 88
+   }
+  },
+  {
+   "text": "気になったら、プロフの／【紹介リンク】から見てな",
+   "tts": "気になったら、プロフの／紹介リンクから見てな",
+   "shot": "close",
+   "pose": "pose02",
+   "visual": {
+    "type": "cta",
+    "emoji": "📩",
+    "text": "プロフの\n【紹介リンク】から",
+    "size": 100,
+    "bounce": true
+   }
+  },
+  {
+   "text": "じゃあもう一回、／最初の質問に戻るね",
+   "shot": "wide",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🤔",
+    "text": "台本、毎回\n【ゼロから】？",
+    "size": 100
+   }
+  }
+ ],
+ "disclosure": "PR・紹介報酬あり"
+}

@@ -856,10 +856,6 @@ class Renderer:
         mc = S.mic(str(PARTS))
         img.alpha_composite(mc, (W - mc.width + 70, H - mc.height + 90))
 
-        # ---- 広告の表示（script.json に disclosure がある回だけ。最初から最後まで左下に出す） ----
-        if self.script.get("disclosure"):
-            img.alpha_composite(S.disclosure_badge(self.script["disclosure"]), (60, 1390))
-
         # ---- 見出しの帯（区切りの最初の約2秒） ----
         sec = ln["section"]
         card_delay = 0.0
@@ -868,7 +864,7 @@ class Renderer:
             if st < 2.1:
                 a = min(1, st / 0.15, (2.1 - st) / 0.2)
                 bar = S.heading_bar(sec["text"])
-                img.alpha_composite(with_alpha(bar, a), ((W - bar.width) // 2, 250))
+                img.alpha_composite(with_alpha(bar, a), ((W - bar.width) // 2, 286 if self.script.get("disclosure") else 250))
             card_delay = 1.9
             if log is not None:
                 log["heading"] = sec["text"]
@@ -907,6 +903,11 @@ class Renderer:
         ct2 = t - chunk["t"]
         sc = 0.9 + 0.1 * ease_out(ct2 / 0.12) if 0 <= ct2 < 0.12 and f > 0 else 1
         paste_center(img, scaled(ti, sc), *self.STUDIO_TELOP)
+
+        # ---- 広告の表示（script.json に disclosure がある回だけ）。最初から最後まで、画面上部の左に一番手前で出す。
+        #      y=196 はアプリの上部のボタン類の下。見出しの帯は重ならないよう少し下げる ----
+        if self.script.get("disclosure"):
+            img.alpha_composite(S.disclosure_badge(self.script["disclosure"]), (60, 196))
 
         out = img.convert("RGB")
         if t < 0.25:

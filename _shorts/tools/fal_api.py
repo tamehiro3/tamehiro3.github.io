@@ -18,6 +18,7 @@ import stat
 import subprocess
 import sys
 import tempfile
+import urllib.error
 import urllib.request
 from pathlib import Path
 
@@ -154,6 +155,34 @@ def clone_voice(source: str, start: float = 0, seconds: float = 90, name: str = 
     return vid
 
 
+def download(url: str, dst: Path) -> Path:
+    """fal が作ったファイル（音声など）を保存する。
+    Windows の Python は OS の証明書ストアで相手を確かめるので、配信元（fal.media）の証明書の発行元が
+    ストアに入っていないと CERTIFICATE_VERIFY_FAILED で止まる。fal-client と同じ certifi の証明書で
+    先に確かめ、だめなら OS の証明書で試す"""
+    import shutil
+    import ssl
+    contexts = []
+    try:
+        import certifi
+        contexts.append(ssl.create_default_context(cafile=certifi.where()))
+    except ImportError:
+        pass
+    contexts.append(ssl.create_default_context())
+    err = None
+    for ctx in contexts:
+        try:
+            with urllib.request.urlopen(url, context=ctx, timeout=120) as r, open(dst, "wb") as f:
+                shutil.copyfileobj(r, f)
+            return Path(dst)
+        except urllib.error.URLError as e:
+            if not isinstance(getattr(e, "reason", None), ssl.SSLError):
+                raise
+            err = e
+    raise SystemExit(f"音声のダウンロードで証明書の確認に失敗しました: {err}\n"
+                     "  pip install --upgrade certifi を実行してから、もう一度ためしてください")
+
+
 def tts(text: str, voice_id: str, out_path: Path, model: str = TTS_MODEL, speed: float = 1.15,
         pitch: int = 0, emotion: str = "happy", sample_rate: int = 48000) -> Path:
     """クローン声で1文を読み上げて wav（mono）で保存する"""
@@ -167,7 +196,7 @@ def tts(text: str, voice_id: str, out_path: Path, model: str = TTS_MODEL, speed:
         res = _subscribe(model, {"prompt": text, **args})
     with tempfile.TemporaryDirectory() as d:
         raw = Path(d) / "a.bin"
-        urllib.request.urlretrieve(res["audio"]["url"], raw)
+        download(res["audio"]["url"], raw)
         out_path = Path(out_path)
         out_path.parent.mkdir(parents=True, exist_ok=True)
         subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(raw), "-ac", "1", "-ar", str(sample_rate),

@@ -1,6 +1,6 @@
 {
  "id": "ep25",
- "theme": "【PR】ためひろがいちばん使っている教材、イケハヤさんの「明鏡」（Brain）を紹介。紹介報酬あり。マーケティングの専門教材で、商売の原理原則を学べる。取り入れたのは台本の冒頭の型と動画づくりの流れの2つ。値段（10月時点）・返金なし・受付期間・向かない人も正直に",
+ "theme": "【PR】ためひろがいちばん使っている教材、イケハヤさんの「明鏡」（Brain）を紹介。紹介報酬あり。マーケティングの専門教材で、僕は商売の原理原則の教科書やと思てる。教えるのは本人の発信で累計数億円売ってきた人。取り入れたのは台本の冒頭の型と動画づくりの流れの2つ。値段（10月時点）・返金なし・受付期間・収入の約束なしも正直に",
  "style": "studio",
  "series": "AI初心者の時短ワザ",
  "voice": {
@@ -15,7 +15,9 @@
  "sources": [
   "https://brain-market.com/u/ikehaya/a/bzMjMyMjMgoTZsNWa0JXY",
   "https://ikedahayato.com/meikyou-official",
-  "https://meikyo.ikedahayato.com/"
+  "https://meikyo.ikedahayato.com/",
+  "https://note.com/ihayato/n/nf46a938f7acd",
+  "https://ihayato.substack.com/p/brain1brain"
  ],
  "lines": [
   {
@@ -81,7 +83,8 @@
    }
   },
   {
-   "text": "商売の【原理原則】を、／土台から教えてくれるんや",
+   "text": "僕は、商売の【原理原則】の／教科書やと思てる",
+   "tts": "僕は、商売の原理原則の／教科書やと思てる",
    "shot": "wide",
    "pose": "pose06",
    "visual": {
@@ -92,14 +95,14 @@
    }
   },
   {
-   "text": "本人の発信やと、【数億円】／売り上げてきた人や",
-   "tts": "本人の発信やと、すうおくえん／売り上げてきた人や",
+   "text": "本人の発信やと、累計で／【数億円】売ってきた人や",
+   "tts": "本人の発信やと、累計で／数億円売ってきた人や",
    "shot": "close",
    "pose": "face",
    "visual": {
     "type": "big",
     "emoji": "📈",
-    "text": "本人の発信では\n【数億円】",
+    "text": "本人の発信では\n累計【数億円】",
     "size": 92
    }
   },
@@ -179,26 +182,26 @@
    }
   },
   {
-   "text": "収入の約束はないし、／【読む時間】がない人には向かんで",
+   "text": "自分でお金をつくる生き方を／目指す僕には【必須】やねん",
+   "heading": "結局のとこ",
    "shot": "wide",
    "pose": "pose08",
-   "visual": {
-    "type": "big",
-    "emoji": "⏳",
-    "text": "収入の約束なし\n【読む時間】が要る",
-    "size": 84
-   }
-  },
-  {
-   "text": "自分でお金をつくる生き方なら、／僕には【必須】の教材や",
-   "heading": "結局のとこ",
-   "shot": "close",
-   "pose": "pose04",
    "visual": {
     "type": "big",
     "emoji": "🔑",
     "text": "僕にとっては\n【必須】",
     "size": 100
+   }
+  },
+  {
+   "text": "ただ、収入の約束はないし、／【読む時間】も要るで",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "⏳",
+    "text": "収入の約束なし\n【読む時間】が要る",
+    "size": 92
    }
   },
   {

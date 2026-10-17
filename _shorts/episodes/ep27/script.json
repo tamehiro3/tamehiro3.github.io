@@ -1,6 +1,6 @@
 {
  "id": "ep27",
- "theme": "Gemini 4 Argonのポイント（2026年10月時点）：Gemini 4世代の最初のモデル。Googleいわく長くて難しい作業を最後までやり切るのが得意。最初はサイバー防御の専門家などごく一部だけ→対策を足してから10/14（日本時間）に世界で順次配布。アプリで使えるのはAI ProとUltraだけ（無料版とAI Plusは不可）。慌てて課金しない・「Gemini 4が無料」は疑う・公式サイトかアプリだけ",
+ "theme": "Gemini 4 Argonのポイント（2026年10月時点）：Gemini 4世代の最初のモデル。Googleいわく長くて難しい作業が得意で、手順が多くても最後まで続けられる。最初はサイバー攻撃を防ぐ専門家などごく一部だけ→安全対策を足してから10/14（日本時間）に世界で順次配布。個人向けアプリで使えるのはAI ProとUltraだけ（無料版とAI Plusは対象外）。慌てて課金しない・「Argonが無料」の誘いは疑う・公式サイトかアプリだけ",
  "style": "studio",
  "series": "AI初心者の時短ワザ",
  "voice": {
@@ -14,9 +14,9 @@
  },
  "sources": [
   "https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-4-argon/",
-  "https://blog.google/innovation-and-ai/products/gemini-app/gemini-4-argon-availability/",
+  "https://blog.google/innovation-and-ai/products/gemini-app/gemini-4-availability/",
+  "https://blog.google/intl/ja-jp/company-news/technology/gemini-4-argon-gemini/",
   "https://9to5google.com/2026/10/13/gemini-app-4-argon/",
-  "https://deepmind.google/models/model-cards/gemini-4-argon/",
   "https://gemini.google/jp/release-notes/"
  ],
  "lines": [
@@ -47,7 +47,7 @@
   },
   {
    "text": "Googleいわく、得意なんは／【長くて難しい作業】や",
-   "tts": "グーグルいわく、得意なんは／長くて難しい作業や",
+   "tts": "グーグルいわく、得意なんわ／長くて難しい作業や",
    "heading": "Googleの説明では",
    "shot": "close",
    "pose": "pose01",
@@ -59,19 +59,19 @@
    }
   },
   {
-   "text": "手順を一段ずつ分けて、／【最後まで】やり切るんやって",
+   "text": "手順が多くても、【最後まで】／続けられるんやって",
    "shot": "wide",
    "pose": "pose08",
    "visual": {
     "type": "big",
     "emoji": "🪜",
-    "text": "一段ずつ\n【最後まで】",
-    "size": 100
+    "text": "手順が多くても\n【最後まで】",
+    "size": 96
    }
   },
   {
-   "text": "アイデアを【Webアプリ】や／資料の形にまでするって",
-   "tts": "アイデアをウェブアプリや／資料の形にまでするって",
+   "text": "アイデアを【Webアプリ】や／資料の形にするんやて",
+   "tts": "アイデアをウェブアプリや／資料のかたちにするんやて",
    "shot": "close",
    "pose": "pose04",
    "visual": {
@@ -82,7 +82,7 @@
    }
   },
   {
-   "text": "最初は、サイバー防御の／専門家とか、【ごく一部】だけ",
+   "text": "最初は、サイバー攻撃を防ぐ／【専門家】とかだけやった",
    "heading": "9月30日（米国）に発表",
    "shot": "wide",
    "pose": "pose06",
@@ -94,7 +94,8 @@
    }
   },
   {
-   "text": "安全のために、【対策を足して】／から広げたんやって",
+   "text": "安全のために、対策を／【足してから】広げたんやって",
+   "tts": "安全のために、対策を／たしてから広げたんやって",
    "shot": "close",
    "pose": "pose03",
    "visual": {
@@ -107,7 +108,7 @@
   {
    "text": "10月14日から、世界で／【順番に】配り始めたで",
    "tts": "じゅうがつじゅうよっかから、世界で／順番に配り始めたで",
-   "heading": "2026年10月時点",
+   "heading": "日本時間・2026年10月時点",
    "shot": "wide",
    "pose": "pose09",
    "visual": {
@@ -119,20 +120,21 @@
   },
   {
    "text": "アプリで使えるんは、／【AI Pro】かUltraだけや",
-   "tts": "アプリで使えるんは、／エーアイプロかウルトラだけや",
-   "heading": "誰が使える？",
+   "tts": "アプリで使えるんわ、／エーアイプロかウルトラだけや",
+   "heading": "誰が使える？（10月時点）",
    "shot": "close",
    "pose": "face",
    "visual": {
     "type": "list",
-    "title": "アプリで【使える人】",
+    "title": "個人向けアプリ（【2026年10月時点】）",
     "items": [
-     "AI Pro：【使える】",
-     "Ultra：【使える】",
-     "無料・AI Plus：【使えない】"
+     "AI Pro：【対象】",
+     "Ultra：【対象】",
+     "無料・AI Plus：【対象外】"
     ],
     "show": 2,
-    "hl": 0
+    "hl": 0,
+    "title_size": 54
    }
   },
   {
@@ -142,26 +144,26 @@
    "pose": "pose10",
    "visual": {
     "type": "list",
-    "title": "アプリで【使える人】",
+    "title": "個人向けアプリ（【2026年10月時点】）",
     "items": [
-     "AI Pro：【使える】",
-     "Ultra：【使える】",
-     "無料・AI Plus：【使えない】"
+     "AI Pro：【対象】",
+     "Ultra：【対象】",
+     "無料・AI Plus：【対象外】"
     ],
     "show": 3,
-    "hl": 2
+    "hl": 2,
+    "title_size": 54
    }
   },
   {
-   "text": "Proの人でも、まだ／【出てへん】ことがあるで",
-   "tts": "プロの人でも、まだ／出てへんことがあるで",
+   "text": "契約してても、まだ／【出てへん】ことがあるで",
    "shot": "close",
    "pose": "pose05",
    "visual": {
     "type": "big",
     "emoji": "⏳",
-    "text": "Proでも\n【まだのことも】",
-    "size": 96
+    "text": "契約してても\n【まだのことも】",
+    "size": 92
    }
   },
   {
@@ -188,8 +190,8 @@
    }
   },
   {
-   "text": "「Gemini 4が無料」って話は／【まず疑って】な",
-   "tts": "ジェミニフォーが無料って話は／まず疑ってな",
+   "text": "「Argonが無料」って誘いは／【まず疑って】な",
+   "tts": "アルゴンが無料って誘いは／まず疑ってな",
    "heading": "注意！",
    "shot": "wide",
    "pose": "pose03",
@@ -201,7 +203,8 @@
    }
   },
   {
-   "text": "使うんは、公式サイトか／【公式アプリ】だけにしてな",
+   "text": "使うんは、公式サイトか／【公式アプリ】だけやで",
+   "tts": "使うんわ、公式サイトか／公式アプリだけやで",
    "shot": "close",
    "pose": "pose03",
    "visual": {
@@ -212,8 +215,8 @@
    }
   },
   {
-   "text": "AIは間違えることもある。／【大事なこと】は確かめてな",
-   "tts": "エーアイは間違えることもある。／大事なことは確かめてな",
+   "text": "AIも間違うことあるから、／【大事なこと】は確かめてな",
+   "tts": "エーアイも間違うことあるから、／大事なことは確かめてな",
    "shot": "wide",
    "pose": "pose08",
    "visual": {
@@ -224,8 +227,8 @@
    }
   },
   {
-   "text": "Gemini使てる友だちに、／【教えたって】な",
-   "tts": "ジェミニ使てる友だちに、／教えたってな",
+   "text": "Gemini使こてる友だちに、／【教えたって】な",
+   "tts": "ジェミニつこてる友だちに、／教えたってな",
    "shot": "close",
    "pose": "pose02",
    "visual": {

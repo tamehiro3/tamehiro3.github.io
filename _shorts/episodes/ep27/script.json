@@ -1,0 +1,251 @@
+{
+ "id": "ep27",
+ "theme": "Gemini 4 Argonのポイント（2026年10月時点）：Gemini 4世代の最初のモデル。Googleいわく長くて難しい作業を最後までやり切るのが得意。最初はサイバー防御の専門家などごく一部だけ→対策を足してから10/14（日本時間）に世界で順次配布。アプリで使えるのはAI ProとUltraだけ（無料版とAI Plusは不可）。慌てて課金しない・「Gemini 4が無料」は疑う・公式サイトかアプリだけ",
+ "style": "studio",
+ "series": "AI初心者の時短ワザ",
+ "voice": {
+  "engine": "openjtalk",
+  "speed": 1.15,
+  "pitch": 2.5,
+  "intonation": 1.5,
+  "fal_model": "fal-ai/minimax/speech-02-hd",
+  "fal_speed": 1.0,
+  "emotion": "happy"
+ },
+ "sources": [
+  "https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-4-argon/",
+  "https://blog.google/innovation-and-ai/products/gemini-app/gemini-4-argon-availability/",
+  "https://9to5google.com/2026/10/13/gemini-app-4-argon/",
+  "https://deepmind.google/models/model-cards/gemini-4-argon/",
+  "https://gemini.google/jp/release-notes/"
+ ],
+ "lines": [
+  {
+   "text": "Gemini 4 Argon、／【何が新しいん？】",
+   "tts": "ジェミニフォーアルゴン、／何が新しいん？",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🤔",
+    "text": "Gemini 4 Argon\n【何が新しい？】",
+    "size": 92
+   }
+  },
+  {
+   "text": "Gemini 4世代の、／【最初のモデル】やで",
+   "tts": "ジェミニフォー世代の、／最初のモデルやで",
+   "heading": "Googleの新モデル",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "🆕",
+    "text": "Gemini 4の\n【最初のモデル】",
+    "size": 92
+   }
+  },
+  {
+   "text": "Googleいわく、得意なんは／【長くて難しい作業】や",
+   "tts": "グーグルいわく、得意なんは／長くて難しい作業や",
+   "heading": "Googleの説明では",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "🧗",
+    "text": "得意なのは\n【長くて難しい作業】",
+    "size": 84
+   }
+  },
+  {
+   "text": "手順を一段ずつ分けて、／【最後まで】やり切るんやって",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "big",
+    "emoji": "🪜",
+    "text": "一段ずつ\n【最後まで】",
+    "size": 100
+   }
+  },
+  {
+   "text": "アイデアを【Webアプリ】や／資料の形にまでするって",
+   "tts": "アイデアをウェブアプリや／資料の形にまでするって",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "🛠️",
+    "text": "アイデアを\n【形にする】",
+    "size": 100
+   }
+  },
+  {
+   "text": "最初は、サイバー防御の／専門家とか、【ごく一部】だけ",
+   "heading": "9月30日（米国）に発表",
+   "shot": "wide",
+   "pose": "pose06",
+   "visual": {
+    "type": "big",
+    "emoji": "🛡️",
+    "text": "最初は\n【ごく一部だけ】",
+    "size": 96
+   }
+  },
+  {
+   "text": "安全のために、【対策を足して】／から広げたんやって",
+   "shot": "close",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "🔒",
+    "text": "対策を足して\n【から広げた】",
+    "size": 96
+   }
+  },
+  {
+   "text": "10月14日から、世界で／【順番に】配り始めたで",
+   "tts": "じゅうがつじゅうよっかから、世界で／順番に配り始めたで",
+   "heading": "2026年10月時点",
+   "shot": "wide",
+   "pose": "pose09",
+   "visual": {
+    "type": "big",
+    "emoji": "🌏",
+    "text": "10/14から\n【順番に配布】",
+    "size": 96
+   }
+  },
+  {
+   "text": "アプリで使えるんは、／【AI Pro】かUltraだけや",
+   "tts": "アプリで使えるんは、／エーアイプロかウルトラだけや",
+   "heading": "誰が使える？",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "list",
+    "title": "アプリで【使える人】",
+    "items": [
+     "AI Pro：【使える】",
+     "Ultra：【使える】",
+     "無料・AI Plus：【使えない】"
+    ],
+    "show": 2,
+    "hl": 0
+   }
+  },
+  {
+   "text": "無料版とAI Plusでは／【選べへん】ねん",
+   "tts": "無料版とエーアイプラスでは／選べへんねん",
+   "shot": "wide",
+   "pose": "pose10",
+   "visual": {
+    "type": "list",
+    "title": "アプリで【使える人】",
+    "items": [
+     "AI Pro：【使える】",
+     "Ultra：【使える】",
+     "無料・AI Plus：【使えない】"
+    ],
+    "show": 3,
+    "hl": 2
+   }
+  },
+  {
+   "text": "Proの人でも、まだ／【出てへん】ことがあるで",
+   "tts": "プロの人でも、まだ／出てへんことがあるで",
+   "shot": "close",
+   "pose": "pose05",
+   "visual": {
+    "type": "big",
+    "emoji": "⏳",
+    "text": "Proでも\n【まだのことも】",
+    "size": 96
+   }
+  },
+  {
+   "text": "出てるかは、モデルを／【選ぶところ】で見てな",
+   "shot": "wide",
+   "pose": "pose05",
+   "visual": {
+    "type": "big",
+    "emoji": "👀",
+    "text": "モデルを\n【選ぶところ】",
+    "size": 96
+   }
+  },
+  {
+   "text": "これ目当てで、慌てて／【課金せんで】ええよ",
+   "heading": "どうする？",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "🙅",
+    "text": "慌てて\n【課金しない】",
+    "size": 100
+   }
+  },
+  {
+   "text": "「Gemini 4が無料」って話は／【まず疑って】な",
+   "tts": "ジェミニフォーが無料って話は／まず疑ってな",
+   "heading": "注意！",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "⚠️",
+    "text": "「無料で使える」は\n【まず疑う】",
+    "size": 88
+   }
+  },
+  {
+   "text": "使うんは、公式サイトか／【公式アプリ】だけにしてな",
+   "shot": "close",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "✅",
+    "text": "公式サイトか\n【公式アプリ】だけ",
+    "size": 92
+   }
+  },
+  {
+   "text": "AIは間違えることもある。／【大事なこと】は確かめてな",
+   "tts": "エーアイは間違えることもある。／大事なことは確かめてな",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "big",
+    "emoji": "🔍",
+    "text": "大事なことは\n【自分で確かめる】",
+    "size": 88
+   }
+  },
+  {
+   "text": "Gemini使てる友だちに、／【教えたって】な",
+   "tts": "ジェミニ使てる友だちに、／教えたってな",
+   "shot": "close",
+   "pose": "pose02",
+   "visual": {
+    "type": "cta",
+    "emoji": "📩",
+    "text": "友だちに\n【教えたって】",
+    "size": 100,
+    "bounce": true
+   }
+  },
+  {
+   "text": "じゃあもう一回、／最初の質問に戻るね",
+   "shot": "wide",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🤔",
+    "text": "Gemini 4 Argon\n【何が新しい？】",
+    "size": 92
+   }
+  }
+ ]
+}

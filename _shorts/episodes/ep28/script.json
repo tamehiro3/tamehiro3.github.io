@@ -1,0 +1,230 @@
+{
+ "id": "ep28",
+ "theme": "ソースネクスト（年賀状ソフトの会社）が10/15に不正アクセスを発表。最大約2252万件分の情報が流出したおそれ（パスワードや生年月日なども人によって含まれる、カード情報は対象システムに入っていなかったと会社は説明）。ソースネクストのパスワードは会社がリセット済みなので、自分でやるのは同じパスワードを使い回しているほかのサイトの変更（会社も呼びかけ）。偽のメール・電話への注意、本物の案内も届くのでリンクやなく公式サイトから。困ったら188",
+ "style": "studio",
+ "series": "AI初心者の時短ワザ",
+ "voice": {
+  "engine": "openjtalk",
+  "speed": 1.15,
+  "pitch": 2.5,
+  "intonation": 1.5,
+  "fal_model": "fal-ai/minimax/speech-02-hd",
+  "fal_speed": 1.0,
+  "emotion": "happy"
+ },
+ "sources": [
+  "https://www.sourcenext.com/support/i/2026/1015_info/",
+  "https://www.sourcenext.com/support/i/2026/1015_1/",
+  "https://www.watch.impress.co.jp/docs/news/2148547.html",
+  "https://news.web.nhk/newsweb/na/nd-20261015de60043"
+ ],
+ "lines": [
+  {
+   "text": "年賀状ソフトのパスワード、／【使い回して】へん？",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🔑",
+    "text": "年賀状ソフトの\n【パスワード】",
+    "size": 96
+   }
+  },
+  {
+   "text": "年賀状ソフトのソースネクストが、／【不正アクセス】を発表",
+   "heading": "10月15日の発表",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "📰",
+    "text": "ソースネクストが\n【不正アクセス】を発表",
+    "size": 84
+   }
+  },
+  {
+   "text": "最大約2252万件分の情報が、／【流出したおそれ】",
+   "tts": "さいだいやく、にせんにひゃくごじゅうにまんけんぶんの情報が、／流出したおそれ",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "📂",
+    "text": "最大約2252万件分\n【流出のおそれ】",
+    "size": 88
+   }
+  },
+  {
+   "text": "パスワードや生年月日も、／人によっては【含まれる】",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "big",
+    "emoji": "🔐",
+    "text": "パスワードや\n【生年月日】も",
+    "size": 96
+   }
+  },
+  {
+   "text": "カード情報は入ってなかったと、／【会社は説明】してる",
+   "shot": "close",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "💳",
+    "text": "カード情報は\n【対象外】と説明",
+    "size": 92
+   }
+  },
+  {
+   "text": "ソースネクストのパスワードは、／会社が【リセット】済み",
+   "heading": "ソースネクストは",
+   "shot": "wide",
+   "pose": "pose06",
+   "visual": {
+    "type": "big",
+    "emoji": "🔄",
+    "text": "会社が\n【リセット済み】",
+    "size": 96
+   }
+  },
+  {
+   "text": "次のログインで再設定。／混んでたら【時間おいて】な",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "⏳",
+    "text": "混んでたら\n【時間をおいて】",
+    "size": 96
+   }
+  },
+  {
+   "text": "自分でやるんは、同じパスワードの／【ほかのサイト】や",
+   "heading": "やること",
+   "shot": "wide",
+   "pose": "pose09",
+   "visual": {
+    "type": "list",
+    "title": "今日【やること】",
+    "items": [
+     "使い回した所を【変える】",
+     "使えたら【2段階認証】",
+     "誕生日パスワードも【変更】"
+    ],
+    "show": 1,
+    "hl": 0
+   }
+  },
+  {
+   "text": "会社も、ほかで使こてたら／【変えて】って言うてる",
+   "tts": "会社も、ほかでつこてたら／変えてって言うてる",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "list",
+    "title": "今日【やること】",
+    "items": [
+     "使い回した所を【変える】",
+     "使えたら【2段階認証】",
+     "誕生日パスワードも【変更】"
+    ],
+    "show": 1,
+    "hl": 0
+   }
+  },
+  {
+   "text": "たとえばメールから。使えるなら／【2段階認証】もオンに",
+   "tts": "たとえばメールから。使えるなら／にだんかいにんしょうもオンに",
+   "shot": "wide",
+   "pose": "pose10",
+   "visual": {
+    "type": "list",
+    "title": "今日【やること】",
+    "items": [
+     "使い回した所を【変える】",
+     "使えたら【2段階認証】",
+     "誕生日パスワードも【変更】"
+    ],
+    "show": 2,
+    "hl": 1
+   }
+  },
+  {
+   "text": "誕生日をパスワードにしてたら、／【それも】変えよか",
+   "shot": "close",
+   "pose": "pose05",
+   "visual": {
+    "type": "list",
+    "title": "今日【やること】",
+    "items": [
+     "使い回した所を【変える】",
+     "使えたら【2段階認証】",
+     "誕生日パスワードも【変更】"
+    ],
+    "show": 3,
+    "hl": 2
+   }
+  },
+  {
+   "text": "会社も、偽のメールや電話が／【来るかも】って注意してる",
+   "heading": "注意！",
+   "shot": "wide",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "⚠️",
+    "text": "偽のメールや電話に\n【注意】",
+    "size": 88
+   }
+  },
+  {
+   "text": "本物のメールも届くから、／リンクやなく【公式サイト】から",
+   "shot": "close",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "✅",
+    "text": "リンクやなく\n【公式サイト】から",
+    "size": 92
+   }
+  },
+  {
+   "text": "困ったら、消費者ホットライン／【188】やで",
+   "tts": "困ったら、しょうひしゃホットライン／イチハチハチやで",
+   "heading": "困ったら",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "☎️",
+    "text": "困ったら\n【188】",
+    "size": 100
+   }
+  },
+  {
+   "text": "年賀状ソフト使こてる家族に、／【送ってあげて】",
+   "tts": "年賀状ソフトつこてる家族に、／送ってあげて",
+   "shot": "close",
+   "pose": "pose02",
+   "visual": {
+    "type": "cta",
+    "emoji": "📩",
+    "text": "家族に\n【送ってあげて】",
+    "size": 100,
+    "bounce": true
+   }
+  },
+  {
+   "text": "じゃあもう一回、／最初の質問に戻るね",
+   "shot": "wide",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🔑",
+    "text": "年賀状ソフトの\n【パスワード】",
+    "size": 96
+   }
+  }
+ ]
+}

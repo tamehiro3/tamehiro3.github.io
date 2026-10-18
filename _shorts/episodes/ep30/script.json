@@ -1,0 +1,224 @@
+{
+ "id": "ep30",
+ "theme": "【PR】しゅうへいさんの「YouTube自動編集スキル」の紹介（紹介報酬あり・ためひろはまだ使っていない）。売り文句は撮った動画をAIに渡すだけ、使った人の記録ではカットや字幕まで。使うにはClaude CodeかCodexとAIの利用料、Windowsはひと手間。値段は2026年10月時点で2,980円。ショートに使えるかは販売ページで確認。稼げる話ではなく編集の時短の話",
+ "style": "studio",
+ "series": "AI初心者の時短ワザ",
+ "voice": {
+  "engine": "openjtalk",
+  "speed": 1.15,
+  "pitch": 2.5,
+  "intonation": 1.5,
+  "fal_model": "fal-ai/minimax/speech-02-hd",
+  "fal_speed": 1.0,
+  "emotion": "happy"
+ },
+ "sources": [
+  "https://note.com/lyustyle/n/n2289b386ff42",
+  "https://note.com/shupeiman/n/ndf85d2d069ee",
+  "https://shupeiman.substack.com/"
+ ],
+ "lines": [
+  {
+   "text": "動画の編集、／【AIに渡すだけ】ってほんま？",
+   "tts": "動画の編集、／エーアイに渡すだけってほんま？",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🤔",
+    "text": "動画の編集\n【AIに渡すだけ？】",
+    "size": 92
+   }
+  },
+  {
+   "text": "先に言うとくけど、この動画は／【PR】やで",
+   "tts": "先にゆうとくけど、この動画は、／ピーアールやで",
+   "heading": "これはPRやで",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "📢",
+    "text": "この動画は\n【PR】",
+    "size": 110
+   }
+  },
+  {
+   "text": "リンクから買うてもろたら、／僕に【紹介料】が入るねん",
+   "tts": "リンクから買うてもろたら、／僕に紹介料がはいるねん",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "💴",
+    "text": "紹介料が\n【入る】",
+    "size": 100
+   }
+  },
+  {
+   "text": "それと、僕は【まだ使てへん】。／商品の紹介だけやで",
+   "tts": "それと、僕はまだつこてへん。／商品の紹介だけやで",
+   "shot": "wide",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "🙋",
+    "text": "まだ\n【使ってない】",
+    "size": 100
+   }
+  },
+  {
+   "text": "続けるのに大変なんは、／たいてい【編集】やねん",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "✂️",
+    "text": "大変なのは\n【編集】",
+    "size": 100
+   }
+  },
+  {
+   "text": "しゅうへいさんの、YouTube／【自動編集スキル】や",
+   "tts": "しゅうへいさんの、ユーチューブ／自動編集スキルや",
+   "heading": "紹介するのは",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "big",
+    "emoji": "🎬",
+    "text": "YouTube\n【自動編集スキル】",
+    "size": 92
+   }
+  },
+  {
+   "text": "売り文句は、撮った動画を／【AIに渡すだけ】",
+   "tts": "売り文句は、撮った動画を／エーアイに渡すだけ",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "📦",
+    "text": "撮った動画を\n【AIに渡す】",
+    "size": 96
+   }
+  },
+  {
+   "text": "使った人の記録やと、カットや／【字幕】まで済んだらしい",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "💬",
+    "text": "カットや\n【字幕】まで",
+    "size": 100
+   }
+  },
+  {
+   "text": "撮るのも話すのも、／【自分】の仕事やで",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "🎙️",
+    "text": "撮る・話すのは\n【自分】",
+    "size": 96
+   }
+  },
+  {
+   "text": "使うには、Claude Codeか／【Codex】が要る",
+   "tts": "使うには、クロードコードか／コーデックスが要る",
+   "heading": "使う前に",
+   "shot": "wide",
+   "pose": "pose06",
+   "visual": {
+    "type": "big",
+    "emoji": "💻",
+    "text": "Claude Codeか\n【Codex】が必要",
+    "size": 88
+   }
+  },
+  {
+   "text": "AIの利用料も、たいてい／【別にかかる】で",
+   "tts": "エーアイの利用料も、たいてい／別にかかるで",
+   "shot": "close",
+   "pose": "pose05",
+   "visual": {
+    "type": "big",
+    "emoji": "💳",
+    "text": "AIの利用料は\n【別】",
+    "size": 100
+   }
+  },
+  {
+   "text": "Windowsは、ひと手間／【要る】らしいで",
+   "tts": "ウィンドウズは、ひと手間／要るらしいで",
+   "shot": "wide",
+   "pose": "pose09",
+   "visual": {
+    "type": "big",
+    "emoji": "🪟",
+    "text": "Windowsは\n【ひと手間】",
+    "size": 100
+   }
+  },
+  {
+   "text": "値段は、26年10月時点で／【2,980円】",
+   "tts": "値段は、にじゅうろくねんじゅうがつ時点で／にせんきゅうひゃくはちじゅうえん",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "🏷️",
+    "text": "26年10月時点\n【2,980円】",
+    "size": 96
+   }
+  },
+  {
+   "text": "ショートにも使えるかは、／【販売ページ】で見てな",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "🔍",
+    "text": "ショート対応は\n【販売ページで確認】",
+    "size": 84
+   }
+  },
+  {
+   "text": "これで【稼げる】って話やない、／編集の時短の話や",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "🙅",
+    "text": "稼げる話ではなく\n【時短の話】",
+    "size": 88
+   }
+  },
+  {
+   "text": "気になったら、プロフの／【紹介リンク】から見てな",
+   "shot": "wide",
+   "pose": "pose02",
+   "visual": {
+    "type": "cta",
+    "emoji": "📩",
+    "text": "プロフの\n【紹介リンク】から",
+    "size": 100,
+    "bounce": true
+   }
+  },
+  {
+   "text": "じゃあもう一回、／最初の質問に戻るね",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🤔",
+    "text": "動画の編集\n【AIに渡すだけ？】",
+    "size": 92
+   }
+  }
+ ],
+ "disclosure": "PR・紹介報酬あり"
+}

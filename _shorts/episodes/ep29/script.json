@@ -1,0 +1,221 @@
+{
+ "id": "ep29",
+ "theme": "YouTubeのショートのボーナス（招待制・試験運用、公式ヘルプはShorts bonus program）。しゅうへいさん（@shupeiman）の招待画面では月16本の公開で最低4.5万円。上乗せは再生数しだいで保証なし、1本でも足りない月はゼロ、本数も金額も人によって違う。対象は収益化済みチャンネルのうち選ばれた人だけで申し込み窓口なし（ためひろは未収益化で対象外）。招待はStudioの通知か登録メール、リンクは押さず自分でStudioを開く、パスワードや手数料を聞かれたら疑う",
+ "style": "studio",
+ "series": "AI初心者の時短ワザ",
+ "voice": {
+  "engine": "openjtalk",
+  "speed": 1.15,
+  "pitch": 2.5,
+  "intonation": 1.5,
+  "fal_model": "fal-ai/minimax/speech-02-hd",
+  "fal_speed": 1.0,
+  "emotion": "happy"
+ },
+ "sources": [
+  "https://support.google.com/youtube/answer/18336041",
+  "https://x.com/shupeiman/status/2111260224422396305",
+  "https://upstream.so/blog/youtube-shorts-bonus-program/",
+  "https://www.netinfluencer.com/youtube-pilots-monthly-shorts-bonus-program-tied-to-upload-consistency-and-views/"
+ ],
+ "lines": [
+  {
+   "text": "ショート月16本で4.5万円、／そんな【招待】ほんま？",
+   "tts": "ショート、月じゅうろっぽんでよんまんごせんえん、／そんな招待ほんま？",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🤔",
+    "text": "月16本で4.5万円\n【その招待ほんま？】",
+    "size": 88
+   }
+  },
+  {
+   "text": "招待制のボーナスを、／YouTubeが【試してる】んよ",
+   "tts": "招待制のボーナスを、／ユーチューブが試してるんよ",
+   "heading": "2026年10月時点",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "🧪",
+    "text": "招待制のボーナス\n【試験中】",
+    "size": 92
+   }
+  },
+  {
+   "text": "前のショートファンドとは、／【別の制度】やで",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "🔄",
+    "text": "前のファンドとは\n【別の制度】",
+    "size": 92
+   }
+  },
+  {
+   "text": "話題なんは、しゅうへいさんの／【招待画面】の数字や",
+   "heading": "Xの投稿より",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "big",
+    "emoji": "📱",
+    "text": "しゅうへいさんの\n【招待画面】",
+    "size": 92
+   }
+  },
+  {
+   "text": "月16本「公開」で、／【最低4.5万円】やって",
+   "tts": "つきじゅうろっぽん、公開で、／最低よんまんごせんえんやって",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "📅",
+    "text": "月16本公開で\n【最低4.5万円】",
+    "size": 92
+   }
+  },
+  {
+   "text": "上乗せは再生数しだいで、／【保証はない】で",
+   "shot": "wide",
+   "pose": "pose06",
+   "visual": {
+    "type": "big",
+    "emoji": "📈",
+    "text": "上乗せは\n【保証なし】",
+    "size": 100
+   }
+  },
+  {
+   "text": "ただ、1本でも足りへん月は／【ゼロ】になるんよ",
+   "tts": "ただ、いっぽんでも足りへん月は／ゼロになるんよ",
+   "shot": "close",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "0️⃣",
+    "text": "1本足りないと\n【ゼロ】",
+    "size": 100
+   }
+  },
+  {
+   "text": "本数も金額も、／【人によって】ちゃうらしい",
+   "shot": "wide",
+   "pose": "pose09",
+   "visual": {
+    "type": "big",
+    "emoji": "🔢",
+    "text": "本数も金額も\n【人による】",
+    "size": 96
+   }
+  },
+  {
+   "text": "対象は、収益化してる中の／【選ばれた人】だけ",
+   "heading": "誰に来る？",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "🎟️",
+    "text": "収益化済みの\n【選ばれた人】だけ",
+    "size": 88
+   }
+  },
+  {
+   "text": "自分から【申し込む】窓口は／ないねん",
+   "shot": "wide",
+   "pose": "pose10",
+   "visual": {
+    "type": "big",
+    "emoji": "🚪",
+    "text": "申し込み窓口は\n【なし】",
+    "size": 96
+   }
+  },
+  {
+   "text": "僕はまだ収益化してへんから、／【対象外】やで",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "🙋",
+    "text": "ためひろは\n【対象外】",
+    "size": 100
+   }
+  },
+  {
+   "text": "招待はStudioの通知か、／【登録メール】に来るんやて",
+   "tts": "招待はスタジオの通知か、／登録メールに来るんやて",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "🔔",
+    "text": "Studioの通知か\n【登録メール】",
+    "size": 92
+   }
+  },
+  {
+   "text": "リンクは押さんと、／【自分で】Studioを開いてな",
+   "tts": "リンクは押さんと、／自分でスタジオを開いてな",
+   "heading": "注意！",
+   "shot": "close",
+   "pose": "pose05",
+   "visual": {
+    "type": "big",
+    "emoji": "🔍",
+    "text": "リンクは押さず\n【自分で】Studioへ",
+    "size": 88
+   }
+  },
+  {
+   "text": "パスワードや手数料を聞かれたら、／【まず疑って】な",
+   "shot": "wide",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "⚠️",
+    "text": "パスワード・手数料は\n【まず疑う】",
+    "size": 84
+   }
+  },
+  {
+   "text": "来てへんくても普通やから、／【焦らん】でええよ",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "🍵",
+    "text": "来なくても\n【普通】",
+    "size": 100
+   }
+  },
+  {
+   "text": "収益化してる友だちに、／【教えたって】な",
+   "shot": "wide",
+   "pose": "pose02",
+   "visual": {
+    "type": "cta",
+    "emoji": "📩",
+    "text": "収益化してる\n友だちに【教えたって】",
+    "size": 100,
+    "bounce": true
+   }
+  },
+  {
+   "text": "じゃあもう一回、／最初の質問に戻るね",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🤔",
+    "text": "月16本で4.5万円\n【その招待ほんま？】",
+    "size": 88
+   }
+  }
+ ]
+}

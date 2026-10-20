@@ -1,6 +1,6 @@
 {
  "id": "ep30",
- "theme": "【PR】しゅうへいさんの「YouTube自動編集スキル」の紹介（紹介報酬あり・ためひろはまだ使っていない）。売り文句は撮った動画をAIに渡すだけ、使った人の記録ではカットや字幕まで。使うにはClaude CodeかCodexとAIの利用料、Windowsはひと手間。値段は2026年10月時点で2,980円。ショートに使えるかは販売ページで確認。稼げる話ではなく編集の時短の話",
+ "theme": "【PR】しゅうへいさんの「YouTube自動編集スキル」の紹介（紹介報酬あり・ためひろはまだ使っていない）。紹介の仕組みは、ええ店を友だちに教えたらお店からお礼が出るのと同じで、ほかの店にもあるから、あなたもPRを付けて試してみ。今や動画は自分を知ってもらう入口、けどしんどいのは編集。本人の説明では撮ったまま渡すと字幕入りの横動画にする。M1以降のMac、Claude CodeかCodex、AIの料金は別。値段は2026年10月時点で2,980円。縦のショートやなく横の動画向け。時短が売りの道具",
  "style": "studio",
  "series": "AI初心者の時短ワザ",
  "voice": {
@@ -13,9 +13,9 @@
   "emotion": "happy"
  },
  "sources": [
-  "https://note.com/lyustyle/n/n2289b386ff42",
-  "https://note.com/shupeiman/n/ndf85d2d069ee",
-  "https://shupeiman.substack.com/"
+  "https://shupeiman.substack.com/p/500youtube",
+  "https://shupeiman.substack.com/p/youtube",
+  "https://note.com/lyustyle/n/n2289b386ff42"
  ],
  "lines": [
   {
@@ -44,34 +44,58 @@
    }
   },
   {
-   "text": "リンクから買うてもろたら、／僕に【紹介料】が入るねん",
-   "tts": "リンクからこうてもろたら、／僕に紹介料がはいるねん",
+   "text": "ええ店を友だちに教えたら、／お店から【お礼】が出るやろ",
+   "heading": "紹介の仕組み",
    "shot": "close",
    "pose": "pose01",
    "visual": {
     "type": "big",
-    "emoji": "💴",
-    "text": "紹介料が\n【入る】",
-    "size": 100
+    "emoji": "🎁",
+    "text": "友だちに教えたら\nお店から【お礼】",
+    "size": 92
    }
   },
   {
-   "text": "僕は【まだ使てへん】から、／感想やなくて紹介やで",
-   "tts": "僕はまだつこてへんから、／感想やなくて紹介やで",
+   "text": "このリンクから買うてもろたら、／僕に【紹介料】が入るねん",
+   "tts": "このリンクからこうてもろたら、／僕に紹介料がはいるねん",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "big",
+    "emoji": "🔗",
+    "text": "リンクから買うと\n【僕に紹介料】",
+    "size": 92
+   }
+  },
+  {
+   "text": "ほかの店にもあるから、あなたも／【PR】付けて試してみ",
+   "tts": "ほかの店にもあるから、あなたも／ピーアール付けて試してみ",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "🏷️",
+    "text": "紹介するなら\n【PRを付けて】",
+    "size": 96
+   }
+  },
+  {
+   "text": "動画は、自分を知ってもろて／【興味】を持ってもらう入口や",
+   "heading": "今や動画は",
    "shot": "wide",
    "pose": "pose04",
    "visual": {
     "type": "big",
-    "emoji": "🙋",
-    "text": "まだ\n【使ってない】",
-    "size": 100
+    "emoji": "🚪",
+    "text": "動画は\n知ってもらう【入口】",
+    "size": 92
    }
   },
   {
-   "text": "動画づくりで、しんどいんは／【編集】って人もおるやろ",
-   "tts": "動画づくりで、しんどいんわ／編集って人もおるやろ",
+   "text": "けど、しんどいんは【編集】って／人もおるやろ",
+   "tts": "けど、しんどいんわ編集って／人もおるやろ",
    "shot": "close",
-   "pose": "pose04",
+   "pose": "face",
    "visual": {
     "type": "big",
     "emoji": "✂️",
@@ -84,7 +108,7 @@
    "tts": "しゅうへいさんの、ユーチューブ／自動編集スキルや",
    "heading": "紹介するのは",
    "shot": "wide",
-   "pose": "pose08",
+   "pose": "pose06",
    "visual": {
     "type": "big",
     "emoji": "🎬",
@@ -93,49 +117,39 @@
    }
   },
   {
-   "text": "売り文句は、／【AIに動画を渡すだけ】やて",
-   "tts": "売り文句は、／エーアイに動画を渡すだけやて",
+   "text": "撮ったまま渡すと、／【字幕入りの横動画】にするんやて",
+   "tts": "撮ったまま渡すと、／字幕入りの横動画にするんやて",
+   "heading": "本人の説明では",
    "shot": "close",
-   "pose": "face",
+   "pose": "pose05",
    "visual": {
     "type": "big",
-    "emoji": "📦",
-    "text": "売り文句は\n【AIに渡すだけ】",
+    "emoji": "💬",
+    "text": "撮ったまま渡すと\n【字幕入りの横動画】",
+    "size": 88
+   }
+  },
+  {
+   "text": "使えるんは、M1以降の／【Mac】やって",
+   "tts": "使えるんわ、エムワン以降の／マックやって",
+   "shot": "wide",
+   "pose": "pose09",
+   "visual": {
+    "type": "big",
+    "emoji": "💻",
+    "text": "使えるのは\n【M1以降のMac】",
     "size": 96
    }
   },
   {
-   "text": "購入者1人の記録やと、カットや／【字幕】まで済んだらしい",
-   "tts": "購入者ひとりの記録やと、カットや／字幕まで済んだらしい",
-   "shot": "wide",
-   "pose": "pose03",
-   "visual": {
-    "type": "big",
-    "emoji": "💬",
-    "text": "購入者1人の記録\n【字幕】まで",
-    "size": 92
-   }
-  },
-  {
-   "text": "撮るのも話すのも、／最初の【準備】も自分でやるんや",
-   "shot": "close",
-   "pose": "pose04",
-   "visual": {
-    "type": "big",
-    "emoji": "🎙️",
-    "text": "撮る・話す・準備は\n【自分】",
-    "size": 92
-   }
-  },
-  {
-   "text": "使うには、Claude Codeか／【Codex】が要る",
-   "tts": "使うには、クロードコードか／コーデックスがいる",
+   "text": "それに、Claude Codeか／【Codex】が要る",
+   "tts": "それに、クロードコードか／コーデックスがいる",
    "heading": "使う前に",
-   "shot": "wide",
-   "pose": "pose06",
+   "shot": "close",
+   "pose": "face",
    "visual": {
     "type": "big",
-    "emoji": "💻",
+    "emoji": "🧰",
     "text": "Claude Codeか\n【Codex】が必要",
     "size": 88
    }
@@ -143,8 +157,8 @@
   {
    "text": "どっちもAIの道具で、料金は／たいてい【別】やで",
    "tts": "どっちもエーアイの道具で、料金は／たいてい別やで",
-   "shot": "close",
-   "pose": "pose05",
+   "shot": "wide",
+   "pose": "pose10",
    "visual": {
     "type": "big",
     "emoji": "💳",
@@ -153,22 +167,10 @@
    }
   },
   {
-   "text": "その購入者は、Windows向けに／【手直し】したらしい",
-   "tts": "その購入者は、ウィンドウズ向けに／手直ししたらしい",
-   "shot": "wide",
-   "pose": "pose09",
-   "visual": {
-    "type": "big",
-    "emoji": "🪟",
-    "text": "Windows向けに\n【手直し】",
-    "size": 96
-   }
-  },
-  {
    "text": "26年10月の値段は、／【2,980円】や",
    "tts": "二十六年十月の値段は、／二千九百八十円や",
    "shot": "close",
-   "pose": "face",
+   "pose": "pose01",
    "visual": {
     "type": "big",
     "emoji": "🏷️",
@@ -177,25 +179,26 @@
    }
   },
   {
-   "text": "ショートにも使えるかは、／【まだ分からへん】",
+   "text": "縦のショートやなくて、／【横の動画】向けやで",
    "shot": "wide",
    "pose": "pose03",
    "visual": {
     "type": "big",
-    "emoji": "❓",
-    "text": "ショート対応は\n【まだ分からない】",
-    "size": 88
+    "emoji": "↔️",
+    "text": "縦のショートではなく\n【横の動画】向け",
+    "size": 84
    }
   },
   {
-   "text": "これで稼げる話とちゃうで、／【時短】が売りの道具や",
+   "text": "僕はまだ使てへんけど、／【時短】が売りの道具や",
+   "tts": "僕はまだつこてへんけど、／時短が売りの道具や",
    "shot": "close",
    "pose": "pose04",
    "visual": {
     "type": "big",
-    "emoji": "🙅",
-    "text": "稼げる話ではなく\n【時短が売り】",
-    "size": 88
+    "emoji": "⏱️",
+    "text": "時短が売りの\n【道具】",
+    "size": 100
    }
   },
   {

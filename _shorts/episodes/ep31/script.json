@@ -1,0 +1,240 @@
+{
+ "id": "ep31",
+ "theme": "大人のNISAとこどもNISA（2027年1月開始、2026年3月に法律で決定）の違い。こどもNISAはNISAの中にできる0〜17歳用のつみたて枠で、年60万円・上限600万円（大人は年360万円・1,800万円）、成長投資枠はない。申込みを10月から受けている会社もあるが、買えるのは2027年1月から。違い①大人のような金融機関の乗り換え手続きがない→最初によく比べる。②入れたお金は子どものもの、親が出せば贈与、ほかの贈与と合わせて年110万円を超えると贈与税。③いつでもは引き出せない、早くて小6の1月（その年の3月31日に12歳の年）から、子どものための使い道で本人の同意が要る。元本割れはどちらも同じ",
+ "style": "studio",
+ "series": "AI初心者の時短ワザ",
+ "voice": {
+  "engine": "openjtalk",
+  "speed": 1.15,
+  "pitch": 2.5,
+  "intonation": 1.5,
+  "fal_model": "fal-ai/minimax/speech-02-hd",
+  "fal_speed": 1.0,
+  "emotion": "happy"
+ },
+ "sources": [
+  "https://www.fsa.go.jp/policy/nisa2/know/index.html",
+  "https://www.nta.go.jp/publication/pamph/joto-sanrin/r08aramashi.pdf",
+  "https://www.jsda.or.jp/shijyo/seido/tax/files/202609_nisa_qa.pdf",
+  "https://www.nta.go.jp/taxes/shiraberu/taxanswer/zoyo/4402.htm",
+  "https://go.sbisec.co.jp/media/report/nisa_dojo/nisa_dojo_260924.html"
+ ],
+ "lines": [
+  {
+   "text": "大人のNISAとこどもNISA、／何が【ちがう】ん？",
+   "tts": "大人のニーサとこどもニーサ、／何がちがうん？",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🤔",
+    "text": "大人とこどものNISA\n【何がちがう？】",
+    "size": 88
+   }
+  },
+  {
+   "text": "こどもNISAは来年1月から、／【0歳】から使えるんよ",
+   "tts": "こどもニーサは来年いちがつから、／ゼロ歳から使えるんよ",
+   "heading": "2026年10月時点",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "🗓️",
+    "text": "来年1月から\n【0歳】でもOK",
+    "size": 96
+   }
+  },
+  {
+   "text": "申込みを受けてる会社もあるけど、／【買える】のは1月から",
+   "tts": "もうしこみを受けてる会社もあるけど、／買えるのはいちがつから",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "📝",
+    "text": "申込みは受付中でも\n買えるのは【1月から】",
+    "size": 84
+   }
+  },
+  {
+   "text": "中身は、NISAの中にできる／子ども用の【つみたて枠】や",
+   "tts": "中身は、ニーサのなかにできる／子ども用のつみたて枠や",
+   "heading": "どんな制度？",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "big",
+    "emoji": "🧒",
+    "text": "子ども用の\n【つみたて枠】",
+    "size": 96
+   }
+  },
+  {
+   "text": "年60万円、合計600万円で、／大人より【小さい枠】や",
+   "tts": "ねんろくじゅうまんえん、合計ろっぴゃくまんえんで、／大人より小さい枠や",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "list",
+    "title": "こどもNISA（カッコ内は大人）",
+    "items": [
+     "1年の枠：60万円（360万円）",
+     "上限：600万円（1,800万円）",
+     "成長投資枠：【なし】（あり）"
+    ],
+    "show": 2,
+    "hl": null,
+    "title_size": 54
+   }
+  },
+  {
+   "text": "成長投資枠がないから、／【株】を直接は買えへんで",
+   "shot": "wide",
+   "pose": "pose06",
+   "visual": {
+    "type": "list",
+    "title": "こどもNISA（カッコ内は大人）",
+    "items": [
+     "1年の枠：60万円（360万円）",
+     "上限：600万円（1,800万円）",
+     "成長投資枠：【なし】（あり）"
+    ],
+    "show": 3,
+    "hl": 2,
+    "title_size": 54
+   }
+  },
+  {
+   "text": "1つ目は、大人みたいな／【乗り換え】ができへんこと",
+   "tts": "ひとつめは、大人みたいな／乗り換えができへんこと",
+   "heading": "大人とのちがい①",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "🔁",
+    "text": "大人みたいな\n【乗り換え】なし",
+    "size": 92
+   }
+  },
+  {
+   "text": "せやから、どこで作るか／【最初に】よう比べてな",
+   "shot": "wide",
+   "pose": "pose09",
+   "visual": {
+    "type": "big",
+    "emoji": "🔍",
+    "text": "どこで作るか\n【最初に】比べる",
+    "size": 92
+   }
+  },
+  {
+   "text": "2つ目は、入れたお金が／【子どものもの】になること",
+   "tts": "ふたつめは、入れたお金が／子どものものになること",
+   "heading": "ちがい②",
+   "shot": "close",
+   "pose": "pose05",
+   "visual": {
+    "type": "big",
+    "emoji": "👶",
+    "text": "入れたお金は\n【子どものもの】",
+    "size": 92
+   }
+  },
+  {
+   "text": "親が出したお金は、子どもへの／【贈与】って扱いやで",
+   "shot": "wide",
+   "pose": "pose10",
+   "visual": {
+    "type": "big",
+    "emoji": "🎁",
+    "text": "親のお金は\n【贈与】の扱い",
+    "size": 96
+   }
+  },
+  {
+   "text": "ほかの贈与と合わせて年110万円／超えたら【贈与税】や",
+   "tts": "ほかの贈与とあわせて、ねんひゃくじゅうまんえん／超えたら贈与税や",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "🧾",
+    "text": "年110万円を超えたら\n【贈与税】",
+    "size": 88
+   }
+  },
+  {
+   "text": "3つ目は、大人みたいに／【いつでも】は引き出されへん",
+   "tts": "みっつめは、大人みたいに／いつでもはひきだされへん",
+   "heading": "ちがい③",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "🔒",
+    "text": "いつでもは\n【引き出せない】",
+    "size": 96
+   }
+  },
+  {
+   "text": "出せるのは早くて、／【小6の1月】ごろからや",
+   "tts": "だせるのは早くて、／しょうろくのいちがつごろからや",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "🎒",
+    "text": "早くて\n【小6の1月】から",
+    "size": 96
+   }
+  },
+  {
+   "text": "使い道は子どものためで、／【本人の同意】も要るで",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "big",
+    "emoji": "✍️",
+    "text": "子どものために\n【本人の同意】",
+    "size": 92
+   }
+  },
+  {
+   "text": "元本割れもあるのは、／大人もこどもも【同じ】やで",
+   "heading": "どっちも同じ",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "📉",
+    "text": "元本割れは\n【大人も同じ】",
+    "size": 96
+   }
+  },
+  {
+   "text": "保存して、申し込む前に／【見返して】な",
+   "shot": "wide",
+   "pose": "pose02",
+   "visual": {
+    "type": "cta",
+    "emoji": "📩",
+    "text": "申し込む前に\n【見返して】な",
+    "size": 100,
+    "bounce": true
+   }
+  },
+  {
+   "text": "じゃあもう一回、／最初の質問に戻るね",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🤔",
+    "text": "大人とこどものNISA\n【何がちがう？】",
+    "size": 88
+   }
+  }
+ ]
+}

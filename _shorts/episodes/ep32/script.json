@@ -1,0 +1,269 @@
+{
+ "id": "ep32",
+ "theme": "AIバブル論と新NISA。『AIバブル崩壊』の動画を見て売りたくなった人へ、起きたことと予想を分ける。10/15の日経平均は3318円安で円では歴代3位だが率では約5%、10/22は約3か月ぶりの安値（2026年10月22日時点）。きっかけの1つはAIデータセンター企業の借金への心配で、破綻は決まっていない。IMFは10月の報告でAI株の調整をリスクの1つとしたが崩壊とは言っていない。崩壊もまだ上がるもどちらも予想。自分のNISAの中身（全世界株やS&P500の上位は大きいIT企業、月次レポートの組入上位10銘柄）を見る。売った枠は翌年に買値の分だけ戻る、NISAの損はほかの利益と相殺できない。損を取り戻せるという誘いはまず疑う。売買のすすめ・予想はしない",
+ "style": "studio",
+ "series": "AI初心者の時短ワザ",
+ "voice": {
+  "engine": "openjtalk",
+  "speed": 1.15,
+  "pitch": 2.5,
+  "intonation": 1.5,
+  "fal_model": "fal-ai/minimax/speech-02-hd",
+  "fal_speed": 1.0,
+  "emotion": "happy"
+ },
+ "sources": [
+  "https://www.nikkei.com/article/DGXZQOFL2255X0S6A021C2000000/",
+  "https://kabutan.jp/news/marketnews/?b=n202610160962",
+  "https://www.cnbc.com/2026/10/19/coreweave-oracle-ai-credit-stress.html",
+  "https://www.imf.org/en/blogs/articles/2026/10/12/global-financial-markets-face-rising-risks-from-ai-bond-yields-and-cyberattacks",
+  "https://www.fsa.go.jp/policy/nisa2/",
+  "https://www.npa.go.jp/bureau/safetylife/sos47/new-topics/261002/01.html"
+ ],
+ "lines": [
+  {
+   "text": "「AIバブル崩壊」って見て、／NISA【売りたなった】？",
+   "tts": "エーアイバブル崩壊って見て、／ニーサ売りたなった？",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🫧",
+    "text": "AIバブル崩壊？\n【NISA売る前に】",
+    "size": 88
+   }
+  },
+  {
+   "text": "先に、起きたことと／【予想】を分けよか",
+   "heading": "2026年10月22日時点",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "✂️",
+    "text": "起きたこと と\n【予想】を分ける",
+    "size": 92
+   }
+  },
+  {
+   "text": "10月15日、日経平均は／【3318円】下がった",
+   "tts": "じゅうがつじゅうごにち、日経平均は／さんぜんさんびゃくじゅうはちえん下がった",
+   "heading": "起きたこと",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "list",
+    "title": "起きたこと（日経平均）",
+    "items": [
+     "10/15：3,318円安（約5%）",
+     "10/22：約3か月ぶりの安値"
+    ],
+    "show": 1,
+    "hl": null,
+    "title_size": 54
+   }
+  },
+  {
+   "text": "下げ幅は円で歴代3位、／率にすると【約5%】や",
+   "tts": "下げ幅は円で歴代さんい、／率にするとやくごパーセントや",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "list",
+    "title": "起きたこと（日経平均）",
+    "items": [
+     "10/15：3,318円安（約5%）",
+     "10/22：約3か月ぶりの安値"
+    ],
+    "show": 1,
+    "hl": 0,
+    "title_size": 54
+   }
+  },
+  {
+   "text": "10月22日は、約3か月ぶりの／【安値】まで下げてる",
+   "tts": "じゅうがつにじゅうににちは、やくさんかげつぶりの／安値まで下げてる",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "list",
+    "title": "起きたこと（日経平均）",
+    "items": [
+     "10/15：3,318円安（約5%）",
+     "10/22：約3か月ぶりの安値"
+    ],
+    "show": 2,
+    "hl": 1,
+    "title_size": 54
+   }
+  },
+  {
+   "text": "きっかけの1つは、AIの会社の／【借金】への心配や",
+   "tts": "きっかけのひとつは、エーアイの会社の／借金への心配や",
+   "shot": "wide",
+   "pose": "pose06",
+   "visual": {
+    "type": "big",
+    "emoji": "🏦",
+    "text": "AIの会社の\n【借金】への心配",
+    "size": 92
+   }
+  },
+  {
+   "text": "ただ、その会社の【破綻】は／決まってへんで",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "🚫",
+    "text": "破綻は\n【決まってない】",
+    "size": 96
+   }
+  },
+  {
+   "text": "IMFも、AI株の【調整】は／リスクの1つって言うてる",
+   "tts": "アイエムエフも、エーアイ株の調整は／リスクのひとつってゆうてる",
+   "heading": "IMFの報告（10月）",
+   "shot": "wide",
+   "pose": "pose09",
+   "visual": {
+    "type": "big",
+    "emoji": "🌐",
+    "text": "IMF：AI株の調整は\n【リスクの1つ】",
+    "size": 84
+   }
+  },
+  {
+   "text": "「崩壊する」とまでは／【言うてへん】ねん",
+   "tts": "崩壊するとまでは／ゆうてへんねん",
+   "shot": "close",
+   "pose": "pose05",
+   "visual": {
+    "type": "big",
+    "emoji": "🙅",
+    "text": "「崩壊」とは\n【言ってない】",
+    "size": 96
+   }
+  },
+  {
+   "text": "「崩壊」も「まだ上がる」も、／どっちも【予想】や",
+   "tts": "崩壊も、まだ上がるも、／どっちも予想や",
+   "shot": "wide",
+   "pose": "pose10",
+   "visual": {
+    "type": "big",
+    "emoji": "🔮",
+    "text": "どっちも\n【予想】",
+    "size": 100
+   }
+  },
+  {
+   "text": "次に、自分のNISAの／【中身】を見てみて",
+   "tts": "次に、自分のニーサの／中身を見てみて",
+   "heading": "確かめる①中身",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "🔍",
+    "text": "自分のNISAの\n【中身】",
+    "size": 96
+   }
+  },
+  {
+   "text": "全世界株もS&P500も、／上位は【大きいIT企業】や",
+   "tts": "全世界株もエスアンドピーごひゃくも、／上位は大きいアイティー企業や",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "🏢",
+    "text": "上位は\n【大きいIT企業】",
+    "size": 92
+   }
+  },
+  {
+   "text": "月次レポートの／【組入上位10銘柄】で分かるで",
+   "tts": "げつじレポートの／くみいれじょうい、じゅうめいがらで分かるで",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "📄",
+    "text": "月次レポートの\n【組入上位10銘柄】",
+    "size": 88
+   }
+  },
+  {
+   "text": "売った枠が戻るんは翌年、／しかも【買った値段】の分や",
+   "tts": "売った枠が戻るんわ翌年、／しかも買った値段のぶんや",
+   "heading": "確かめる②ルール",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "list",
+    "title": "NISAのルール",
+    "items": [
+     "売った枠：翌年に【買値分】戻る",
+     "損：ほかと【相殺できない】"
+    ],
+    "show": 1,
+    "hl": 0,
+    "title_size": 54
+   }
+  },
+  {
+   "text": "NISAの損は、ほかの利益と／【相殺】できへんで",
+   "tts": "ニーサの損は、ほかの利益と／相殺できへんで",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "list",
+    "title": "NISAのルール",
+    "items": [
+     "売った枠：翌年に【買値分】戻る",
+     "損：ほかと【相殺できない】"
+    ],
+    "show": 2,
+    "hl": 1,
+    "title_size": 54
+   }
+  },
+  {
+   "text": "「損を取り戻せる」誘いは、／【まず疑って】な",
+   "tts": "損を取り戻せるって誘いは、／まず疑ってな",
+   "heading": "注意！",
+   "shot": "wide",
+   "pose": "pose06",
+   "visual": {
+    "type": "big",
+    "emoji": "⚠️",
+    "text": "「取り戻せる」は\n【まず疑う】",
+    "size": 92
+   }
+  },
+  {
+   "text": "慌てる前に、保存して／【見返して】な",
+   "shot": "close",
+   "pose": "pose02",
+   "visual": {
+    "type": "cta",
+    "emoji": "📌",
+    "text": "慌てる前に\n【見返して】な",
+    "size": 100,
+    "bounce": true
+   }
+  },
+  {
+   "text": "じゃあもう一回、／最初の質問に戻るね",
+   "shot": "wide",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🫧",
+    "text": "AIバブル崩壊？\n【NISA売る前に】",
+    "size": 88
+   }
+  }
+ ]
+}

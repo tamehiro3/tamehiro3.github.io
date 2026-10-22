@@ -138,22 +138,10 @@
    }
   },
   {
-   "text": "「崩壊する」とまでは／【言うてへん】ねん",
-   "tts": "崩壊するとまでは／ゆうてへんねん",
-   "shot": "close",
-   "pose": "pose05",
-   "visual": {
-    "type": "big",
-    "emoji": "🙅",
-    "text": "「崩壊」とは\n【言ってない】",
-    "size": 96
-   }
-  },
-  {
    "text": "「崩壊」も「まだ上がる」も、／どっちも【予想】や",
    "tts": "崩壊も、まだ上がるも、／どっちも予想や",
-   "shot": "wide",
-   "pose": "pose10",
+   "shot": "close",
+   "pose": "pose05",
    "visual": {
     "type": "big",
     "emoji": "🔮",
@@ -165,8 +153,8 @@
    "text": "せやから、NISAの投資信託の／【中身】を確かめてな",
    "tts": "せやから、ニーサの投資信託の／中身を確かめてな",
    "heading": "確かめる①中身：日経平均と別",
-   "shot": "close",
-   "pose": "face",
+   "shot": "wide",
+   "pose": "pose10",
    "visual": {
     "type": "big",
     "emoji": "🔍",
@@ -177,8 +165,8 @@
   {
    "text": "全世界株もS&P500も、／上位は【IT大手】が多いで",
    "tts": "全世界株もエスアンドピーごひゃくも、／上位はアイティー大手が多いで",
-   "shot": "wide",
-   "pose": "pose03",
+   "shot": "close",
+   "pose": "face",
    "visual": {
     "type": "big",
     "emoji": "🏢",
@@ -189,8 +177,8 @@
   {
    "text": "月次レポートの／【上位10銘柄】に載ってるで",
    "tts": "げつじレポートの／上位じゅう銘柄に載ってるで",
-   "shot": "close",
-   "pose": "pose01",
+   "shot": "wide",
+   "pose": "pose03",
    "visual": {
     "type": "big",
     "emoji": "📄",
@@ -202,8 +190,8 @@
    "text": "一生の枠は、売った翌年に／【買った値段】の分が戻るで",
    "tts": "一生の枠は、売った翌年に／買った値段のぶんが戻るで",
    "heading": "確かめる②ルール",
-   "shot": "wide",
-   "pose": "pose08",
+   "shot": "close",
+   "pose": "pose01",
    "visual": {
     "type": "list",
     "title": "NISAのルール",
@@ -221,8 +209,8 @@
   {
    "text": "NISAの損は、ほかの儲けと／【差し引き】できへんで",
    "tts": "ニーサの損は、ほかの儲けと／差し引きできへんで",
-   "shot": "close",
-   "pose": "pose04",
+   "shot": "wide",
+   "pose": "pose08",
    "visual": {
     "type": "list",
     "title": "NISAのルール",
@@ -240,8 +228,8 @@
   {
    "text": "「損を取り戻せる」って誘いは、／【まず疑って】な",
    "tts": "損を取り戻せるって誘いは、／まず疑ってな",
-   "shot": "wide",
-   "pose": "pose06",
+   "shot": "close",
+   "pose": "pose04",
    "visual": {
     "type": "big",
     "emoji": "⚠️",
@@ -252,7 +240,7 @@
   {
    "text": "決める前に、保存して／【見返して】な",
    "heading": "売る・持つは自分で決める",
-   "shot": "close",
+   "shot": "wide",
    "pose": "pose02",
    "visual": {
     "type": "cta",
@@ -264,7 +252,7 @@
   },
   {
    "text": "じゃあもう一回、／最初の質問に戻るね",
-   "shot": "wide",
+   "shot": "close",
    "pose": "face",
    "visual": {
     "type": "title",

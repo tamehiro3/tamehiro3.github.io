@@ -324,7 +324,16 @@ def main():
         if engine == "openjtalk":
             x = openjtalk(text, cfg)
         else:
-            x, note = fal_line(text, cfg, voice_id, check=not a.no_filler_check)
+            try:
+                x, note = fal_line(text, cfg, voice_id, check=not a.no_filler_check)
+            except Exception as e:
+                if "content_policy_violation" not in str(e):
+                    raise
+                done = " ".join(str(k) for k in range(1, i) if not a.only or k in a.only)
+                raise SystemExit(
+                    f"\n文 {i}「{text}」が、fal の内容チェックで止められました（誤判定のことが多い）。\n"
+                    f"この文の言い回しを変えてから、文 {i} 以降だけ作り直してください。\n"
+                    + (f"（文 {done} の音声はできています。--lines {i} ... のように、残りの番号だけ指定できます）" if done else ""))
             if note.startswith("要確認"):
                 suspects.append(i)
         x = normalize(trim(x))
@@ -335,6 +344,8 @@ def main():
                               "raw_dur": round(len(x) / SR, 3), "raw_bounds": bounds}
         if note:
             timing[f"{i:02d}"]["filler"] = note
+        # 1文ごとに保存する（途中で止まっても、できた文はあとで使い回せる）
+        timing_path.write_text(encoding="utf-8", data=json.dumps(timing, ensure_ascii=False, indent=1))
         print(f"{i:02d} {len(x) / SR:5.2f}s {text}" + (f"  ← {note}" if note else ""), flush=True)
     n = len(script["lines"])
     timing = {k: v for k, v in timing.items() if int(k) <= n}      # 文を減らしたときの古い分を消す

@@ -314,6 +314,14 @@ def main():
                              "  python tools/fal_api.py approve")
     voice_id = fal_voice_id(ep, cfg) if engine == "fal" else None
 
+    if a.only:
+        # 指定された文に加えて、音声がまだ無い文（sync_audio.py で外れた文など）も作る。
+        # 足りないまま進むと、動画の書き出しで止まるため
+        missing = [i for i in range(1, len(script["lines"]) + 1)
+                   if i not in a.only and (f"{i:02d}" not in timing or not (out / f"line_{i:02d}.wav").exists())]
+        if missing:
+            print(f"音声がまだ無い文 {' '.join(map(str, missing))} も作ります", flush=True)
+            a.only = sorted(set(a.only) | set(missing))
     suspects = []
     for i, line in enumerate(script["lines"], 1):
         if a.only and i not in a.only:

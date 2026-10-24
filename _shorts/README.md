@@ -107,3 +107,26 @@ python tools/analyze.py improve/metrics_ep01.csv   # 投稿後の数字から改
 点検には「E フィラー・AIっぽさ」（文字起こしに残った「えー」「えっと」、キャプションの AI っぽい言い回し）も入っている。
 
 無料の Discord は1ファイル10MBまでなので、送る用に圧縮した `out/epXX_discord.mp4`（720p）を作って送る。投稿には元の `epXX.mp4` を使う。
+
+## 作るときのいつものコマンド（Windows）
+
+```powershell
+cd C:\Users\3mori\SNS\tamehiro3.github.io\_shorts
+git pull origin claude/elegant-ptolemy-g22cz9
+python tools/make.py ep32 --engine fal --discord
+```
+
+台本を直したあとも、この3行だけでよい。2回目からは、前に作った音声のうち読みが変わっていない文をそのまま使い、
+読みが変わった文・新しい文・音声が無い文だけを作る（文を消して番号がずれても、自動で付け直す）。
+全部作り直したいときだけ `--all` を付ける。
+
+## 止まったとき（これまでに起きた原因と対策）
+
+| 表示 | 原因 | どうするか |
+|---|---|---|
+| `尺 61.4s（55〜60秒に）` | 本番の声は仮の声より3〜6%長い。話す速さの調整は1.10倍まで | 台本を1文減らすか短くしてもらう。仮の声で作るときは、`make.py` が「本番の声では約○秒の見込み」と先に知らせる |
+| `content_policy_violation`（`文 N「…」が、fal の内容チェックで止められました`） | fal の内容チェックの誤判定（例：「自分の…中身を見てみて」） | その文の言い回しを変えてもらい、同じコマンドをもう一度実行する（できた文はそのまま使う） |
+| `KeyError: '03'`（動画の書き出し） | 台本を直したあと、一部の文だけ音声を作ったので、足りない文があった | 直した。今は足りない文を自動で作るので、同じコマンドをもう一度実行する |
+| `音声から聞き取れない文がある` | 英字の略語や長い音（エスアンドピー、アイティー など）が崩れた | その文を、声で崩れにくい言い方（「米国株」「AI関連」など）に変えてもらう |
+| `can't open file …\episodes\tools\make.py` | `_shorts` ではなく `episodes` フォルダで実行した | `cd C:\Users\3mori\SNS\tamehiro3.github.io\_shorts` してから実行する |
+| 直したはずなのに同じところで止まる | `git pull` をしていない | 毎回 `git pull origin claude/elegant-ptolemy-g22cz9` から始める |

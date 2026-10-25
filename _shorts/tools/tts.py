@@ -204,6 +204,10 @@ def normalize(x: np.ndarray, target_rms_db=-18.0) -> np.ndarray:
     return y / peak * 0.95 if peak > 0.95 else y
 
 
+# ／で区切った1かたまりを出す最短の秒数。尺合わせで最大1.10倍速くしても0.5秒を切らない長さ
+MIN_CHUNK = 0.6
+
+
 def chunk_bounds(x: np.ndarray, chunks: list[str], cfg: dict) -> list[float]:
     """／区切りの境目の時刻（秒）。Open JTalk の各チャンク単体の長さを比率に使い、近くの無音に吸着させる"""
     if len(chunks) == 1:
@@ -224,6 +228,14 @@ def chunk_bounds(x: np.ndarray, chunks: list[str], cfg: dict) -> list[float]:
         lo, hi = max(1, c - 18), min(n - 1, c + 18)
         k = lo + int(np.argmin(rms[lo:hi]))
         out.append(round(k * 0.01, 3))
+    # どの区切りも MIN_CHUNK 秒は出す（短い言葉が最後に来ると、表示が0.5秒を切って点検で止まるため）。
+    # 少し早めに出るだけで、声とのずれは小さい。文が短すぎて全部は守れないときは、そのまま
+    m = len(chunks)
+    if total >= MIN_CHUNK * m:
+        prev = 0.0
+        for j in range(m - 1):
+            b = min(max(out[j], MIN_CHUNK * (j + 1)), total - MIN_CHUNK * (m - 1 - j))
+            out[j] = prev = round(max(b, prev + MIN_CHUNK), 3)
     return out
 
 
@@ -264,6 +276,12 @@ def fit_length(script: dict, timing: dict, out: Path) -> float:
         if not raw.exists():                      # 以前の版で作った文は、今の音声を元として扱う
             shutil.copy(out / f"line_{k}.wav", raw)
             timing[k]["raw_dur"], timing[k]["raw_bounds"] = timing[k]["dur"], timing[k]["bounds"]
+        # 読みはそのままで／の位置だけ変えた文は、音声を使い回すので、区切りの時刻だけ計り直す（お金はかからない）
+        chunks = tts_chunks(script["lines"][i - 1])
+        if timing[k].get("chunks") != chunks:
+            x, _ = sf.read(raw, dtype="float32")
+            timing[k]["raw_bounds"] = chunk_bounds(x, chunks, script.get("voice", {}))
+            timing[k]["chunks"] = chunks
         timing[k]["dur"], timing[k]["bounds"] = timing[k]["raw_dur"], timing[k]["raw_bounds"]
     total = predicted_total(script, timing)
     speech = sum(timing[f"{i:02d}"]["dur"] for i in range(1, n + 1))
@@ -348,8 +366,8 @@ def main():
         sf.write(out / f"line_{i:02d}.wav", x, SR)
         sf.write(out / f"line_{i:02d}_raw.wav", x, SR)
         bounds = chunk_bounds(x, chunks, cfg)
-        timing[f"{i:02d}"] = {"engine": engine, "tts": text, "dur": round(len(x) / SR, 3), "bounds": bounds,
-                              "raw_dur": round(len(x) / SR, 3), "raw_bounds": bounds}
+        timing[f"{i:02d}"] = {"engine": engine, "tts": text, "chunks": chunks, "dur": round(len(x) / SR, 3),
+                              "bounds": bounds, "raw_dur": round(len(x) / SR, 3), "raw_bounds": bounds}
         if note:
             timing[f"{i:02d}"]["filler"] = note
         # 1文ごとに保存する（途中で止まっても、できた文はあとで使い回せる）

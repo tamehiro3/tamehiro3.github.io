@@ -475,6 +475,8 @@ def check_script(script, tl, rep):
         rows.append({"i": i, "chars": n, "text": t})
         if not 14 <= n <= 25:
             issues.append(f"{i:02d}: {n}文字（20文字前後に）")
+        if ln.get("tts") and ln["tts"].count("／") != ln["text"].count("／"):
+            issues.append(f"{i:02d}: 表示と読み（tts）で／の数がちがう（テロップの切り替えが声とずれる。同じ位置に／を入れる）")
         for w in AI_WORDS:
             if w in t:
                 issues.append(f"{i:02d}: AIっぽい言い回し「{w}」")

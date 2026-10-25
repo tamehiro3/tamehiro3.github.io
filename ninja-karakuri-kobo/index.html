@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <title>ニンジャからくり工房 | 忍者の試験を作って、友だちの攻略で完成させよう</title>
+  <meta name="description" content="30〜90秒の忍者試験を遊んで、作って、友だちに攻略してもらうアスレチック・パズル。CryptoNinja の忍者39体が試験官。課金・ガチャ・スタミナなし。CryptoNinja 非公式ファンゲーム（試作版）。">
+  <meta name="theme-color" content="#4a2f25">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="からくり工房">
+  <link rel="stylesheet" href="style.css?v=1">
+</head>
+<body>
+  <div id="app" aria-live="polite">
+    <!-- 工房の入口（タイトル） -->
+    <section id="scr-home" class="screen home"></section>
+    <!-- 試験を選ぶ -->
+    <section id="scr-catalog" class="screen"></section>
+    <!-- 遊ぶ -->
+    <section id="scr-play" class="screen play">
+      <canvas id="play-cv" aria-label="試験の画面"></canvas>
+      <div class="hud">
+        <button class="hud-btn" id="btn-pause" aria-label="とめる">Ⅱ</button>
+        <div class="hud-mid">
+          <div class="hud-title" id="hud-title"></div>
+          <div class="hud-time"><span id="hud-time">120</span><small>秒</small></div>
+        </div>
+        <div class="hud-right">
+          <div class="hud-jutsu" id="hud-jutsu" title="水渡りの術の回数"></div>
+          <button class="hud-btn" id="btn-retry" aria-label="はじめからやり直す">↺</button>
+        </div>
+      </div>
+      <div class="jutsu-bar" id="jutsu-bar"><i></i></div>
+      <div class="say" id="play-say" hidden></div>
+      <div class="pad" id="pad">
+        <div class="pad-l">
+          <button class="pbtn" data-k="L" aria-label="ひだり">◀</button>
+          <button class="pbtn" data-k="R" aria-label="みぎ">▶</button>
+        </div>
+        <div class="pad-r">
+          <button class="pbtn pbtn-t" data-k="T" aria-label="術">術<small id="pad-charges"></small></button>
+          <button class="pbtn pbtn-j" data-k="J" aria-label="ジャンプ">ジャンプ</button>
+        </div>
+      </div>
+      <div class="overlay" id="play-over" hidden></div>
+    </section>
+    <!-- 工房（自分の作品） -->
+    <section id="scr-workshop" class="screen"></section>
+    <!-- 作る -->
+    <section id="scr-editor" class="screen editor">
+      <div class="ed-top">
+        <button class="tb" id="ed-back" aria-label="もどる">←</button>
+        <button class="tb" id="ed-undo" aria-label="取り消し">↶</button>
+        <button class="tb" id="ed-redo" aria-label="やり直し">↷</button>
+        <div class="seg" id="ed-tools">
+          <button data-tool="place" class="on">置く</button><button data-tool="select">えらぶ</button><button data-tool="erase">消す</button>
+        </div>
+        <button class="tb" id="ed-rotate" aria-label="回転">⟳</button>
+        <button class="tb" id="ed-delete" aria-label="削除">🗑</button>
+        <span class="grow"></span>
+        <button class="tb tb-w" id="ed-suggest">提案</button>
+        <button class="tb tb-w" id="ed-check">検証</button>
+        <button class="tb tb-w tb-go" id="ed-test">▶ テスト</button>
+        <button class="tb" id="ed-menu" aria-label="メニュー">≡</button>
+      </div>
+      <div class="ed-info" id="ed-info"></div>
+      <div class="ed-body">
+        <div class="ed-palette" id="ed-palette"></div>
+        <div class="ed-stage">
+          <div class="ed-mini" id="ed-mini"><canvas id="ed-mini-cv"></canvas></div>
+          <canvas id="ed-cv" aria-label="作る試験のマス目"></canvas>
+        </div>
+        <div class="ed-inspector" id="ed-inspector"></div>
+      </div>
+    </section>
+    <!-- 分析 -->
+    <section id="scr-analysis" class="screen"></section>
+    <!-- 試験官名鑑 -->
+    <section id="scr-roster" class="screen"></section>
+    <!-- 身じたく（着がえ・店） -->
+    <section id="scr-dress" class="screen"></section>
+    <!-- 記録 -->
+    <section id="scr-records" class="screen"></section>
+    <!-- 設定 -->
+    <section id="scr-settings" class="screen"></section>
+    <!-- 運営画面（試作の確認用） -->
+    <section id="scr-operator" class="screen"></section>
+  </div>
+  <div class="modal" id="modal" hidden><div class="modal-box" id="modal-box" role="dialog" aria-modal="true"></div></div>
+  <div class="guide" id="guide" hidden></div>
+  <div class="toast" id="toast" hidden></div>
+  <noscript><p style="padding:16px">このゲームを遊ぶには JavaScript を有効にしてください。</p></noscript>
+
+  <script src="data.js?v=1"></script>
+  <script src="engine.js?v=1"></script>
+  <script src="rules.js?v=1"></script>
+  <script src="store.js?v=1"></script>
+  <script src="art.js?v=1"></script>
+  <script src="chars.js?v=1"></script>
+  <script src="stages.js?v=1"></script>
+  <script src="solutions.js?v=1"></script>
+  <script src="render.js?v=1"></script>
+  <script src="sound.js?v=1"></script>
+  <script src="play.js?v=1"></script>
+  <script src="editor.js?v=1"></script>
+  <script src="ui.js?v=1"></script>
+  <script src="tutorial.js?v=1"></script>
+</body>
+</html>

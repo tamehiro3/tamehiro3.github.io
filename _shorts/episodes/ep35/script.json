@@ -1,0 +1,246 @@
+{
+ "id": "ep35",
+ "theme": "ビットコイン8万ドル攻防の読み方。『攻防』『死守』はキリのいい数字の近くで上下していることを言っているだけ。10月は8日と15日ごろに8万ドル近くまで下げる場面があり、10/23ごろは約8.1万ドル（報道）。最高値は2025/10/6の約12.6万ドルで、今は約35%下、最高値に戻るには約55%の値上がりが要る計算（予想ではなく割り算）。ニュースの数字はドル建てで、同じドルの値段でも円安なら円では高く、円高と値下がりが重なると円での損は大きくなる。次の節目の線は見る人でバラバラで、『割ったら暴落』『守れば上がる』はどちらも予想。下がった時ほど『取り返せる』DMに注意、引き出しに『税金』『保証金』を求めるのは詐欺のサイン、困ったら188。売買のすすめ・値動きの予想はしない",
+ "style": "studio",
+ "series": "AI初心者の時短ワザ",
+ "voice": {
+  "engine": "openjtalk",
+  "speed": 1.15,
+  "pitch": 2.5,
+  "intonation": 1.5,
+  "fal_model": "fal-ai/minimax/speech-02-hd",
+  "fal_speed": 1.0,
+  "emotion": "happy"
+ },
+ "sources": [
+  "https://coinpost.jp/crypto/bitcoin/price-outlook/",
+  "https://cryptoslate.com/bitcoin-crashes-through-81000-buy-wall-as-1-billion-crypto-liquidation-bloodbath-unfolds/",
+  "https://www.fxstreet.com/cryptocurrencies/news/bitcoin-falls-4-as-chip-stocks-plunge-67-and-oil-surges-202610222333",
+  "https://www.keishicho.metro.tokyo.lg.jp/sodan/nettrouble/jirei/cryptocurrency_fraud.html",
+  "https://www.kokusen.go.jp/soudan_topics/data/crypto.html"
+ ],
+ "lines": [
+  {
+   "text": "BTC8万ドル攻防って、／誰と誰が【戦ってん】の？",
+   "tts": "ビットコインはちまんドル攻防って、／誰と誰が戦ってんの？",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🪙",
+    "text": "BTC8万ドル攻防\n【どう読む？】",
+    "size": 88
+   }
+  },
+  {
+   "text": "戦ってへん。キリのええ／【数字】の近くで上下してるだけ",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "🎯",
+    "text": "キリのええ\n【数字】の近く",
+    "size": 96
+   }
+  },
+  {
+   "text": "10月は8日と15日ごろに、／【8万ドル】近くまで下げた",
+   "tts": "じゅうがつは、ようかと、じゅうごにちごろに、／はちまんドル近くまで下げた",
+   "heading": "起きたこと（報道）",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "list",
+    "title": "ビットコイン（ドル建て・報道）",
+    "items": [
+     "最高値（去年10月）：約12.6万ドル",
+     "10/23ごろ：約8.1万ドル"
+    ],
+    "show": 1,
+    "hl": null,
+    "title_size": 52,
+    "size": 46
+   }
+  },
+  {
+   "text": "23日ごろも、／【約8.1万ドル】や",
+   "tts": "にじゅうさんにちごろも、／やくはちてんいち万ドルや",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "list",
+    "title": "ビットコイン（ドル建て・報道）",
+    "items": [
+     "最高値（去年10月）：約12.6万ドル",
+     "10/23ごろ：約8.1万ドル"
+    ],
+    "show": 2,
+    "hl": 1,
+    "title_size": 52,
+    "size": 46
+   }
+  },
+  {
+   "text": "最高値は去年10月の、／約【12.6万ドル】やった",
+   "tts": "最高値は去年じゅうがつの、／やくじゅうにてんろく万ドルやった",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "list",
+    "title": "ビットコイン（ドル建て・報道）",
+    "items": [
+     "最高値（去年10月）：約12.6万ドル",
+     "10/23ごろ：約8.1万ドル"
+    ],
+    "show": 2,
+    "hl": 0,
+    "title_size": 52,
+    "size": 46
+   }
+  },
+  {
+   "text": "そこから見たら、今は／約【35%】下や",
+   "tts": "そこから見たら、今は／やくさんじゅうごパーセント下や",
+   "heading": "割り算のしくみ",
+   "shot": "wide",
+   "pose": "pose06",
+   "visual": {
+    "type": "list",
+    "title": "割り算のしくみ（計算値）",
+    "items": [
+     "最高値→今：約35%下",
+     "今→最高値：約55%上が必要"
+    ],
+    "show": 1,
+    "hl": null,
+    "title_size": 54,
+    "size": 50
+   }
+  },
+  {
+   "text": "最高値に戻るには、／【約55%】上がる計算や",
+   "tts": "最高値に戻るには、／やくごじゅうごパーセント上がる計算や",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "list",
+    "title": "割り算のしくみ（計算値）",
+    "items": [
+     "最高値→今：約35%下",
+     "今→最高値：約55%上が必要"
+    ],
+    "show": 2,
+    "hl": 1,
+    "title_size": 54,
+    "size": 50
+   }
+  },
+  {
+   "text": "それに、ニュースの数字は／【ドル建て】やで",
+   "heading": "円で見ると",
+   "shot": "wide",
+   "pose": "pose09",
+   "visual": {
+    "type": "big",
+    "emoji": "💵",
+    "text": "ニュースの数字は\n【ドル建て】",
+    "size": 92
+   }
+  },
+  {
+   "text": "同じ8万ドルでも、円安やと／円で見た値段は【高くなる】",
+   "tts": "同じはちまんドルでも、円安やと／円で見た値段は高くなる",
+   "shot": "close",
+   "pose": "pose05",
+   "visual": {
+    "type": "big",
+    "emoji": "💱",
+    "text": "円安なら\n円での値段は【高く】",
+    "size": 88
+   }
+  },
+  {
+   "text": "円高と値下がりが重なると、／円での損は【大きくなる】",
+   "shot": "wide",
+   "pose": "pose10",
+   "visual": {
+    "type": "big",
+    "emoji": "📉",
+    "text": "円高＋値下がり\n【損は大きく】",
+    "size": 92
+   }
+  },
+  {
+   "text": "次の節目の線は、見る人で／【バラバラ】やねん",
+   "heading": "見方（意見）",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "📏",
+    "text": "節目の線は\n【人によってバラバラ】",
+    "size": 84
+   }
+  },
+  {
+   "text": "「割ったら暴落」も「守れば上がる」も、／【予想】やで",
+   "tts": "割ったら暴落も、守れば上がるも、／予想やで",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "🔮",
+    "text": "どっちも\n【予想】",
+    "size": 100
+   }
+  },
+  {
+   "text": "下がった時ほど、「取り返せる」／【DM】に気ぃつけて",
+   "tts": "下がった時ほど、取り返せる／ディーエムに気ぃつけて",
+   "heading": "騙されない",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "⚠️",
+    "text": "「取り返せる」DMに\n【気をつけて】",
+    "size": 84
+   }
+  },
+  {
+   "text": "引き出すのに「税金払え」は、／【詐欺】のサインやで",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "big",
+    "emoji": "🚨",
+    "text": "引き出しに「税金」\n【詐欺のサイン】",
+    "size": 84
+   }
+  },
+  {
+   "text": "困ったら188に相談、／【保存】しといてな",
+   "tts": "困ったら、いちはちはちに相談、／保存しといてな",
+   "shot": "close",
+   "pose": "pose02",
+   "visual": {
+    "type": "cta",
+    "emoji": "📌",
+    "text": "困ったら188\n【保存】しといてな",
+    "size": 100,
+    "bounce": true
+   }
+  },
+  {
+   "text": "じゃあもう一回、／最初の質問に戻るね",
+   "shot": "wide",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🪙",
+    "text": "BTC8万ドル攻防\n【どう読む？】",
+    "size": 88
+   }
+  }
+ ]
+}

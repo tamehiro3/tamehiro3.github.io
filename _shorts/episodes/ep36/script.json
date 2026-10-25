@@ -1,0 +1,215 @@
+{
+ "id": "ep36",
+ "theme": "AIバブル懸念と暗号資産の連動。10/22（米国時間）に米国の半導体株の指数が6.7%下げ、同じ日にビットコインも約4%下げた（報道）。一方、10月中旬にナスダックが大きく下げた週にビットコインは約2%安にとどまった（K33リサーチ、10/21報道）。一緒に動く強さは時期で変わり、K33によると8〜9月に弱まって10月にまた強まった。一緒に動いても原因とは限らない。専門家の見方もバラバラで、『AIが最大のリスク』も『関係ない』も予想。ビットコインのマイニング企業がAI向けの仕事を始めていて（電気・土地・冷却設備）、上場マイニング企業のAI・HPC向け契約はCoinShares集計で700億ドル超。分散のつもりでも同じ日に両方下がることがある。株も暗号資産も合わせて財布の何割か確かめる。売買のすすめ・値動きの予想はしない",
+ "style": "studio",
+ "series": "AI初心者の時短ワザ",
+ "voice": {
+  "engine": "openjtalk",
+  "speed": 1.15,
+  "pitch": 2.5,
+  "intonation": 1.5,
+  "fal_model": "fal-ai/minimax/speech-02-hd",
+  "fal_speed": 1.0,
+  "emotion": "happy"
+ },
+ "sources": [
+  "https://www.fxstreet.com/cryptocurrencies/news/bitcoin-falls-4-as-chip-stocks-plunge-67-and-oil-surges-202610222333",
+  "https://www.theblock.co/news/markets/2026-10-21-bitcoin-volatility-nears-2026-lows-as-traders-brace-for-fed-decision-and-us-midterms-421524",
+  "https://coinshares.com/corp/insights/research-data/bitcoin-mining-report-q1-2026/",
+  "https://www.tradingview.com/news/cointelegraph:3c6dbf2fd094b:0-tether-ceo-says-ai-bubble-is-bitcoin-s-biggest-risk-in-2026/"
+ ],
+ "lines": [
+  {
+   "text": "AI株がコケたら、／ビットコインも【コケる】ん？",
+   "tts": "エーアイ株がコケたら、／ビットコインもコケるん？",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🤖",
+    "text": "AI株安と\n【ビットコイン】",
+    "size": 92
+   }
+  },
+  {
+   "text": "10月22日、米国の半導体株の／指数が【6.7%】下げた",
+   "tts": "じゅうがつにじゅうににち、べいこくの半導体株の／指数が、ろくてんななパーセント下げた",
+   "heading": "起きたこと（米国時間・報道）",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "list",
+    "title": "10/22（米国時間・報道）",
+    "items": [
+     "米国の半導体株の指数：-6.7%",
+     "ビットコイン：約-4%"
+    ],
+    "show": 1,
+    "hl": null,
+    "title_size": 54,
+    "size": 50
+   }
+  },
+  {
+   "text": "同じ日、ビットコインも／約【4%】下げてん",
+   "tts": "同じ日、ビットコインも／やくよんパーセント下げてん",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "list",
+    "title": "10/22（米国時間・報道）",
+    "items": [
+     "米国の半導体株の指数：-6.7%",
+     "ビットコイン：約-4%"
+    ],
+    "show": 2,
+    "hl": 1,
+    "title_size": 54,
+    "size": 50
+   }
+  },
+  {
+   "text": "でも10月中旬は、株が大きく／下げても【約2%】安やった",
+   "tts": "でもじゅうがつちゅうじゅんは、株が大きく／下げても、やくにパーセント安やった",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "big",
+    "emoji": "🤔",
+    "text": "株が大きく下げた週\nBTCは【約2%】安",
+    "size": 84
+   }
+  },
+  {
+   "text": "連動は8〜9月に弱まって、／10月に【また強まった】て",
+   "tts": "連動は、はちがつからくがつに弱まって、／じゅうがつにまた強まったて",
+   "heading": "連動は変わる（調査会社の分析）",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "📊",
+    "text": "8〜9月に弱まり\n10月に【また強まった】",
+    "size": 84
+   }
+  },
+  {
+   "text": "それに、一緒に動いても／【原因】とは限らへん",
+   "shot": "wide",
+   "pose": "pose06",
+   "visual": {
+    "type": "big",
+    "emoji": "🔗",
+    "text": "一緒に動く≠\n【原因】",
+    "size": 96
+   }
+  },
+  {
+   "text": "「AIが最大のリスク」も「関係ない」も、／【予想】や",
+   "tts": "エーアイが最大のリスクも、関係ないも、／予想や",
+   "heading": "見方（意見）",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "🔮",
+    "text": "どっちも\n【予想】",
+    "size": 100
+   }
+  },
+  {
+   "text": "言うてる人が何を売ってる人か、／【立場】も見てな",
+   "shot": "wide",
+   "pose": "pose09",
+   "visual": {
+    "type": "big",
+    "emoji": "🏷️",
+    "text": "何を売ってる人？\n【立場】も見る",
+    "size": 92
+   }
+  },
+  {
+   "text": "ビットコインを掘る会社が、／【AI】の仕事も始めてる",
+   "tts": "ビットコインを掘る会社が、／エーアイの仕事も始めてる",
+   "heading": "設備でもつながる",
+   "shot": "close",
+   "pose": "pose05",
+   "visual": {
+    "type": "big",
+    "emoji": "⛏️",
+    "text": "掘る会社が\n【AIの仕事】も",
+    "size": 92
+   }
+  },
+  {
+   "text": "電気と土地と冷やす設備が、／AIに【ぴったり】やねん",
+   "tts": "電気と土地と冷やす設備が、／エーアイにぴったりやねん",
+   "shot": "wide",
+   "pose": "pose10",
+   "visual": {
+    "type": "big",
+    "emoji": "⚡",
+    "text": "電気・土地・冷やす設備\n【AIにぴったり】",
+    "size": 80
+   }
+  },
+  {
+   "text": "AI向けの契約は、ある集計で／【700億ドル】超えや",
+   "tts": "エーアイ向けの契約は、ある集計で／ななひゃくおくドル超えや",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "📝",
+    "text": "AI向けの契約\n【700億ドル超】",
+    "size": 92
+   }
+  },
+  {
+   "text": "分散のつもりでも、同じ日に／【両方】下がることはあるで",
+   "heading": "持ってる人は",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "📉",
+    "text": "同じ日に\n【両方下がる】ことも",
+    "size": 88
+   }
+  },
+  {
+   "text": "株も暗号資産も合わせて、／財布の【何割】か見てな",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "👛",
+    "text": "合わせて\n財布の【何割】？",
+    "size": 96
+   }
+  },
+  {
+   "text": "両方持ってる友だちに、／【送ったってな】",
+   "shot": "wide",
+   "pose": "pose02",
+   "visual": {
+    "type": "cta",
+    "emoji": "📩",
+    "text": "両方持ってる人に\n【送ったってな】",
+    "size": 100,
+    "bounce": true
+   }
+  },
+  {
+   "text": "じゃあもう一回、／最初の質問に戻るね",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🤖",
+    "text": "AI株安と\n【ビットコイン】",
+    "size": 92
+   }
+  }
+ ]
+}

@@ -1,0 +1,250 @@
+{
+ "id": "ep34",
+ "theme": "新NISA3年目の見直し。日経平均は年初（1/5終値）約5.18万円、6/18に終値で初の7万円台、10/23は約6.27万円。3年目の見直しは値段より仕組みを確かめる。①配当の受け取り方：国内株・ETF・REITの配当は、証券口座で受け取る方式（株式数比例配分方式）でないとNISAでも約20%課税。設定は全部の証券口座で共通。②乗り換え：買い直すとその年の年間枠を使う。売った分の枠が戻るのは翌年（簿価）。③コスト：信託報酬は毎年引かれる。100万円なら1%の差で年1万円（単純計算）。④旧一般NISAの2022年分は非課税が2026年末まで、年明けに課税口座へ移る（新NISAへは移せない）。売買のすすめ・相場の予想・特定商品のすすめはしない",
+ "style": "studio",
+ "series": "AI初心者の時短ワザ",
+ "voice": {
+  "engine": "openjtalk",
+  "speed": 1.15,
+  "pitch": 2.5,
+  "intonation": 1.5,
+  "fal_model": "fal-ai/minimax/speech-02-hd",
+  "fal_speed": 1.0,
+  "emotion": "happy"
+ },
+ "sources": [
+  "https://www.fsa.go.jp/policy/nisa2/about/nisa2024/index.html",
+  "https://www.sakigake.jp/news/article/20260105CO0077/",
+  "https://media.monex.co.jp/articles/amp/29591",
+  "https://news.infoseek.co.jp/article/yomiuri_20261023_gyt1t00252/",
+  "https://kabu.com/kabuyomu/nisa/882.html"
+ ],
+ "lines": [
+  {
+   "text": "NISAで高配当株、配当から／【税金】引かれてへん？",
+   "tts": "ニーサで高配当株、配当から／税金引かれてへん？",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "💴",
+    "text": "NISAの配当\n【税金引かれてへん？】",
+    "size": 84
+   }
+  },
+  {
+   "text": "日経平均は年初5.1万円台、／6月に【7万円台】もあった",
+   "tts": "日経平均は、年初ごてんいち万円台、／ろくがつに、なな万円台もあった",
+   "heading": "新NISA3年目",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "list",
+    "title": "日経平均（終値）",
+    "items": [
+     "1/5（年初）：約5.18万円",
+     "6/18：約7.1万円（初の7万円台）",
+     "10/23：約6.27万円"
+    ],
+    "show": 3,
+    "hl": 1,
+    "title_size": 54,
+    "size": 48
+   }
+  },
+  {
+   "text": "3年目の見直しは、値段より／【しくみ】を確かめよか",
+   "tts": "さんねんめの見直しは、値段より／しくみを確かめよか",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "🔍",
+    "text": "値段より\n【しくみ】",
+    "size": 96
+   }
+  },
+  {
+   "text": "まず配当は、受け取り方で／【税金】が変わるねん",
+   "heading": "①配当の受け取り方",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "list",
+    "title": "NISAの株の配当（国内株など）",
+    "items": [
+     "証券口座で受け取る：非課税",
+     "銀行などで受け取る：約20%課税"
+    ],
+    "show": 1,
+    "hl": null,
+    "title_size": 52,
+    "size": 46
+   }
+  },
+  {
+   "text": "証券口座で受け取る方式なら、／【非課税】やで",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "list",
+    "title": "NISAの株の配当（国内株など）",
+    "items": [
+     "証券口座で受け取る：非課税",
+     "銀行などで受け取る：約20%課税"
+    ],
+    "show": 1,
+    "hl": 0,
+    "title_size": 52,
+    "size": 46
+   }
+  },
+  {
+   "text": "銀行や郵便局で受け取ると、／約20%【引かれる】で",
+   "tts": "銀行や郵便局で受け取ると、／やくにじゅっパーセント引かれるで",
+   "shot": "wide",
+   "pose": "pose06",
+   "visual": {
+    "type": "list",
+    "title": "NISAの株の配当（国内株など）",
+    "items": [
+     "証券口座で受け取る：非課税",
+     "銀行などで受け取る：約20%課税"
+    ],
+    "show": 2,
+    "hl": 1,
+    "title_size": 52,
+    "size": 46
+   }
+  },
+  {
+   "text": "この設定は、ほかの証券口座と／【共通】やから気ぃつけて",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "⚙️",
+    "text": "設定は\n【全部の口座で共通】",
+    "size": 88
+   }
+  },
+  {
+   "text": "次は乗り換え。買い直すと／その年の【枠】を使うで",
+   "heading": "②乗り換え",
+   "shot": "wide",
+   "pose": "pose09",
+   "visual": {
+    "type": "big",
+    "emoji": "🔁",
+    "text": "買い直すと\n【今年の枠】を使う",
+    "size": 92
+   }
+  },
+  {
+   "text": "売った分の枠が戻るんは、／【翌年】になってからや",
+   "shot": "close",
+   "pose": "pose05",
+   "visual": {
+    "type": "big",
+    "emoji": "🗓️",
+    "text": "枠が戻るのは\n【翌年】",
+    "size": 96
+   }
+  },
+  {
+   "text": "コストは、毎年引かれる／【信託報酬】を見てな",
+   "tts": "コストは、毎年引かれる／しんたくほうしゅうを見てな",
+   "heading": "③コスト",
+   "shot": "wide",
+   "pose": "pose10",
+   "visual": {
+    "type": "list",
+    "title": "信託報酬（100万円・1年・単純計算）",
+    "items": [
+     "0.2%：約2,000円",
+     "1.2%：約12,000円"
+    ],
+    "show": 1,
+    "hl": null,
+    "title_size": 50,
+    "size": 50
+   }
+  },
+  {
+   "text": "100万円なら、1%の差で／年【1万円】変わるで",
+   "tts": "ひゃくまんえんなら、いちパーセントの差で／年いちまんえん変わるで",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "list",
+    "title": "信託報酬（100万円・1年・単純計算）",
+    "items": [
+     "0.2%：約2,000円",
+     "1.2%：約12,000円"
+    ],
+    "show": 2,
+    "hl": 1,
+    "title_size": 50,
+    "size": 50
+   }
+  },
+  {
+   "text": "一般NISAの2022年分は、／非課税が【今年まで】や",
+   "tts": "いっぱんニーサの、にせんにじゅうにねんぶんは、／非課税がことしまでや",
+   "heading": "④昔の一般NISA",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "⏰",
+    "text": "一般NISAの2022年分\n【今年の年末まで】",
+    "size": 84
+   }
+  },
+  {
+   "text": "年明けに、ふつうの口座へ／【移される】で",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "📦",
+    "text": "年明けに\n【課税口座へ】",
+    "size": 96
+   }
+  },
+  {
+   "text": "見直しは、売り買いの前に／【確かめる】ことからや",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "big",
+    "emoji": "✅",
+    "text": "売り買いの前に\n【確かめる】",
+    "size": 92
+   }
+  },
+  {
+   "text": "保存して、年末までに／【見返して】な",
+   "shot": "close",
+   "pose": "pose02",
+   "visual": {
+    "type": "cta",
+    "emoji": "📌",
+    "text": "年末までに\n【見返して】な",
+    "size": 100,
+    "bounce": true
+   }
+  },
+  {
+   "text": "じゃあもう一回、／最初の質問に戻るね",
+   "shot": "wide",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "💴",
+    "text": "NISAの配当\n【税金引かれてへん？】",
+    "size": 84
+   }
+  }
+ ]
+}

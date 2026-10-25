@@ -121,8 +121,8 @@ ep19（普通預金0.5%、100万円で税引き後約4,000円）の続きとし�
 固定と変動のどちらがよいかのおすすめや、金利の予想ではありません。
 
 参考：
-三井住友銀行「各種預金金利の変更について」 https://www.smbc.co.jp/notice/letter_20260918_01.pdf
-日本銀行「金融市場調節方針の変更について」 https://www.boj.or.jp/mopo/mpmdeci/mpr_2026/k260918a.pdf
+三井住友銀行の預金金利のお知らせ（2026年9月18日） https://www.smbc.co.jp/notice/letter_20260918_01.pdf
+日本銀行の金融政策の発表（2026年9月18日） https://www.boj.or.jp/mopo/mpmdeci/mpr_2026/k260918a.pdf
 
 #住宅ローン #普通預金 #金利
 ```

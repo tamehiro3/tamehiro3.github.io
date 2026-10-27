@@ -60,6 +60,13 @@ class RuleTest(unittest.TestCase):
     def test_contradicting_fact_blocks(self):
         self.assertTrue(lint("広告なしで安心して遊べる無料ゲームです").blocked)
 
+    def test_play_screen_no_ads_is_allowed_but_warned(self):
+        # 試作版2本の事実「プレイ画面に広告は表示しない」の言い換えだけ通す（事実台帳の例外・2026-10-27）
+        r = lint("ニンジャ里ライフの試作版は、プレイ画面に広告なしで遊べます")
+        self.assertFalse(r.blocked, r.findings)
+        self.assertTrue(any("プレイ画面に広告なし" in m for m in messages(r, "warn")), r.findings)
+        self.assertTrue(lint("ニンジャ里ライフは広告なしで遊べます").blocked)
+
     def test_fake_scarcity_blocks(self):
         self.assertTrue(lint("期間限定で新しい謎を公開しています").blocked)
 

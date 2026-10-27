@@ -29,6 +29,7 @@ shinobi-ashi/
   rules.js              ルール（画面なし・Node でテスト）（ルール担当）
   content.js            文章（一言・小話・図鑑文・保護者向け文）（文章担当）
   steps.js              歩数の取り出し口（iOS / Android(b)(c) / ためし歩き / なし）（アプリ担当）
+  notify.js             ローカル通知（アプリだけ。ブラウザでは何もしない）（アプリ担当）
   store.js              保存（ブラウザ: localStorage、アプリ: Filesystem＋Preferences）（アプリ担当）
   share.js              見せ合い QR・書き出しファイル・診断ファイル（QR担当）
   vendor/qrcode.js, vendor/jsQR.js, vendor/LICENSES.md   （QR担当）
@@ -44,7 +45,7 @@ shinobi-ashi/
   README.md             遊び方・動かし方・テスト・アプリ化・設計図との差（最後に結合担当がまとめる）
 ```
 
-読み込み順（index.html）: `vendor/qrcode.js` → `vendor/jsQR.js` → `art.js` → `chars.js` → `data.js` → `content.js` → `rules.js` → `figure.js` → `fx.js` → `store.js` → `steps.js` → `share.js` → `ui.js`。各ファイルの URL には `?v=1` を付ける（sw.js と合わせる）。
+読み込み順（index.html）: `vendor/qrcode.js` → `vendor/jsQR.js` → `art.js` → `chars.js` → `data.js` → `content.js` → `rules.js` → `figure.js` → `fx.js` → `store.js` → `steps.js` → `notify.js` → `share.js` → `ui.js`（UI担当が screens.js に分けたら ui.js の前）。各ファイルの URL には `?v=1` を付ける（sw.js と合わせる）。
 
 ## 2. 名前空間と部品の受け渡し（API）
 
@@ -66,7 +67,7 @@ SA.Rules.ingest(state, days, ctx) -> { state, events }
   //   buckets は 15分ごと（96個）でもよい。長さで判断する（24→60分、96→15分）。null は区間なし（相性の時間帯系は判定なし）。
   // ctx: { today:'YYYY-MM-DD' }
   // events: 画面が順に見せる出来事（下の 2.2.2）
-SA.Rules.setChoice(state, date, { home: bool }) -> state        // 今日は「道を進める」か「里に納める（我が家）」か。その日の取り込み前でも後でもよい（後なら、その日の分を付け替える）
+SA.Rules.setChoice(state, date, { home: bool }) -> state        // 今日は「道を進める」か「里に納める（我が家）」か。その日の取り込み前でも後でもよい（後なら、その日の分を道の累計と隠れ里の累計の間で付け替える。着いた宿場の数 stationsReached は減らさない。次の宿場は「いちばん先に着いた宿場の次」）
 SA.Rules.setFamilyDay(state, date, bool) -> state             // 「家族で歩いた日」
 SA.Rules.setSlots(state, ids /*長さ3、null可*/, alloc /*合計100、10きざみ*/) -> state   // 修行枠。主相棒は必ずどこかの枠に入る。来訪済みの体だけ入れられる。同じ体を2つの枠に入れない。割り当て変更は「その日の、まだ取り込んでいない分」から効く
 SA.Rules.openScroll(state, charId) -> { state, jutsu: { charId, fx, rank, okugi, secret } } | null   // 巻物を1本開く（巻物がなければ null）
@@ -91,7 +92,7 @@ SA.Rules.migrate(obj) -> state               // 古い版のデータを今の�
 3. **差分だけ足す**: その日に前回までに足した修行値 `daily[date].shugyo` との差（増えた分）だけを、以下に配る。
 4. **来訪累計** `visitTotal += 増えた分`（我が家の日も含む）。**道の累計** `roadTotal += 増えた分`（我が家の日は足さない）。**隠れ里の累計** `hideTotal += 増えた分`（我が家の日だけ）。
 5. **巻物**: `visitTotal` が 1,000 の倍数をまたぐごとに巻物+1（`scrolls`）。
-6. **修行枠へ配る**: 枠 i の相棒に `増えた分 × alloc[i]/100 × (相性が合えば1.2)` を足す（端数は切り捨て、相性の判定は「その日の区間全体」で行い、日の途中で合ったら、それまでに配った分も含め、その日のその体の分を1.2倍に揃える＝その日の体ごとの配分を毎回作り直して差分を足す）。
+6. **修行枠へ配る**: 増えた分を、その時点の割り当て `alloc` で枠の体に配る（端数は切り捨て、余りは主相棒へ）。配った量は体ごとに `daily[date].alloc[id]` に積む。**相性**はその日の区間全体で判定し、ある体の相性がその日はじめて合ったら、その日にその体へ配った量の 0.2 倍をまとめて足し、以後その日の配分は 1.2 倍で足す（区間は増える一方なので、一度合った相性は外れない）。割り当てを途中で変えても、配り済みの分は動かさない。どの値も減らない。
 7. **相性の判定**（AFFINITY の type ごと。区間が null の日は clan/win/cont/bits を「判定なし」=1.0）:
    - `clan` … CLAN_WINDOWS[その体のクラン] の時間帯に 1,000歩以上（こどもモードは kids の時間帯）
    - `win` … `from`〜`to`時（to は含まない）に 1,000歩以上（こどもモードは `kids`）
@@ -168,6 +169,13 @@ SA.Steps.today() -> 'YYYY-MM-DD'   // 画面とルールが使う「今日」（
 - iOS（Capacitor）: `@capgo/capacitor-pedometer` の `getMeasurement({start,end})` を1時間ごとに呼んで buckets を作る（過去7日まで）。`isAvailable().stepCounting` が false なら 'none'（ながめるモード）。歩行中判定は `startMeasurementUpdates` の `currentCadence` が 1.2 以上。
 - Android（Capacitor）: 自作プラグイン `ShinobiSteps`（app/ 参照）。(b) Recording API（購読した時点から10日、1時間ごと）を先に試し、だめなら (c) 歩数センサーの前景差分（区間なし。起動ごとに前回値との差を「今日」に入れる。再起動・バックアップ復元のときは基準を捨てる）。
 - ブラウザ: `CONFIG.WEB_TRIAL` が true なら 'sim'、false なら 'none'。
+
+### 2.3.1 通知 `SA.Notify`（notify.js）
+```js
+await SA.Notify.schedule(state)   // アプリだけ。@capacitor/local-notifications。ブラウザでは何もしない
+await SA.Notify.cancelAll()
+```
+3種類だけ: (1) 毎日の「{帰|かえ}ったら{取|と}り{込|こ}もう」（settings.notify.evening、既定18:30）、(2) 最後の同期から6日目の18:00「そろそろ{開|ひら}かないと、{歩数|ほすう}が{読|よ}めなくなるよ」（iOS の7日に間に合わせる）、(3) 月曜7:30の「{週|しゅう}のふりかえり」。21〜7時には出さない（こどもモードもおとなモードも）。settings.notify.on が false なら全部止める。
 
 ### 2.4 保存 `SA.Store`（store.js）
 ```js

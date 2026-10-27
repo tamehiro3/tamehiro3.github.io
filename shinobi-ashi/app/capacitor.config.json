@@ -1,0 +1,31 @@
+{
+  "appId": "io.github.tamehiro3.shinobiashi",
+  "appName": "忍び足",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": false,
+    "captureInput": false,
+    "webContentsDebuggingEnabled": false,
+    "includePlugins": [
+      "@capacitor/filesystem",
+      "@capacitor/local-notifications",
+      "@capacitor/preferences",
+      "@capacitor/share"
+    ]
+  },
+  "ios": {
+    "contentInset": "never",
+    "includePlugins": [
+      "@capacitor/filesystem",
+      "@capacitor/local-notifications",
+      "@capacitor/preferences",
+      "@capacitor/share",
+      "@capgo/capacitor-pedometer"
+    ]
+  },
+  "plugins": {
+    "LocalNotifications": {
+      "iconColor": "#3b2a20"
+    }
+  }
+}

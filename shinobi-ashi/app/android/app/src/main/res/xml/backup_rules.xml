@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 11 以前の自動バックアップ（android:fullBackupContent）。
+     include を書くと、それ以外は入らない。進行データ（files/progress.json など）は入れず、設定だけを残す。 -->
+<full-backup-content>
+    <include domain="sharedpref" path="CapacitorStorage.xml" />
+</full-backup-content>

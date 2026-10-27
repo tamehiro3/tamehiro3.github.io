@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 12 以降のバックアップと機種変更の引っ越し。
+     進行データ（files/ の progress.json と一時ファイル・書き出しファイル）は入れない。
+     設定（@capacitor/preferences の CapacitorStorage.xml）だけを残す。
+     歩数センサー (c) の基準値は Preferences に入るが、戻したあとは installId（no_backup に置いた印）が
+     変わるので steps.js が基準を取り直す。 -->
+<data-extraction-rules>
+    <cloud-backup>
+        <include domain="sharedpref" path="CapacitorStorage.xml" />
+    </cloud-backup>
+    <device-transfer>
+        <include domain="sharedpref" path="CapacitorStorage.xml" />
+    </device-transfer>
+</data-extraction-rules>

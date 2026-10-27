@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 共有シート（@capacitor/share）に渡すファイルの場所。書き出しファイルは cache に置いて渡す。 -->
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <cache-path name="share_cache" path="." />
+    <files-path name="share_files" path="exports/" />
+</paths>

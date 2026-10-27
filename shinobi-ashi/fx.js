@@ -854,7 +854,11 @@
 
     function layout() {
       var r = canvas.getBoundingClientRect ? canvas.getBoundingClientRect() : { width: 0, height: 0 };
-      var w = Math.round(r.width) || canvas.clientWidth || canvas.width || 360, h = Math.round(r.height) || canvas.clientHeight || canvas.height || 640;
+      var w = Math.round(r.width), h = Math.round(r.height);
+      if (!w || !h) { // 見えていない canvas: 前の大きさのまま（なければ canvas の属性の大きさ）
+        if (cssW) return false;
+        w = canvas.width || 360; h = canvas.height || 640;
+      }
       var d = Math.min(3, root.devicePixelRatio || 1);
       if (w === cssW && h === cssH && d === dpr && canvas.width === Math.round(w * d)) return false;
       cssW = w; cssH = h; dpr = d;

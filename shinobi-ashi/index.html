@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>忍び足 | 家族で歩く三十九の里</title>
+  <meta name="description" content="毎日の歩数で忍者の相棒を育てる、家族向けの歩数ゲーム。無料・広告なし・課金なし。歩数はインターネットに送りません。CryptoNinja（CC0・Ninja DAO）のキャラクターを使った個人制作の非公式ファンゲームです。">
+  <meta name="theme-color" content="#3b2a20">
+  <meta name="color-scheme" content="light">
+  <meta name="referrer" content="no-referrer">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%233b2a20'/%3E%3Cpath d='M18 44c6-3 10-3 14 0s8 3 14 0' stroke='%23f7f1e5' stroke-width='5' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='24' cy='24' r='5' fill='%23f7f1e5'/%3E%3Ccircle cx='40' cy='28' r='5' fill='%23d8a63a'/%3E%3C/svg%3E">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="忍び足">
+  <link rel="stylesheet" href="style.css?v=1">
+</head>
+<body>
+  <div id="app">
+    <div id="banner" hidden></div>
+    <main id="screen" tabindex="-1">
+      <noscript><p class="card">このゲームは JavaScript を使います。ブラウザの設定で JavaScript を有効にしてください。</p></noscript>
+    </main>
+    <nav id="nav" aria-label="メニュー" hidden></nav>
+  </div>
+
+  <!-- 重ねる画面（出来事のカード・図鑑の詳しい画面など） -->
+  <div id="layer" hidden></div>
+
+  <!-- 忍術の間（全画面） -->
+  <div id="jutsu" hidden></div>
+
+  <!-- 歩いているあいだ -->
+  <div id="walk" hidden role="alert">
+    <div class="walk-box">
+      <svg viewBox="0 0 64 64" width="72" height="72" aria-hidden="true"><circle cx="32" cy="14" r="7" fill="#3b2a20"/><path d="M32 22l-6 16 8 4-4 16M30 30l-10 6M32 28l10 8M28 40l-8 16" stroke="#3b2a20" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <p class="walk-t"><ruby>止<rt>と</rt></ruby>まってから<ruby>見<rt>み</rt></ruby>てね</p>
+      <p class="walk-s"><ruby>歩<rt>ある</rt></ruby>いているあいだは、ボタンを<ruby>押<rt>お</rt></ruby>せないよ。</p>
+    </div>
+  </div>
+
+  <!-- ためし歩き（ブラウザの試遊だけ） -->
+  <div id="sim" hidden></div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="vendor/qrcode.js?v=1"></script>
+  <script src="vendor/jsQR.js?v=1"></script>
+  <script src="art.js?v=1"></script>
+  <script src="chars.js?v=1"></script>
+  <script src="data.js?v=1"></script>
+  <script src="content.js?v=1"></script>
+  <script src="rules.js?v=1"></script>
+  <script src="figure.js?v=1"></script>
+  <script src="fx.js?v=1"></script>
+  <script src="store.js?v=1"></script>
+  <script src="steps.js?v=1"></script>
+  <script src="notify.js?v=1"></script>
+  <script src="share.js?v=1"></script>
+  <script src="screens.js?v=1"></script>
+  <script src="ui.js?v=1"></script>
+</body>
+</html>

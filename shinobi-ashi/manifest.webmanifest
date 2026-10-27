@@ -1,0 +1,17 @@
+{
+  "name": "忍び足",
+  "short_name": "忍び足",
+  "description": "毎日の歩数で忍者の相棒を育てる、家族向けの歩数ゲーム。無料・広告なし・課金なし。歩数はインターネットに送りません（非公式ファンゲーム）。",
+  "lang": "ja",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f7f1e5",
+  "theme_color": "#3b2a20",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

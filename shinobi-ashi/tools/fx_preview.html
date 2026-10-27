@@ -88,6 +88,8 @@
       }
     };
     if ($('reduced').checked) opts.reducedMotion = true;
+    var ms = +(new URLSearchParams(location.search).get('ms') || 0); // テスト用に短くする（?ms=600）
+    if (ms > 0) opts.duration = ms;
     $('status').textContent = t + ' を再生中';
     cur = SA.FX.play(canvas, opts);
     window.__fxCurrent = cur;

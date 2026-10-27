@@ -44,6 +44,10 @@
     <uses-feature android:name="android.hardware.sensor.stepcounter" android:required="false" />
     <uses-feature android:name="android.hardware.sensor.stepdetector" android:required="false" />
 
+    <!-- 家族の掲示板で QR を読む（映像は端末の外に出さない）。カメラのない端末でも入れられる -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+
     <!-- インターネットには何も送らない: INTERNET 権限を外す（ライブラリが足しても、ここで消える） -->
     <uses-permission android:name="android.permission.INTERNET" tools:node="remove" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" tools:node="remove" />

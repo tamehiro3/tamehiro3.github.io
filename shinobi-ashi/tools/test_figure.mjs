@@ -1,6 +1,7 @@
 // 忍び足 — 絵（figure.js）のテスト。node shinobi-ashi/tools/test_figure.mjs
 // 39体×6状態×4向き（＋あるくの4コマ）の SVG が例外なく作れること、weapon=false で武器の部品が消えること、
 // dye で色が変わること、孫市の銃は SHOW_GUN=false なら出ないこと、「？」影が作れることを確かめる。
+// --browser: el・sheet6・bitmap とキャッシュ（Playwright）。--fx: 演出を全種類再生してエラー0・外への通信0（Playwright）。
 import { createRequire } from 'module';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -111,6 +112,87 @@ ok(Fig.svg('anne', { silhouette: true }).includes('？'), 'svg の silhouette �
 ok(Fig.svg('anne', { state: 'nope' }).length > 1500, '知らない状態はふつう');
 let threw = false; try { Fig.svg('nobody', {}); } catch (e) { threw = true; }
 ok(threw, '知らない体は例外');
+
+// 6) ブラウザ（--browser のとき）: el / sheet6 / silhouetteEl / bitmap とキャッシュ
+if (process.argv.includes('--browser')) {
+  const { chromium } = require('playwright');
+  const browser = await chromium.launch();
+  try {
+    const page = await browser.newPage();
+    const errs = [];
+    page.on('pageerror', e => errs.push(String(e)));
+    page.on('console', m => { if (m.type() === 'error') errs.push(m.text()); });
+    const src = ['art.js', 'chars.js', 'data.js', 'figure.js'].map(f => `<script src="file://${path.join(dir, f)}"></script>`).join('');
+    const file = path.join(process.env.TMPDIR || '/tmp', 'sa_test_figure.html');
+    require('fs').writeFileSync(file, `<!doctype html><meta charset="utf-8"><body>${src}</body>`);
+    await page.goto('file://' + file);
+    const r = await page.evaluate(async () => {
+      const out = {};
+      const e = SA.Fig.el('anne', { state: 'happy' }, 120); document.body.appendChild(e);
+      out.el = e.querySelector('svg') != null && e.getBoundingClientRect().width === 120;
+      const sh = SA.Fig.sheet6('sakuya', { dye: 'ai' }); document.body.appendChild(sh);
+      out.sheetCells = sh.querySelectorAll('figure').length;
+      out.sheetLabels = [...sh.querySelectorAll('figcaption')].map(c => c.textContent).join(',');
+      out.sil = SA.Fig.silhouetteEl('jin', 80).querySelector('text').textContent;
+      const b = await SA.Fig.bitmap('shiba', { state: 'walk', frame: 2 }, 240);
+      out.bmp = [b.width, b.height, b.constructor.name];
+      const b2 = await SA.Fig.bitmap('shiba', { state: 'walk', frame: 2 }, 240);
+      out.same = b === b2;
+      // 25MB を超えたら古いものから捨てる（800px は 1枚 約2.1MB）
+      for (let i = 0; i < 16; i++) await SA.Fig.bitmap(NSL_CHARS.CHARS[i].id, { state: 'normal' }, 800);
+      out.cache = SA.Fig.cacheInfo();
+      const b3 = await SA.Fig.bitmap('shiba', { state: 'walk', frame: 2 }, 240);
+      out.evicted = b3 !== b;
+      return out;
+    });
+    ok(r.el, 'el が SVG を包んだ 120px の div');
+    ok(r.sheetCells === 6 && r.sheetLabels === 'ふつう,うれしい,びっくり,しんけん,あるく,かくれる', `sheet6 の6欄 ${r.sheetLabels}`);
+    ok(r.sil === '？', 'silhouetteEl に「？」');
+    ok(r.bmp[0] === 200 && r.bmp[1] === 240, `bitmap の大きさ ${r.bmp}`);
+    ok(r.same, 'bitmap は同じ opts ならキャッシュを返す');
+    ok(r.cache.bytes <= r.cache.limit, `キャッシュは 25MB 以下 ${r.cache.bytes}`);
+    ok(r.evicted, 'いちばん古いものから捨てる');
+    ok(errs.length === 0, 'ブラウザのエラー 0: ' + errs.join(' / '));
+  } finally { await browser.close(); }
+}
+
+// 7) 演出（--fx のとき）: fx_preview.html で全種類を rank・okugi・secret を変えて再生し、onDone・とばす・エラー0・外への通信0
+if (process.argv.includes('--fx')) {
+  const { chromium } = require('playwright');
+  const browser = await chromium.launch();
+  try {
+    const page = await browser.newPage({ viewport: { width: 1000, height: 760 } });
+    const errs = [], ext = [];
+    page.on('pageerror', e => errs.push(String(e)));
+    page.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') errs.push(m.text()); });
+    page.on('request', q => { const u = q.url(); if (!u.startsWith('file://') && !u.startsWith('data:') && !u.startsWith('blob:')) ext.push(u); });
+    await page.goto('file://' + path.join(dir, 'tools', 'fx_preview.html') + '?ms=500');
+    const types = await page.evaluate(() => SA.FX.TYPES);
+    const want = [...new Set(Object.values(DATA.JUTSU_FX))];
+    ok(want.every(t => types.includes(t)), 'JUTSU_FX の値をすべて実装: ' + want.filter(t => !types.includes(t)).join(','));
+    const runs = [['0', '0', false], ['3', '1', false], ['5', '2', false], ['4', '0', true]];
+    for (const [rank, okugi, secret] of runs) {
+      await page.selectOption('#rank', rank); await page.selectOption('#okugi', okugi);
+      if (secret) await page.check('#secret'); else await page.uncheck('#secret');
+      await page.evaluate(() => { window.__fxLog = []; });
+      await page.click('#all');
+      await page.waitForFunction(n => window.__fxLog.filter(x => !x.skipped).length >= n, types.length, { timeout: 120000 });
+      const log = await page.evaluate(() => window.__fxLog);
+      ok(log.filter(x => !x.skipped).length === types.length, `rank ${rank} okugi ${okugi}${secret ? ' secret' : ''}: ${types.length} 種類すべて最後まで再生`);
+      if (secret) ok(log.every(x => x.played === 'secret'), 'secret はどれも共通のきらきら');
+    }
+    await page.selectOption('#rank', '3'); await page.uncheck('#secret');
+    await page.goto('file://' + path.join(dir, 'tools', 'fx_preview.html'));
+    await page.evaluate(() => { window.__fxLog = []; window.__playFx('fire'); });
+    await page.waitForTimeout(300);
+    await page.click('#skip');
+    await page.waitForTimeout(100);
+    const sk = await page.evaluate(() => window.__fxLog);
+    ok(sk.length === 1 && sk[0].skipped === true, 'とばす で onDone({ skipped: true }) が1回');
+    ok(errs.length === 0, '演出のエラー 0: ' + errs.join(' / '));
+    ok(ext.length === 0, '外への通信 0: ' + ext.join(' '));
+  } finally { await browser.close(); }
+}
 
 console.log(`figure: ${pass} 合格 / ${fail} 不合格`);
 process.exit(fail ? 1 : 0);

@@ -1,6 +1,9 @@
 # vendor/ のライブラリとライセンス
 
-このファイルには、忍び足が使っている部品のライセンスの全文を載せています（オープンソースでない Google Play 開発者サービスだけは、規約の名前と場所）。ブラウザ版とアプリ版の両方に入るのは、すぐ下の QR の2つです。アプリ版（iPhone・Android）にだけ入る部品は、後ろの「アプリ版（iPhone・Android）に入る部品」の節にあります。
+このファイルには、忍び足が使っている部品のライセンスの全文を載せています（オープンソースでない Google Play 開発者サービスだけは、規約の名前と場所）。
+
+- **ブラウザ版で使う部品は、すぐ下の QR の2つ（QR を作る qrcode-generator と、QR を読む jsQR）だけです。** ほかの部品はブラウザ版には入りません。
+- アプリ版（iPhone・Android）には、この QR の2つに加えて、Capacitor 本体と公式プラグイン（MIT）、iPhone の歩数の `@capgo/capacitor-pedometer`（MPL-2.0）、Android の AndroidX と Google Play 開発者サービスなどが入ります。くわしくは後ろの「アプリ版（iPhone・Android）に入る部品」の節にあります。
 
 忍び足は、次の2つのライブラリを、そのままの形でこのフォルダに同梱しています（CDN からは読みません。インターネットには何も送りません）。
 どちらも npm レジストリから `npm pack` で取り、中身（外部への通信をしないこと）を確かめてから、先頭に出どころの注記だけを足しました。本体は無改変です。
@@ -270,6 +273,7 @@ SOFTWARE.
 | `@capacitor/preferences`（設定） | 8.0.1 | MIT | iPhone・Android | https://github.com/ionic-team/capacitor-plugins |
 | `@capacitor/local-notifications`（通知） | 8.3.1 | MIT | iPhone・Android | https://github.com/ionic-team/capacitor-local-notifications |
 | `@capacitor/share`（共有） | 8.0.3 | MIT | iPhone・Android | https://github.com/ionic-team/capacitor-plugins |
+| `@capacitor/app`（Android の戻るボタン） | 8.1.2 | MIT | Android だけ | https://github.com/ionic-team/capacitor-plugins |
 | `@capgo/capacitor-pedometer`（iPhone の歩数） | 8.0.52 | MPL-2.0 | iPhone だけ | https://github.com/Cap-go/capacitor-pedometer （npm: https://registry.npmjs.org/@capgo/capacitor-pedometer/-/capacitor-pedometer-8.0.52.tgz ） |
 | ion-android-filesystem（`io.ionic.libs:ionfilesystem-android`。filesystem が使う） | 1.1.1 | MIT | Android | https://github.com/ionic-team/ion-android-filesystem |
 | ion-ios-filesystem（filesystem が使う） | 2.0.1 | MIT | iPhone | https://github.com/ionic-team/ion-ios-filesystem |
@@ -279,8 +283,9 @@ SOFTWARE.
 | Kotlin 標準ライブラリ（`org.jetbrains.kotlin:kotlin-stdlib`）・kotlinx.coroutines（`kotlinx-coroutines-core`・`-android`） | 2.2.20・1.10.2（宣言の値） | Apache-2.0 | Android | https://github.com/JetBrains/kotlin ・ https://github.com/Kotlin/kotlinx.coroutines |
 | Google Play 開発者サービス（`com.google.android.gms:play-services-fitness`＝Recording API と、それが使う Play 開発者サービスの部品） | 21.2.0 | Android Software Development Kit License（Google の利用規約。オープンソースではありません） | Android | ソースは公開されていません。規約: https://developer.android.com/studio/terms |
 
-- npm から入る部品（表の上の6つ）のライセンスの文は、`app/node_modules/<名前>/LICENSE` をそのまま写しました。
+- npm から入る部品（表の上の7つ）のライセンスの文は、`app/node_modules/<名前>/LICENSE` をそのまま写しました。
 - iPhone 版には `@capgo/capacitor-pedometer` が入ります。Android 版には入りません（`app/capacitor.config.json` の `android.includePlugins`）。
+- `@capacitor/app`（戻るボタン）は Android 版だけに入ります。iPhone 版には入りません（同じく `android.includePlugins` に入れ、iPhone 側の `includePlugins` には入れていません）。
 - MPL-2.0 の部品（`@capgo/capacitor-pedometer`）は改変せずに使っています。そのソースコードは上の場所（GitHub と npm）から手に入ります。
 - アプリ版の画面に入る `capacitor.js` は `@capacitor/core` 8.5.3 の `dist/capacitor.js` をそのまま写したものです（先頭に「Capacitor: https://capacitorjs.com/ - MIT License」の表記があります）。
 
@@ -346,9 +351,9 @@ SOFTWARE.
 
 ---
 
-## @capacitor/preferences 8.0.1、@capacitor/local-notifications 8.3.1、@capacitor/share 8.0.3 — MIT License
+## @capacitor/preferences 8.0.1、@capacitor/local-notifications 8.3.1、@capacitor/share 8.0.3、@capacitor/app 8.1.2 — MIT License
 
-以下は `@capacitor/preferences` の `LICENSE` の全文です（`@capacitor/local-notifications`・`@capacitor/share` の `LICENSE` も同じ文です）。
+以下は `@capacitor/preferences` の `LICENSE` の全文です（`@capacitor/local-notifications`・`@capacitor/share`・`@capacitor/app` の `LICENSE` も同じ文です）。
 
 ```
 Copyright 2020-present Ionic
@@ -764,6 +769,8 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
 ## Apache Cordova、AndroidX、Kotlin 標準ライブラリ、kotlinx.coroutines — Apache License 2.0
 
 ライセンスの全文は、上の「jsQR 1.4.0 — Apache License 2.0」の節に載せたものと同じです（各部品の LICENSE は、末尾の書き方の例の著作権の行だけが違います）。
+これらの部品は、配布元が定めたライセンス（Apache License 2.0）に従って、改変せずに使っています。
+入手先: AndroidX は Google の Maven リポジトリ（https://maven.google.com/ 。`androidx.*`）、Apache Cordova Android・Kotlin 標準ライブラリ・kotlinx.coroutines は Maven Central（https://repo1.maven.org/maven2/ 。`org.apache.cordova:framework`・`org.jetbrains.kotlin:kotlin-stdlib`・`org.jetbrains.kotlinx:kotlinx-coroutines-*`）。AndroidX のソースコードは https://android.googlesource.com/platform/frameworks/support （GitHub の写し: https://github.com/androidx/androidx ）にあります。
 著作権の表記: Apache Cordova（The Apache Software Foundation）、AndroidX（The Android Open Source Project）、Kotlin（JetBrains s.r.o. and Kotlin Programming Language contributors）、kotlinx.coroutines（JetBrains s.r.o. and Kotlin Programming Language contributors）。
 
 Apache Cordova の NOTICE（cordova-android 14.0.1 の `NOTICE` の全文。Capacitor の iOS の Cordova 部分も Apache Cordova のコードをもとにしています）:
@@ -782,3 +789,6 @@ The Apache Software Foundation (http://www.apache.org/).
 
 Android 版の歩数（Recording API。端末の中だけで記録し、アカウントやネットワークを使わない）に使います。
 オープンソースではなく、Google の「Android Software Development Kit License」（https://developer.android.com/studio/terms ）のもとで配られているライブラリです。この部品のソースコードは公開されていません。
+配布元（Google）のライセンス・規約に従って、改変せずに使っています。
+入手先: Google の Maven リポジトリ（https://maven.google.com/ ）の `com.google.android.gms:play-services-fitness:21.2.0`（と、それが使う `com.google.android.gms:play-services-*` の部品）。組み立てるときに Gradle がここから取り、アプリに入れます。
+Recording API の説明: https://developer.android.com/health-and-fitness/guides/recording-api

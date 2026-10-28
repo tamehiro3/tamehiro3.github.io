@@ -172,27 +172,38 @@ section('保存（localStorage）');
   // 壊れていて控えもない → null ではなく「壊れていた」の印（はじめての画面に進んで上書きしないように）
   ls._m.set('shinobi-ashi:v1', '{"app":"shinobi-ashi","v":1,"chars":{"an');
   const cor = await Store.load();
-  eq(cor, { corrupt: true, app: 'shinobi-ashi:corrupt' }, '壊れていて :bak もなければ corrupt の印');
+  eq(cor, { corrupt: true, broken: true, app: 'shinobi-ashi:corrupt', reason: 'main-json' }, '壊れていて :bak もなければ null ではなく壊れた印（broken・reason つき）');
+  eq(Store.lastError, { reason: 'main-json', recovered: false, kept: true }, 'SA.Store.lastError にも残る');
   ok(Store.isCorrupt(cor) && !Store.isCorrupt({ app: 'shinobi-ashi' }) && !Store.isCorrupt(null), 'isCorrupt');
   eq(ls._m.get('shinobi-ashi:v1:broken'), '{"app":"shinobi-ashi","v":1,"chars":{"an', '壊れた中身は :broken に写して残す');
   eq(await Store.brokenText(), '{"app":"shinobi-ashi","v":1,"chars":{"an', 'brokenText で読める');
   eq(await Store.loadBackup(), null, 'loadBackup は控えがなければ null');
   ls._m.set('shinobi-ashi:v1:bak', '{壊');
   eq((await Store.load()).corrupt, true, '本体も :bak も壊れていれば corrupt');
+  ls._m.set('shinobi-ashi:v1', '[1,2]');
+  eq((await Store.load()).reason, 'main-json', '本体が配列（記録の形でない）でも壊れた扱い');
+  ls._m.set('shinobi-ashi:v1', '{壊');
   ls._m.delete('shinobi-ashi:v1');
-  eq((await Store.load()).corrupt, true, '本体がなく :bak だけ壊れていても corrupt');
+  eq((await Store.load()).reason, 'bak-json', '本体がなく :bak だけ壊れていても corrupt（reason は bak-json）');
   ls._m.set('shinobi-ashi:v1', '   ');
   ls._m.delete('shinobi-ashi:v1:bak');
   eq(await Store.load(), null, '空白だけは「記録なし」');
+  eq(Store.lastError, null, '壊れていなければ lastError は null');
   ls._m.set('shinobi-ashi:v1', '{壊');
   ls._m.set('shinobi-ashi:v1:bak', JSON.stringify({ app: 'shinobi-ashi', v: 1, n: 7 }));
   eq((await Store.loadBackup()).n, 7, 'loadBackup は :bak を読む');
+  ls._m.delete('shinobi-ashi:v1:broken');
   eq((await Store.load()).n, 7, ':bak が読めれば corrupt にしない');
+  eq(Store.lastError, { reason: 'main-json', recovered: true, kept: true }, ':bak から戻したときも lastError（recovered: true）');
+  eq(ls._m.get('shinobi-ashi:v1:broken'), '{壊', ':bak から戻したときも、上書きされる前の壊れた本体を :broken に写す');
+  await Store.save({ app: 'shinobi-ashi', v: 1, n: 8 });
+  eq(await Store.clear({ prefs: false }), true, 'clear');
+  eq(ls._m.get('shinobi-ashi:v1:broken'), '{壊', 'clear でも :broken は消さない');
   // 実の rules.js でも、印は新しい記録に直されない（validate も通らない）
   {
     globalThis.NSL_CHARS = require(path.join(SRC, 'chars.js'));
     const R = require(path.join(SRC, 'rules.js'));
-    const mk = { corrupt: true, app: 'shinobi-ashi:corrupt' };
+    const mk = { corrupt: true, broken: true, app: 'shinobi-ashi:corrupt', reason: 'main-json' };
     eq([R.validate(mk).ok, R.migrate(mk)], [false, null], 'corrupt の印は Rules.validate を通らず migrate も null');
     delete SA.Rules;
   }
@@ -549,6 +560,20 @@ section('ためし歩きで修行お休み（rules.js と合わせて）');
   eq(info.historyDays, D.CONFIG.HISTORY_DAYS.ios, 'ためし歩きのさかのぼりは iPhone と同じ日数');
   eq(await restAfter(7), 0, '7日すすめても修行お休みは出ない（7日はさかのぼれる）');
   eq(await restAfter(10), 3, '10日すすめると修行お休み（3日）');
+  eq(await restAfter(14), 7, '14日すすめると修行お休み（7日。試遊で修行お休みを出す）');
+  {
+    Steps.sim.reset();
+    const t0 = Steps.today();
+    Steps.sim.addSteps(1234, { hour: 9 });
+    eq(Steps.sim.skipDays(14), R.addDays(t0, 14), 'skipDays(14) は今日を14日すすめる');
+    eq([Steps.today(), Steps.sim.offset()], [R.addDays(t0, 14), 14], 'Steps.today() と offset も14日先');
+    const got = await Steps.read(t0, Steps.today());
+    eq([got.length, got[0].date, got[got.length - 1].date], [7, R.addDays(t0, 8), R.addDays(t0, 14)], '14日先から読めるのは7日分だけ（それより前は返さない）');
+    ok(got.every((d) => d.steps === 0 && d.src === 'sim' && d.buckets.length === 24), '読めた日は 0 歩・区間24');
+    Steps.sim.addSteps(500, { hour: 10 });
+    eq((await Steps.read(Steps.today(), Steps.today()))[0].steps, 500, '14日先でも歩数を足せる');
+    eq(JSON.parse(globalThis.localStorage.getItem('shinobi-ashi:sim')).days[t0][9], 1234, '14日前の記録も残っている（30日まで）');
+  }
   delete SA.Rules;
   Steps.sim.reset();
 }
@@ -614,6 +639,56 @@ section('戻るボタン（SA.Cap.back）');
   const off2 = Cap.onBack(() => { throw new Error('x'); });
   eq([Cap.back(), went], [true, ['home']], '登録した関数が落ちても、ふだんの片づけに進む');
   off2();
+
+  // @capacitor/app の 'backButton' から SA.Cap.back() を呼ぶ（Android のアプリだけ）
+  const appCalls = [];
+  const listeners = {};
+  const AppPlugin = {
+    addListener: (name, fn) => {
+      (listeners[name] = listeners[name] || []).push(fn); appCalls.push('add:' + name);
+      return Promise.resolve({ remove: () => { listeners[name] = listeners[name].filter((f) => f !== fn); appCalls.push('remove:' + name); } });
+    },
+    minimizeApp: () => { appCalls.push('minimize'); return Promise.resolve(); },
+    exitApp: () => { appCalls.push('exit'); return Promise.resolve(); }
+  };
+  const tick = () => new Promise((r) => setTimeout(r, 0));
+  // @capacitor/app の作り物の「戻るボタンが押された」: 受け手を順に呼び、そのあと取り消せない素の 'backbutton' を document に流す
+  const press = async () => { for (const f of (listeners.backButton || []).slice()) f({ canGoBack: false }); doc.dispatchEvent(new Event('backbutton', { cancelable: false })); await tick(); };
+  let uiGot = 0;
+  const onUi = () => { uiGot++; };
+  setNative('ios', { App: AppPlugin, Filesystem: makeFS(), Preferences: makePrefs() });
+  await tick();
+  eq(appCalls, [], 'iPhone では backButton をつながない');
+  setNative('android', { App: AppPlugin, Filesystem: makeFS(), Preferences: makePrefs(), ShinobiSteps: {} });
+  await tick();
+  eq(appCalls, ['add:backButton'], "Android では @capacitor/app の 'backButton' をつなぐ");
+  doc.addEventListener('backbutton', onUi);   // 画面側の受け手（store.js より後に登録される）
+  App.state = {}; App.screen = 'menu'; App.view = false; App.walking = false; went.length = 0; uiGot = 0;
+  await press();
+  eq([went, uiGot, appCalls.slice(1)], [['home'], 1, []], 'backButton で片づける（ホームへ）。素の backbutton は止めて、画面側には1回だけ届く');
+  await new Promise((r) => setTimeout(r, 300));
+  App.screen = 'home'; uiGot = 0;
+  await press();
+  eq(appCalls.slice(1), ['exit'], '片づけるものがなければアプリを閉じる（exitApp）');
+  await new Promise((r) => setTimeout(r, 300));
+  delete AppPlugin.exitApp; appCalls.length = 1;
+  await press();
+  eq(appCalls.slice(1), ['minimize'], 'exitApp がなければ minimizeApp');
+  AppPlugin.exitApp = () => { appCalls.push('exit'); return Promise.resolve(); };
+  // 画面側（ui.js の hookNativeBack）も同じ App に受け手をつないで SA.Cap.back() を呼ぶとき: 1回の戻るで2枚閉じない
+  AppPlugin.addListener('backButton', () => { if (!Cap.back()) AppPlugin.exitApp(); });
+  await new Promise((r) => setTimeout(r, 300));
+  appCalls.length = 2;
+  const w1 = doc.open(true), w2 = doc.open(true);
+  await press();
+  eq([w2.closed, w1.closed, appCalls.slice(2)], [true, false, []], '受け手が2つでも、1回の戻るで閉じるのはいちばん上の1枚だけ');
+  await new Promise((r) => setTimeout(r, 300));
+  await press();
+  eq([w1.closed, appCalls.slice(2)], [true, []], '次の戻るで次の1枚');
+  doc.removeEventListener('backbutton', onUi);
+  setWeb(makeLS());
+  await tick();
+  ok(appCalls.includes('remove:backButton'), '置き場所を選び直すと、前のつなぎは外す');
   delete SA.UI; delete globalThis.document;
 }
 

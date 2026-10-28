@@ -87,7 +87,24 @@ function pageTextChecks() {
     if (b.width && b.height && (b.right > W + 1 || b.left < -1) && vis(el)) over.push(el.tagName.toLowerCase() + '.' + String(el.className).split(' ')[0] + ' ' + Math.round(b.left) + '..' + Math.round(b.right));
   });
   const all = texts.join('\n');
-  return { kanji, braces, pageScroll, over: over.slice(0, 6), banned: (all.match(/公認|コラボ/g) || []), streak: /連続/.test(all), blank: all.replace(/\s/g, '').length };
+  // ふりがな: 同じ行のルビどうしが重ならない／親字の間が空かない（ルビは親字の上に重ねて置く）
+  const rts = [], rubyBad = [];
+  document.querySelectorAll('ruby').forEach(r => {
+    if (!vis(r)) return;
+    const tn = [...r.childNodes].find(x => x.nodeType === 3), rt = r.querySelector('rt');
+    if (!tn || !rt) return;
+    const rg = document.createRange(); rg.selectNodeContents(tn);
+    const bw = rg.getBoundingClientRect().width, rw = r.getBoundingClientRect().width;
+    if (bw && rw - bw > 1.5) rubyBad.push('間 ' + tn.textContent);
+    let blk = r.parentElement; while (blk && getComputedStyle(blk).display.startsWith('inline')) blk = blk.parentElement;
+    const b = rt.getBoundingClientRect();
+    if (b.width) rts.push([b, tn.textContent, blk]);
+  });
+  for (let i = 0; i + 1 < rts.length; i++) {
+    const [a, ta, ka] = rts[i], [c, tc, kc] = rts[i + 1];
+    if (ka === kc && Math.abs(a.top - c.top) < 2 && a.right > c.left + 1 && c.right > a.left) rubyBad.push('重 ' + ta + '/' + tc);
+  }
+  return { kanji, braces, pageScroll, over: over.slice(0, 6), banned: (all.match(/公認|コラボ/g) || []), streak: /連続/.test(all), blank: all.replace(/\s/g, '').length, rubyBad };
 }
 
 /* ---------- 1つの画面の大きさで通す ---------- */
@@ -124,6 +141,7 @@ async function runFlow(browser, base, W, H) {
     ok(!r.pageScroll, `[${tag}] ${name}: 横にはみ出さない`);
     ok(r.blank > 5, `[${tag}] ${name}: 真っ白でない`);
     ok(r.banned.length === 0, `[${tag}] ${name}: 「公認」「コラボ」がない`, r.banned);
+    if (!opt.noFuri) ok(r.rubyBad.length === 0, `[${tag}] ${name}: ふりがなが重ならず、親字の間が空かない`, r.rubyBad.slice(0, 4));
     if (r.over.length) st.warns.push(name + ' はみ出し: ' + r.over.join(' | '));
     return r;
   };
@@ -243,6 +261,15 @@ async function runFlow(browser, base, W, H) {
   ok(s.stationsReached >= 3, `[${tag}] 宿場に3つ以上着いた`, s.stationsReached);
   ok(s.scrolls - s.scrollsOpened >= 60, `[${tag}] 巻物が60本以上ある`, s.scrolls - s.scrollsOpened);
   ok(Object.keys(s.recent).length <= 7, `[${tag}] 実歩数は7日分だけ`, Object.keys(s.recent).length);
+  // 14日とばす（修行お休みのカード。読める7日より長く開かなかった）
+  await simOpen();
+  if (ok(await has('[data-act="sim-skip14"]'), `[${tag}] ためし歩きに「14日とばす」`)) {
+    await click('[data-act="sim-skip14"]', 400); await idle(); await sleep(200);
+    ok((await page.evaluate(() => window.__evLast)).includes('rest'), `[${tag}] 14日とばすと修行お休みのカード`, await page.evaluate(() => window.__evLast));
+    await closeCards('skip14');
+  }
+  if (await page.locator('[data-act="sim-toggle"][aria-expanded="true"]').count()) await click('[data-act="sim-toggle"]');
+
   // 出来事のカードは「まとめて見る」でも見られる
   await page.evaluate(() => SA.Screens.showEvents([{ type: 'visit', id: 'kohaku', n: 1 }, { type: 'rank', id: 'sakuya', rank: 2 }, { type: 'station', idx: 1, round: 1 }, { type: 'scroll', n: 10 }]));
   await sleep(200);
@@ -300,7 +327,12 @@ async function runFlow(browser, base, W, H) {
   ok((await page.locator('#screen').innerText()).includes('目安'), `[${tag}] 道に「距離は直線の目安です」`);
   await page.locator('[data-st="1"]').first().click(); await sleep(250);
   await snap('road-station'); await check('宿場の小話');
-  await click('[data-act="close"]');
+  ok((await page.locator('.modal').last().innerText()).includes('着'), `[${tag}] 宿場の小話に「着いた日」`);
+  // ブラウザの「戻る」で、重ねた画面（宿場の小話）が閉じる（ページは移らない）
+  const urlBefore = page.url();
+  await page.goBack(); await sleep(300);
+  ok((await page.locator('#layer .modal').count()) === 0 && page.url() === urlBefore && await page.evaluate(() => SA.UI.App.screen === 'road'), `[${tag}] ブラウザの「戻る」で重ねた画面を閉じる`);
+  if (await has('[data-act="close"]')) await click('[data-act="close"]');
   await page.evaluate(() => document.getElementById('screen').scrollTo(0, 99999)); await snap('road-diary');
 
   // ===== 6) 図鑑の詳細（6欄と4面） =====
@@ -363,6 +395,8 @@ async function runFlow(browser, base, W, H) {
   // ===== 10) はじめから =====
   await click('[data-act="reset"]', 250);
   await snap('reset-1');
+  const cf = await page.evaluate(() => { const m = [...document.querySelectorAll('.modal')].pop(); const y = m.querySelector('[data-act="confirm-yes"]'), n = m.querySelector('[data-act="confirm-no"]'); return { yes: y.className, no: n.className, focus: document.activeElement === n, green: !!m.querySelector('.btn.primary') }; });
+  ok(/red-t|\bred\b/.test(cf.yes) && !cf.green && cf.focus, `[${tag}] 消す確かめは、消す方が赤・緑の主ボタンなし・「やめる」が選ばれている`, cf);
   await page.locator('.modal').last().locator('[data-act="confirm-yes"]').click(); await sleep(250);
   await snap('reset-2');
   await page.locator('.modal').last().locator('[data-act="confirm-yes"]').click(); await sleep(600);

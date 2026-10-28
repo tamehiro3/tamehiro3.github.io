@@ -16,13 +16,15 @@ html, body { margin: 0; height: 100%; background: var(--edge); color: var(--ink)
 body { background: var(--edge) repeating-linear-gradient(0deg, rgba(255,255,255,.12) 0 2px, transparent 2px 6px); }
 button, input, select { font-family: inherit; color: inherit; font-size: inherit; }
 [hidden] { display: none !important; }
-ruby { ruby-position: over; ruby-align: center; }
-/* となりがルビでない側だけ、ルビを親字の外へはみ出させる（ui.js の furi() が oh / oh-l / oh-r を付ける） */
-ruby.oh > rt { margin: 0 -.6em; }
-ruby.oh-l > rt { margin-left: -.6em; }
-ruby.oh-r > rt { margin-right: -.6em; }
-/* ふりがなは親の半分。ただし小さい文字でも 9px より小さくしない（こどもが読めるように） */
-rt { font-size: max(.5em, 9px); line-height: 1; letter-spacing: 0; font-weight: 500; color: inherit; opacity: .85; }
+/* ふりがな: ルビは親字の上に重ねて置き（行の流れに入れない）、親字より長いときは左右へはみ出させる。
+ * こうすると、どのブラウザでも親字の間・前後が空かない（「目 標」「修 行値」のように間延びしない）。
+ * となり合うルビは ui.js の furi() が1つにまとめるので、はみ出したルビどうしは重ならない。
+ * ふりがなは親の半分。ただし小さい文字でも 9px より小さくしない（こどもが読めるように） */
+ruby { --r: 0; --b: 0; --al: 9; --ar: 9; display: inline-block; position: relative; padding-top: calc(max(.5em, 9px) + 1px); text-indent: 0; white-space: nowrap;
+  /* ルビ（--r 文字）が親字（--b 文字）より長く、となりの文字の上にはみ出しきれない分（--al / --ar をこえる分）だけ外をあける */
+  margin-left: max(0px, calc((var(--r) * max(.5em, 9px) - var(--b) * 1em) / 2 - var(--al) * 1em));
+  margin-right: max(0px, calc((var(--r) * max(.5em, 9px) - var(--b) * 1em) / 2 - var(--ar) * 1em)); }
+rt { display: block; position: absolute; left: 50%; top: 0; transform: translateX(-50%); font-size: max(.5em, 9px); line-height: 1; white-space: nowrap; text-align: center; letter-spacing: 0; font-weight: 500; color: inherit; opacity: .85; pointer-events: none; }
 b rt, strong rt { font-weight: 500; }
 img, svg { max-width: 100%; }
 h1, h2, h3 { line-height: 1.5; }
@@ -50,6 +52,10 @@ a { color: var(--indigo); }
 .btn.red { background: var(--red); color: #fff; }
 .btn.ghost { background: transparent; box-shadow: none; border-color: var(--muted); color: var(--ink); }
 .btn.red-t { color: var(--red); border-color: var(--red); }
+/* もどせない操作の確かめ: 進む方（赤い枠）は控えめに、「やめる」は右のふつうのボタン（はじめから選ばれている） */
+.danger-row { justify-content: space-between; }
+.danger-row .btn { flex: 1 1 0; min-width: 0; }
+.danger-row .btn.safe { border-width: 2.5px; }
 .btn.big { min-height: 54px; font-size: 18px; padding: 10px 22px; }
 .btn.small { min-height: 44px; padding: 4px 12px; font-size: 14px; border-radius: 10px; }
 .btn.round { min-width: 44px; padding: 4px 0; border-radius: 999px; font-size: 20px; }
@@ -123,6 +129,7 @@ p.center { display: block; }
 .title-figs { display: flex; justify-content: center; gap: 0; margin-bottom: 4px; }
 .title-t { font-size: 44px; margin: 6px 0 0; letter-spacing: .12em; }
 .title-t rt { font-size: .32em; letter-spacing: .1em; }
+.title-t ruby { padding-top: .1em; }
 .title-sub { font-size: 18px; margin: 0 0 10px; }
 .rep-list { display: flex; flex-direction: column; gap: 8px; }
 .rep { display: flex; gap: 8px; align-items: center; text-align: left; border: 2px solid var(--line); border-radius: 14px; background: var(--paper); padding: 6px 10px 6px 4px; cursor: pointer; min-height: 44px; }
@@ -205,7 +212,7 @@ p.center { display: block; }
 .modal-back { position: fixed; inset: 0; background: rgba(40, 28, 18, .45); display: flex; align-items: center; justify-content: center; padding: calc(10px + var(--safe-t)) 10px calc(10px + var(--safe-b)); animation: fade .15s ease-out; }
 .modal { width: 100%; max-width: 440px; max-height: 100%; display: flex; flex-direction: column; background: var(--washi); border: 3px solid var(--ink); border-radius: 18px; box-shadow: var(--shadow); animation: up .18s ease-out; }
 .modal-t { margin: 0; padding: 10px 14px 0; font-size: 19px; }
-.modal-body { padding: 8px 14px; overflow-y: auto; min-height: 0; }
+.modal-body { padding: 8px 14px; overflow-y: auto; overflow-x: hidden; min-height: 0; }
 .modal-foot { padding: 6px 14px 12px; display: flex; justify-content: center; }
 /* スクロールの外に固定する行（出来事のカードの「つぎへ」） */
 .modal-nav { flex: none; padding: 6px 14px 12px; border-top: 1.5px dashed var(--line); background: var(--washi); border-radius: 0 0 16px 16px; }
@@ -322,8 +329,8 @@ p.center { display: block; }
 .wk-note { margin: 4px 0 0; text-align: right; }
 .wk-labels { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
 .wk-col { display: flex; flex-direction: column; align-items: center; font-size: 13px; line-height: 1.6; padding-top: 4px; white-space: nowrap; }
-.wk-col .muted { font-size: 12px; }
-.wk-col .wk-wd { font-size: 13px; font-weight: 600; }
+.wk-col .muted { font-size: 13px; }
+.wk-col .wk-wd { font-size: 15px; font-weight: 700; line-height: 1.5; }
 .wk-bar { height: 100%; width: 70%; display: flex; align-items: flex-end; background: repeating-linear-gradient(0deg, transparent 0 24px, rgba(59,42,32,.06) 24px 25px); border-radius: 6px 6px 0 0; }
 .wk-bar i { display: block; width: 100%; background: var(--green2); border-radius: 6px 6px 0 0; min-height: 2px; }
 .wk-bar i.goal { background: var(--gold); }

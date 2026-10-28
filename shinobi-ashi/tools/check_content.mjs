@@ -11,6 +11,7 @@
 //   - 書かないこと: 怖い・痛い言葉、ひみつの術の技名と銃、比べる言葉、夜道・早朝のすすめ、公認・コラボ、
 //     宿場の小話の年号・料金・営業時間
 import { createRequire } from 'module';
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 const require = createRequire(import.meta.url);
@@ -199,7 +200,7 @@ const MUST = {
   '甲賀': 'こうか', '雑賀': 'さいか', '風魔': 'ふうま', '伊賀': 'いが', '天界': 'てんかい',
   '修行': 'しゅぎょう', '相棒': 'あいぼう', '宿場': 'しゅくば', '免許皆伝': 'めんきょかいでん', '奥義': 'おうぎ', '巻物': 'まきもの',
   '忍術': 'にんじゅつ', '歩数': 'ほすう', '修行値': 'しゅぎょうち', '修行枠': 'しゅぎょうわく', '端末': 'たんまつ', '家族': 'かぞく',
-  '大典太': 'おおでんた', '人身御供': 'ひとみごくう', '飯綱': 'いづな', '焔': 'ほむら', '於菟': 'おと', '瀬織津姫': 'せおりつひめ', '気吹戸主': 'いぶきどぬし'
+  '大典太': 'おおでんた', '人身御供': 'ひとみごくう', '飯綱': 'いづな', '焔': 'ほむら', '九尾': 'きゅうび', '於菟': 'おと', '瀬織津姫': 'せおりつひめ', '気吹戸主': 'いぶきどぬし'
 };
 // 名前の字がほかの意味で使われることがある（結ぶ・断る・令和 など）ので、名前の確かめは「1字の親字がそれだけで立っているとき」に限る
 const AMBIG_ONE = { '結': ['むす'], '断': [], '令': [], '柴': [], '刃': [] };
@@ -317,6 +318,28 @@ ok(/{[〇一二三四五六七八九]\|/.test(P.gate) === false, '関門の説�
 ok(typeof P.parts === 'string' && /QR/.test(pp('parts')) && /LICENSES\.md/.test(pp('parts')), 'parent.parts（ブラウザ版の部品）');
 ok(typeof P.partsApp === 'string' && /Capacitor/.test(pp('partsApp')) && /@capgo\/capacitor-pedometer/.test(pp('partsApp')) && /LICENSES\.md/.test(pp('partsApp')), 'parent.partsApp（アプリ版の部品: Capacitor・pedometer・LICENSES.md）');
 ok(typeof P.creditApp === 'string' && /@capgo\/capacitor-pedometer/.test(pp('creditApp')) && /MPL-2\.0/.test(pp('creditApp')) && /https:\/\/github\.com\/Cap-go\/capacitor-pedometer/.test(pp('creditApp')) && /Capacitor（MIT/.test(pp('creditApp')), 'parent.creditApp（MPL-2.0・ソースの入手先・Capacitor の MIT）');
+// ブラウザ版は QR の2つだけ。アプリ版は Capacitor・プラグイン・pedometer・AndroidX・Google Play 開発者サービス
+ok(/qrcode-generator（MIT）/.test(pp('parts')) && /jsQR（Apache-2\.0）/.test(pp('parts')) && /2つだけ/.test(pp('parts')) && !/Capacitor|pedometer|AndroidX|Google/.test(pp('parts')), 'parent.parts はブラウザ版の QR の2部品だけ（qrcode-generator MIT・jsQR Apache-2.0）');
+ok(/Capacitor（MIT/.test(pp('partsApp')) && /プラグイン（[^）]*MIT）/.test(pp('partsApp')) && /@capgo\/capacitor-pedometer（MPL-2\.0/.test(pp('partsApp')) && /https:\/\/github\.com\/Cap-go\/capacitor-pedometer/.test(pp('partsApp')), 'parent.partsApp: Capacitor（MIT）・プラグイン（MIT）・pedometer（MPL-2.0 とソースの入手先）');
+ok(/AndroidX/.test(pp('partsApp')) && /Google Play 開発者サービス/.test(pp('partsApp')) && /それぞれの配布元/.test(pp('partsApp')), 'parent.partsApp: AndroidX と Google Play 開発者サービス（ライセンスはそれぞれの配布元）');
+ok(/^アプリ版/.test(pp('creditApp')), 'parent.creditApp はアプリ版だけの部品だと書く（ブラウザで出ても食い違わない）');
+// vendor/LICENSES.md と食い違わない（書いた部品とライセンスの名前が、LICENSES.md にもあること）
+{
+  let LIC = '';
+  try { LIC = fs.readFileSync(path.join(ROOT, 'vendor', 'LICENSES.md'), 'utf8'); } catch (e) { LIC = ''; }
+  ok(LIC.length > 0, 'vendor/LICENSES.md を読める');
+  const row = name => (LIC.split('\n').find(l => l.startsWith('|') && l.includes(name)) || '');
+  ok(/qrcode-generator/.test(LIC) && /\| MIT \|/.test(row('qrcode-generator')), 'LICENSES.md: qrcode-generator は MIT');
+  ok(/\| Apache-2\.0 \|/.test(row('jsQR')), 'LICENSES.md: jsQR は Apache-2.0');
+  ok(/\| MIT \|/.test(row('Capacitor（`@capacitor/core`')), 'LICENSES.md: Capacitor は MIT');
+  for (const pl of ['@capacitor/filesystem', '@capacitor/preferences', '@capacitor/local-notifications', '@capacitor/share'])
+    ok(/\| MIT \|/.test(row('`' + pl + '`')), 'LICENSES.md: ' + pl + ' は MIT');
+  ok(/\| MPL-2\.0 \|/.test(row('`@capgo/capacitor-pedometer`')) && row('`@capgo/capacitor-pedometer`').includes('https://github.com/Cap-go/capacitor-pedometer'), 'LICENSES.md: pedometer は MPL-2.0、ソースは https://github.com/Cap-go/capacitor-pedometer');
+  ok(/\| Apache-2\.0 \|/.test(row('AndroidX（')), 'LICENSES.md: AndroidX は Apache-2.0');
+  ok(/Android Software Development Kit License/.test(row('Google Play 開発者サービス')) && /オープンソースではありません/.test(row('Google Play 開発者サービス')), 'LICENSES.md: Google Play 開発者サービスは Google の規約（オープンソースではない）');
+  ok(/\| Apache-2\.0 \|/.test(row('Apache Cordova Android')), 'LICENSES.md: Apache Cordova は Apache-2.0');
+  ok(/規約の名前と場所/.test(LIC.split('\n').slice(0, 5).join('\n')) && /規約の名前と場所/.test(pp('partsApp')), 'Google Play 開発者サービスは全文ではなく規約の名前と場所（LICENSES.md と同じ言い方）');
+}
 ok(/はじめから/.test(pp('erase')) && /消/.test(pp('erase')), 'データの消し方');
 ok(/インターネットには送りません/.test(pp('permission')), '歩数の許可の前の説明');
 ok(!/法律|法令|違法|準拠|COPPA|GDPR|個人情報保護法/.test(STR.filter(x => x.p.startsWith('parent.')).map(x => BY[x.p].plain).join()), '法律の断定をしない');
@@ -338,6 +361,16 @@ const WANT = new Set();
 for (const c of CH.CHARS) for (const w of [c.jutsu, c.weapon]) if (w && KANJI.test(w)) WANT.add(w);
 for (const w of WANT) ok(O.words && typeof O.words[w] === 'string', 'official.words に「' + w + '」がある');
 // 読みは名前表（MUST）と同じ（上の「名前・クランの読み」でまとめて確かめている）
+// 宇迦の忍術「九尾の焔」は どこでも きゅうびのほむら（図鑑・忍術の間は official.words、一言は bond など）
+ok(O.words && O.words['九尾の焔'] === '{九尾|きゅうび}の{焔|ほむら}', 'official.words「九尾の焔」は {九尾|きゅうび}の{焔|ほむら}');
+for (const { p, s } of STR) if (BY[p].plain.includes('九尾の焔')) ok(/\{九尾\|きゅうび\}の\{焔\|ほむら\}/.test(s), p + ': 「九尾の焔」は きゅうびのほむら');
+// 画面の側で上書きしている読み（screens.js・ui.js・fx.js。読むだけ）も同じ
+for (const f of ['screens.js', 'ui.js', 'fx.js']) {
+  let src = ''; try { src = fs.readFileSync(path.join(ROOT, f), 'utf8'); } catch (e) { continue; }
+  const bad = (src.match(/\{焔\|[^}]*\}|\{九尾\|[^}]*\}/g) || []).filter(x => x !== '{焔|ほむら}' && x !== '{九尾|きゅうび}');
+  ok(!bad.length, f + ' の「九尾の焔」の読みも きゅうびのほむら' + (bad.length ? '（' + bad.join(' ') + '）' : ''));
+}
+
 
 /* ---------- 9. その他の目安 ---------- */
 section('長さの目安');

@@ -110,15 +110,17 @@
   function mdF(date) { var p = String(date || '').split('-'); return p.length === 3 ? (+p[1]) + '/' + (+p[2]) : U().esc(date || ''); }
   function isSecret(id) { return (D().SECRET_JUTSU || []).indexOf(id) >= 0; }
   /** 秘密の術の名を見せてよいか（おとなモードで保護者が「見る」にしたときだけ） */
-  // ながめるモード（関門なしで入れる）では、開いたファイルがおとなモードでも、いつもこども向けに見せる
-  function secretOpen() { if (A().view) return false; var s = S(); return !!(s && s.mode === 'otona' && s.settings && s.settings.showSecretNames); }
+  // ながめるモード（関門なしで入れる）では、開いたファイルの設定にかかわらず、こども向けの守りで見せる
+  // （ひみつの術の名を伏せる・やさしく書き直した紹介文）。保護者が関門を通したときだけ、ファイルのとおりに見せる
+  function viewGuard() { return !!(A().view && !A().viewUnlocked); }
+  function secretOpen() { if (viewGuard()) return false; var s = S(); return !!(s && s.mode === 'otona' && s.settings && s.settings.showSecretNames); }
   function jutsuF(id) {
     var c = CH().BY_ID[id];
     if (!c) return '';
     if (isSecret(id) && !secretOpen()) return 'ひみつの{術|じゅつ}';
     return word(c.jutsu);
   }
-  function kidsNow() { if (A().view) return true; var s = S(); return !s || s.mode !== 'otona'; }
+  function kidsNow() { if (viewGuard()) return true; var s = S(); return !s || s.mode !== 'otona'; }
   /** こども向けにやわらげた紹介文を出すときはその文、出さないときは null */
   function kidsBio(id) {
     var KB = D().KIDS_BIO || {};
@@ -461,7 +463,7 @@
   function furiInline(t) { return U().furi(t); }
   function setChoice(home) {
     var t = U().today();
-    var r = U().apply('setChoice', t, { home: home });
+    var r = U().apply('setChoice', t, { home: home }, t);   // 4つ目の today: rules.js は今日の分だけ受け付ける
     if (r && !r.error) { U().setState(r); U().save(); }
     U().render();
   }
@@ -484,7 +486,7 @@
   function affLabel(id) {
     var a = (D().AFFINITY || {})[id];
     if (!a) return '';
-    var kidsMode = U().kids();
+    var kidsMode = kidsNow();
     if (a.type === 'clan') {
       var c = CH().BY_ID[id], w = (D().CLAN_WINDOWS || {})[c && c.clan];
       if (w) return kidsMode ? (w.kidsLabel || w.label) : w.label;
@@ -831,7 +833,8 @@
   }
 
   /* ================= 3.6 忍びの道 ================= */
-  var ROW = 8, GAPX = 42, GAPY = 64, X0 = 24, Y0 = 34;
+  // 1行7つ・間を広めに（360幅でも、となりの点との間が 44px 以上になり、押し分けやすい）
+  var ROW = 7, GAPX = 50, GAPY = 64, X0 = 22, Y0 = 34;
   function stXY(i) { var r = Math.floor(i / ROW), c = i % ROW; return { x: X0 + (r % 2 ? (ROW - 1 - c) : c) * GAPX, y: Y0 + r * GAPY }; }
   function reachedSet(s) {
     var set = {}, n = s ? s.stationsReached : 0, last = (D().STATIONS || []).length - 1;
@@ -995,8 +998,8 @@
       tabs, tabBox,
       info && info.nextAt ? bar(info.progress, ((info.nextIsOkugi ? '{奥義|おうぎ}' : '{次|つぎ}の{位|くらい}') + 'まで ' + n(info.toNext) + '{歩|ほ}')) : null,
       dl,
-      // やわらげた文は公式の文そのものではないので、見出しで分ける
-      bio ? h('div.bio', [h('h3', { text: kidsBio(id) ? '{紹介文|しょうかいぶん}（こども{向|む}け）' : '{公式|こうしき}の{紹介文|しょうかいぶん}' }), h('p', { text: bio }), kidsBio(id) ? h('p.muted', { text: '{公式|こうしき}の{紹介文|しょうかいぶん}をもとに、やさしく{書|か}き{直|なお}した{文|ぶん}です。' }) : null]) : null,
+      // やわらげた文は公式の文そのものではないので、見出しで分ける（おとなモード・関門を通したながめるモードは公式の文と見出し）
+      bio ? h('div.bio', { attrs: { 'data-bio': kidsBio(id) ? 'kids' : 'official' } }, [h('h3', { text: kidsBio(id) ? 'しょうかい（やさしいことばで）' : '{公式|こうしき}の{紹介文|しょうかいぶん}' }), h('p', { text: bio }), kidsBio(id) ? h('p.muted', { text: '{公式|こうしき}の{紹介文|しょうかいぶん}ではありません。それをもとに、やさしく{書|か}き{直|なお}した{文|ぶん}です。' }) : null]) : null,
       !shadow && TX.zukan && TX.zukan[id] ? h('div.bio', [h('h3', { text: 'ゲームでの{様子|ようす}' }), h('p', { text: TX.zukan[id] })]) : null,
       lines.length ? h('div.bio', [h('h3', { text: '{聞|き}いた{一言|ひとこと}' }), h('ul.lines', lines.map(function (l) { return h('li', { text: l }); }))]) : null,
       h('p.unofficial', { text: (TX.parent && TX.parent.unofficial) || 'CryptoNinja（CC0・Ninja DAO）のキャラクターを{使|つか}った{個人|こじん}{制作|せいさく}の{非公式|ひこうしき}ファンゲームです。' })
@@ -1258,9 +1261,9 @@
       h('p.unofficial', { text: P.unofficial || 'CryptoNinja（CC0・Ninja DAO）のキャラクターを{使|つか}った{個人|こじん}{制作|せいさく}の{非公式|ひこうしき}ファンゲームです。' }),
       P.credit ? h('p', { text: P.credit }) : null,
       h('p', { text: 'キャラクターの{絵|え}と{紹介文|しょうかいぶん}のもとは CryptoNinja（CC0）。{図鑑|ずかん}の「{公式|こうしき}イラスト」は CC0 で{公開|こうかい}されている{絵|え}です。' }),
-      h('p', { text: '{使|つか}っている{部品|ぶひん}：qrcode-generator（MIT）、jsQR（Apache-2.0）。くわしくは vendor/LICENSES.md。' }),
-      // アプリ版の部品（MPL-2.0 の @capgo/capacitor-pedometer、改変なし）。ソースの場所は文字で出すだけ（リンクにしない）
-      U().isNative() && P.partsApp ? h('p', { text: P.partsApp }) : null,
+      // ブラウザ版は QR の2つだけ（P.parts）。アプリ版は P.partsApp（QR のほかの部品。MPL-2.0 の @capgo/capacitor-pedometer は改変なし）。
+      // ソースの場所は文字で出すだけ（リンクにしない）
+      h('p', { text: (U().isNative() && P.partsApp) || P.parts || '{使|つか}っている{部品|ぶひん}：qrcode-generator（MIT）、jsQR（Apache-2.0）。くわしくは vendor/LICENSES.md。' }),
       U().isNative() ? h('p', { text: P.creditApp || 'iPhone の{歩数|ほすう}を{読|よ}む{部品|ぶひん}：@capgo/capacitor-pedometer（MPL-2.0、{改変|かいへん}なし。ソースコードは https://github.com/Cap-go/capacitor-pedometer ）。' }) : null,
       h('p', { text: '{広告|こうこく}・{課金|かきん}・ランキング・チャットはありません。インターネットには{何|なに}も{送|おく}りません。' }),
       h('p.muted', { html: 'shinobi-ashi v1' })
@@ -1322,7 +1325,7 @@
             var ns = r.state;
             if (A().info && A().info.route) ns.route = A().info.route;
             A().state = ns; U().save().then(function () { U().go('home'); U().toast('{読|よ}み{込|こ}んだよ'); });
-          });
+          }, { danger: true });
         });
       }, { id: 'import' })
     ]);
@@ -1367,11 +1370,18 @@
           if (!U().has('Share', 'importFile')) { U().toast('{準備中|じゅんびちゅう}'); return; }
           var r = SA.Share.importFile(text);
           if (!r.ok) { U().toast(SA.Share.message ? SA.Share.message(r.reason) : '{読|よ}めませんでした', 'ng'); return; }
-          A().viewState = r.state; U().go('zukan'); U().toast('{開|ひら}いたよ');
+          A().viewState = r.state; A().viewUnlocked = false; U().go('zukan'); U().toast('{開|ひら}いたよ');
         });
       }, { id: 'view-open', cls: 'primary' }),
       vs ? h('p.muted', { text: 'いま{開|ひら}いている{記録|きろく}：' + U().esc(vs.createdAt) + 'から・{会|あ}えた{忍|しのび} ' + Object.keys(vs.chars || {}).length }) : null
-    ])], 'viewfile');
+    ]), vs ? section('{表示|ひょうじ}の{守|まも}り', [
+      h('p.muted', { text: A().viewUnlocked
+        ? 'いまは、ファイルの{設定|せってい}のとおりに{見|み}せています（ひみつの{術|じゅつ}の{名前|なまえ}・{公式|こうしき}の{紹介文|しょうかいぶん}）。'
+        : 'ながめるモードでは、ファイルの{設定|せってい}にかかわらず、こども{向|む}けに{見|み}せています（ひみつの{術|じゅつ}の{名前|なまえ}を{伏|ふ}せ、{紹介文|しょうかいぶん}はやさしいことばで）。' }),
+      A().viewUnlocked
+        ? U().btn('こども{向|む}けの{表示|ひょうじ}にもどす', function () { A().viewUnlocked = false; U().render(); }, '', { attrs: { type: 'button', 'data-act': 'view-lock' } })
+        : U().btn('{保護者|ほごしゃ}：ファイルのとおりに{見|み}る', function () { U().gate(function (ok) { if (ok) { A().viewUnlocked = true; U().render(); } }); }, '', { attrs: { type: 'button', 'data-act': 'view-unlock' } })
+    ]) : null], 'viewfile');
   }
 
   /* ================= 記録が読めなかったとき ================= */
@@ -1393,9 +1403,8 @@
               A().broken = null; A().state = ns; A().screen = 'home';
               U().save().then(function () { U().toast('{読|よ}み{込|こ}んだよ'); U().render(); return U().onOpen('boot'); });
             }
-            // おとなモードの記録は、保護者設定の読み込みと同じく関門を通してから（こどもモードの守りの抜け道にしない）
-            if (ns.mode === 'otona') U().gate(function (ok) { if (ok) take(); });
-            else take();
+            // 保護者設定の読み込みと同じく、関門を通してから（こどもモードの守りの抜け道にしない）
+            U().gate(function (ok) { if (ok) take(); });
           });
         }, { id: 'broken-import', cls: 'primary big' }),
         U().btn('はじめから（{確認|かくにん}2{回|かい}）', function () { U().resetAll(); }, 'red', { attrs: { type: 'button', 'data-act': 'broken-reset' } })

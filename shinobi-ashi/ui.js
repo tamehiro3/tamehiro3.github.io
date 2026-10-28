@@ -14,6 +14,7 @@
     return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
   var FURI_RE = /\{([^{}|]+)\|([^{}|]+)\}/g;
+  var FURI_RUN_RE = /(?:\{[^{}|]+\|[^{}|]+\})+/g;
   function furiOn() {
     if (App.state && typeof App.state.furigana === 'boolean') return App.state.furigana;
     return App.furiPref !== false;
@@ -23,13 +24,45 @@
     var s = esc(text);
     var show = on === undefined ? furiOn() : !!on;
     if (!show) return s.replace(FURI_RE, '$1');
-    // ルビが親字より長いとき、となりがルビでない側（かな・数字・記号・文の端）には、ルビを少しはみ出させる
-    // （親字の間が空いて一語に見えなくなるのを防ぐ。となりもルビのときは重ならないように、はみ出させない）
-    return s.replace(FURI_RE, function (m, base, rt, off, str) {
-      var l = !(off > 0 && str.charAt(off - 1) === '}'), r = str.charAt(off + m.length) !== '{';
-      var c = l && r ? ' class="oh"' : l ? ' class="oh-l"' : r ? ' class="oh-r"' : '';
-      return '<ruby' + c + '>' + base + '<rt>' + rt + '</rt></ruby>';
+    // となり合うルビ（{目標|もくひょう}{歩数|ほすう}）は1つのルビにまとめる。ルビは親字の上に重ねて置き、
+    // 親字より長いときは左右にはみ出させる（style.css。親字の間が空いて一語に見えなくなるのを防ぐ）。
+    // はみ出してよいのは、となりのルビのない文字の幅の半分まで（--al / --ar、単位は親字の em）。
+    // それより長いルビの分だけ、外側に少し間をあける（となりのルビどうしが重ならないように）
+    var runs = [], m;
+    FURI_RUN_RE.lastIndex = 0;
+    while ((m = FURI_RUN_RE.exec(s))) runs.push({ at: m.index, end: m.index + m[0].length, run: m[0] });
+    if (!runs.length) return s;
+    runs.forEach(function (x) {
+      var base = '', rt = '';
+      x.run.replace(FURI_RE, function (mm, b, r) { base += b; rt += r; return ''; });
+      x.base = base; x.rt = rt; x.bl = wlen(base); x.rl = wlen(rt);
+      x.need = Math.max(0, (x.rl * FURI_Q - x.bl) / 2);   // 片側にはみ出すおおよその幅（小さい文字のときの大きめの見積もり）
     });
+    // あいだの文字の幅を、両どなりのルビで分ける（相手がはみ出さない分はもらう）。文の端は、その外の文字の幅の分
+    function allow(gap, other) { return other ? Math.max(gap / 2, gap - other.need) : Math.max(FURI_EDGE, gap); }
+    var out = '', last = 0;
+    runs.forEach(function (x, i) {
+      var base = x.base, rt = x.rt, rl = x.rl, bl = x.bl;
+      var lw = allow(wlen(s.slice(i > 0 ? runs[i - 1].end : 0, x.at)), runs[i - 1]);
+      var rw = allow(wlen(s.slice(x.end, i < runs.length - 1 ? runs[i + 1].at : s.length)), runs[i + 1]);
+      var st = rl > bl ? ' style="--r:' + rl + ';--b:' + bl + ';--al:' + Math.min(FURI_MAX, lw).toFixed(2) + ';--ar:' + Math.min(FURI_MAX, rw).toFixed(2) + '"' : '';
+      out += s.slice(last, x.at) + '<ruby' + st + '>' + base + '<rt>' + rt + '</rt></ruby>';
+      last = x.end;
+    });
+    return out + s.slice(last);
+  }
+  // 文の端ではみ出してよい幅・いちばん大きくはみ出す幅（親字の em）・ルビの字の大きさの見積もり（14px の文字で 9px）
+  var FURI_EDGE = 0.6, FURI_MAX = 1.5, FURI_Q = 0.65;
+  /** 見た目のおおよその幅（全角＝1、半角＝0.55、空白＝0.3。句読点・かっこは詰まることがあるので 0.5。
+   * HTML の &amp; なども半角として数える） */
+  var HALFISH = '、。，．・：；「」『』（）【】〔〕';
+  function wlen(t) {
+    var w = 0;
+    for (var i = 0; i < t.length; i++) {
+      var c = t.charCodeAt(i);
+      w += c === 32 ? 0.3 : (c < 0x2000 || (c >= 0xff61 && c <= 0xff9f)) ? 0.55 : HALFISH.indexOf(t.charAt(i)) >= 0 ? 0.5 : 1;
+    }
+    return Math.round(w * 100) / 100;
   }
   /** ふりがな書式を外した文字（title 属性・aria-label 用） */
   function plain(text) { return String(text == null ? '' : text).replace(FURI_RE, '$1'); }
@@ -248,6 +281,8 @@
       back.remove();
       modalStack = modalStack.filter(function (x) { return x !== m; });
       layer.hidden = !modalStack.length;
+      clearToast();
+      histSync();
       if (opt.onClose) try { opt.onClose(); } catch (e) { console.warn(e); }
     };
     if (!opt.noClose) {
@@ -259,7 +294,8 @@
     layer.appendChild(back);
     layer.hidden = false;
     modalStack.push(m);
-    var f = box.querySelector('button');
+    histSync();
+    var f = (opt.focus && box.querySelector(opt.focus)) || box.querySelector('button');
     if (f && f.focus) try { f.focus({ preventScroll: true }); } catch (e) { }
     return m;
   }
@@ -273,17 +309,80 @@
     e.preventDefault();
     top.close();
   });
-  /** 確かめる。opt.danger（消すなど、もどせない操作）のときは「やめる」を目立つ主ボタンにし、進む方は赤い控えめなボタンにする */
+  /** 確かめる。opt.danger（消す・置きかえるなど、もどせない操作）のときは、進む方を赤い枠の控えめなボタンにし、
+   * 緑の主ボタンは使わない。「やめる」はふつうのボタンで右側（目立つ側）に置き、はじめから選ばれた状態にする */
   function confirmBox(text, yes, no, cb, opt) {
     var danger = !!(opt && opt.danger);
-    var m = modal([h('p', { text: text }), h('div.row', danger ? [
+    var m = modal([h('p', { text: text }), h('div.row' + (danger ? '.danger-row' : ''), danger ? [
       btn(yes || 'はい', function () { m.close(); cb(true); }, 'ghost red-t', { attrs: { type: 'button', 'data-act': 'confirm-yes' } }),
-      btn(no || 'やめる', function () { m.close(); cb(false); }, 'primary', { attrs: { type: 'button', 'data-act': 'confirm-no' } })
+      btn(no || 'やめる', function () { m.close(); cb(false); }, 'safe', { attrs: { type: 'button', 'data-act': 'confirm-no' } })
     ] : [
       btn(no || 'やめる', function () { m.close(); cb(false); }, 'ghost', { attrs: { type: 'button', 'data-act': 'confirm-no' } }),
       btn(yes || 'はい', function () { m.close(); cb(true); }, 'primary', { attrs: { type: 'button', 'data-act': 'confirm-yes' } })
-    ])], { noClose: true, cls: danger ? 'danger' : '' });
+    ])], { noClose: true, cls: danger ? 'danger' : '', focus: danger ? '[data-act="confirm-no"]' : null });
     return m;
+  }
+
+  /* ================= 戻る（ブラウザの「戻る」・Android の戻るボタン） ================= */
+  /** 重ねた画面・忍術の間が開いているか */
+  function overlayOpen() { var j = doc && doc.getElementById('jutsu'); return modalStack.length > 0 || !!(j && !j.hidden); }
+  /** 戻るを1回ぶん片づける。片づけたら true（ホームなどで何もしなければ false） */
+  function handleBack() {
+    if (App.walking) return overlayOpen();             // 歩いているあいだは何もしない（重ねた画面があれば閉じもしない）
+    var j = doc.getElementById('jutsu');
+    if (j && !j.hidden) {
+      var jb = j.querySelector('[data-act="skip"]') || j.querySelector('[data-act="jutsu-back"]');
+      if (jb) jb.click();
+      return true;
+    }
+    if (!modalStack.length) return false;
+    var el = modalStack[modalStack.length - 1].el;
+    // とじる → 確かめの「やめる」 → 出来事のカードの「つぎへ」（最後のカードでは「とじる」）。どれもなければ戻るを食べるだけ
+    var b = el.querySelector('.modal-foot [data-act="close"]') || el.querySelector('[data-act="confirm-no"]') || el.querySelector('[data-act="ev-next"]');
+    if (b && !b.disabled) b.click();
+    return true;
+  }
+  // ブラウザ: 重ねた画面が開いているあいだ、履歴を1つ積んでおく。「戻る」（popstate）でいちばん上を閉じる。
+  // 画面のボタンで閉じたときは、積んだ1つを自分で戻す（すぐ次の重ねた画面が開くとき＝出来事のカードの「つぎへ」は残す）
+  var hist = { ignore: 0, timer: 0 };
+  function histOn() { return !!(root.history && root.history.pushState && doc && !isNative()); }
+  function histOurs() { try { return !!(root.history.state && root.history.state.saLayer); } catch (e) { return false; } }
+  function histSync() {
+    if (!histOn()) return;
+    clearTimeout(hist.timer);
+    if (overlayOpen()) { if (!histOurs()) try { root.history.pushState({ saLayer: 1 }, ''); } catch (e) { } return; }
+    hist.timer = setTimeout(function () {
+      if (overlayOpen() || !histOurs()) return;
+      hist.ignore++;
+      try { root.history.back(); } catch (e) { hist.ignore--; }
+    }, 0);
+  }
+  if (root.addEventListener && doc) root.addEventListener('popstate', function () {
+    if (hist.ignore > 0) { hist.ignore--; histSync(); return; }
+    if (overlayOpen()) handleBack();
+    histSync();
+  });
+  // Android: @capacitor/app の backButton から store.js が SA.Cap.back() を呼ぶと、まず 'backbutton' が流れてくる。片づけたら preventDefault。
+  // 片づけなければ SA.Cap.back() のふつうの扱い（ホーム以外ならホームへ。ホームならアプリを閉じる）
+  if (doc) doc.addEventListener('backbutton', function (e) { if (handleBack()) e.preventDefault(); });
+  /** @capacitor/app があれば、その backButton も同じ片づけにつなぐ（無ければ何もしない）。
+   * store.js の SA.Cap.wireBack があればそれに任せる（1回の戻るボタンに受け手が2つにならないように）。 */
+  function hookNativeBack() {
+    try {
+      if (SA.Cap && typeof SA.Cap.wireBack === 'function') { SA.Cap.wireBack(); return; }
+      var C = root.Capacitor, P = C && C.Plugins && C.Plugins.App;
+      if (!isNative() || !P || typeof P.addListener !== 'function') return;
+      P.addListener('backButton', function () {
+        var done = SA.Cap && typeof SA.Cap.back === 'function' ? SA.Cap.back() : handleBack();
+        if (!done && typeof P.exitApp === 'function') P.exitApp();
+      });
+    } catch (e) { }
+  }
+  /** 忍術の間（#jutsu）の出し入れも、重ねた画面と同じく履歴に積む */
+  function watchJutsu() {
+    var j = doc.getElementById('jutsu');
+    if (!j || !root.MutationObserver) return;
+    new root.MutationObserver(function () { histSync(); }).observe(j, { attributes: true, attributeFilter: ['hidden'] });
   }
 
   /* ================= 音（やさしいチャイム。音が「あり」のときだけ） ================= */
@@ -618,6 +717,8 @@
     drow.appendChild(btn('{次|つぎ}の{日|ひ}へ', function () { sim.nextDay(); simClose(); sync('sim'); }, '', { attrs: { type: 'button', 'data-act': 'sim-next' } }));
     drow.appendChild(btn('7{日|にち}すすめる', function () { sim.skipDays(7); simClose(); sync('sim'); }, '', { attrs: { type: 'button', 'data-act': 'sim-skip7' } }));
     p.appendChild(drow);
+    // 開かない日が続いたとき（修行お休みのカード）を試す。読める日数（7日）より長くとばす
+    if (typeof sim.skipDays === 'function') p.appendChild(h('div.row', [btn('14{日|にち}とばす（{修行|しゅぎょう}お{休|やす}みを{試|ため}す）', function () { sim.skipDays(14); simClose(); sync('sim'); }, '', { attrs: { type: 'button', 'data-act': 'sim-skip14' } })]));
     p.appendChild(wl);
     p.appendChild(btn('はじめから', function () { resetAll(); }, 'ghost red-t', { attrs: { type: 'button', 'data-act': 'sim-reset' } }));
     box.appendChild(p);
@@ -640,7 +741,7 @@
       return Promise.resolve(p).then(function () {
         try { if (SA.Steps && SA.Steps.sim && SA.Steps.sim.reset) SA.Steps.sim.reset(); } catch (e) { }
         try { if (has('Notify', 'cancelAll')) SA.Notify.cancelAll(); } catch (e) { }
-        App.state = null; App.view = false; App.viewState = null; App.walking = false; App.broken = null; simOpen = false;
+        App.state = null; App.view = false; App.viewState = null; App.viewUnlocked = false; App.walking = false; App.broken = null; simOpen = false;
         closeAllModals();
         startOnboarding(0);
       });
@@ -660,7 +761,7 @@
     render();
   }
   function enterView(viewState) {
-    App.view = true; App.viewState = viewState || null; App.state = null;
+    App.view = true; App.viewState = viewState || null; App.state = null; App.viewUnlocked = false;
     App.screen = App.screen === 'road' ? 'road' : 'zukan';
     render();
   }
@@ -680,6 +781,8 @@
   function boot() {
     if (!doc.getElementById('app')) return;
     registerSW();
+    hookNativeBack();
+    watchJutsu();
     var detect = has('Steps', 'detect') ? Promise.resolve(SA.Steps.detect()).catch(function () { return null; }) : Promise.resolve(null);
     var load = has('Store', 'load') ? Promise.resolve(SA.Store.load()).catch(function () { return null; }) : Promise.resolve(null);
     var pref = has('Store', 'getPref') ? Promise.all([SA.Store.getPref('viewMode'), SA.Store.getPref('furigana')]).catch(function () { return [null, null]; }) : Promise.resolve([null, null]);
@@ -688,7 +791,11 @@
       if (a[2] && a[2][1] === false) App.furiPref = false;
       var raw = a[1];
       if (!raw) return { s: null, a: a };
+      // store.js が「壊れていて控えも読めない」と知らせたら（SA.Store.isCorrupt）、そのまま「記録が読めませんでした」へ
+      if (SA.Store && typeof SA.Store.isCorrupt === 'function' && SA.Store.isCorrupt(raw)) return { s: null, a: a, broken: true };
       var s = usableState(raw);
+      // 本体が壊れていて store.js が控えから戻したとき（lastError.recovered）は「ひとつ前の記録にもどしました」を出す
+      if (s && SA.Store && SA.Store.lastError && SA.Store.lastError.recovered === true) App.restoredFromBak = true;
       if (s) return { s: s, a: a };
       // 読めなかったら、ひとつ前の保存（:bak）を試す
       return readBackup().then(function (b) {
@@ -768,9 +875,10 @@
     if (more.length) box.appendChild(sec('{設定|せってい}と{記録|きろく}', more.map(function (t) { return h('p', { text: t }); })));
     if (help.length) box.appendChild(sec('{遊|あそ}び{方|かた}', help.map(function (x) { return h('details.qa', [h('summary', { text: x.q }), h('p', { text: x.a })]); })));
     if (P.credit) box.appendChild(sec('このアプリについて', [h('p', { text: P.credit }),
-      h('p', { text: P.parts || '{使|つか}っている{部品|ぶひん}：QR コードを{作|つく}る{部品|ぶひん}と{読|よ}む{部品|ぶひん}（vendor/LICENSES.md にライセンスを{書|か}いています）。' }),
-      // アプリ版で使う部品（MPL-2.0 の @capgo/capacitor-pedometer）。URL は文字で出すだけ（リンクにしない）
-      P.creditApp ? h('p', { text: P.creditApp }) : null]));
+      // ブラウザ版は QR の2つだけ（P.parts）。アプリ版は P.partsApp（QR のほかの部品）と P.creditApp（MPL-2.0 の知らせ）。
+      // URL は文字で出すだけ（リンクにしない）
+      h('p', { text: (isNative() && P.partsApp) || P.parts || '{使|つか}っている{部品|ぶひん}：QR コードを{作|つく}る{部品|ぶひん}と{読|よ}む{部品|ぶひん}（vendor/LICENSES.md にライセンスを{書|か}いています）。' }),
+      isNative() && P.creditApp ? h('p', { text: P.creditApp }) : null]));
     if (!P.short) box.appendChild(h('p', { text: '{文章|ぶんしょう}は{準備中|じゅんびちゅう}です。' }));
   }
 
@@ -778,7 +886,7 @@
     furi: furi, esc: esc, plain: plain, kana: kana, fill: fill, n: n, h: h, add: add, btn: btn, soon: soon, has: has, icon: icon,
     App: App, today: today, isNative: isNative, isSim: isSim, kids: kids, charOf: charOf,
     save: save, apply: apply, setState: setState, summary: summary,
-    go: go, render: render, toast: toast, modal: modal, closeAllModals: closeAllModals, confirmBox: confirmBox,
+    go: go, render: render, toast: toast, clearToast: clearToast, modal: modal, handleBack: handleBack, closeAllModals: closeAllModals, confirmBox: confirmBox,
     gate: gate, holdButton: holdButton, walkCheck: walkCheck, sync: sync, onOpen: onOpen, chime: chime,
     resetAll: resetAll, startOnboarding: startOnboarding, enterView: enterView, renderSim: renderSim, boot: boot, renderAbout: renderAbout
   };

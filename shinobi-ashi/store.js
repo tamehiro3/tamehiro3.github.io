@@ -7,8 +7,13 @@
  *           小さな設定は @capacitor/preferences（Android のバックアップに残すのはこちらだけ）。
  * どの関数も例外を外に投げない（save は失敗すると false）。
  * 読めなかったとき: 保存があるのに JSON が壊れていて（途中で切れているなど）、控え（:bak・一時ファイル）も読めなければ、
- *   load() は null ではなく { corrupt: true, app: 'shinobi-ashi:corrupt' } を返す（画面は「記録が読めませんでした」へ）。
- *   壊れた中身は消さずに 'shinobi-ashi:v1:broken'（アプリは progress.broken.json）に1つだけ写しておく。
+ *   load() は null（＝はじめての画面）ではなく、壊れていることが分かる印を返す（画面は「記録が読めませんでした」へ）:
+ *     { corrupt: true, broken: true, app: 'shinobi-ashi:corrupt', reason: 'main-json'|'bak-json' }
+ *     （SA.Store.isCorrupt(x) で見分ける。app が違うので SA.Rules.validate を通らず、migrate も null）
+ *   同じことを SA.Store.lastError にも残す: { reason, recovered: false, kept: 写せたか }（壊れていなければ null）。
+ *   本体だけ壊れていて控えから読めたときは、控えの state を返し、lastError は { reason: 'main-json', recovered: true, kept }。
+ *   壊れた中身は消さずに 'shinobi-ashi:v1:broken'（アプリは progress.broken.json）に1つだけ写しておく（clear() でも消さない）。
+ *   SA.Store.brokenText() で読める。
  * ビルドなしの素の JS。window.SA に足す。Node では require('./store.js') で同じものが返る。
  */
 (function (root) {
@@ -86,8 +91,8 @@
   SA.Cap = Cap;
 
   /* ================= 戻るボタン（Android） =================
-   * Android の戻るボタンは、MainActivity が `SA.Cap.back()` を呼ぶ（WebView の evaluateJavascript）。
-   * true を返したら「この中で片づけた」。false ならアプリを閉じる（ふつうの戻る）。
+   * Android の戻るボタンは @capacitor/app の 'backButton' で受け取り、`SA.Cap.back()` を呼ぶ（下の wireBack）。
+   * true を返したら「この中で片づけた」。false ならアプリを閉じる（App.exitApp。ふつうの戻ると同じ）。
    * 片づけ方の順:
    *   1. document に cancelable な 'backbutton' イベントを流す。画面側が preventDefault したら片づけた扱い。
    *   2. SA.Cap.onBack(fn) で登録した関数を、あとから登録したものから呼ぶ。true を返したら片づけた扱い。
@@ -95,7 +100,7 @@
    *      「とじる」（[data-act=close]）を押す。出来事のカード（閉じるボタンがない）は「つぎへ」（[data-act=ev-next]）を
    *      押す（最後のカードでは「とじる」になる）。どちらもない重ねた画面は閉じずに、戻るを食べるだけ
    *      （うっかりアプリが閉じないように）。重ねた画面がなく、ホーム（ながめるモードはいちばん左のタブ）以外にいれば、そこへ戻す。
-   * ブラウザでは MainActivity は呼ばないが、画面側が popstate から SA.Cap.back() を呼んでもよい（同じ片づけ方になる）。 */
+   * ブラウザでは呼ばれないが、画面側が popstate から SA.Cap.back() を呼んでもよい（同じ片づけ方になる）。 */
   if (!Cap.onBack) {
     var backFns = [];
     Cap.onBack = function (fn) {
@@ -103,21 +108,75 @@
       backFns.push(fn);
       return function () { backFns = backFns.filter(function (f) { return f !== fn; }); };
     };
+    var lastBack = null;   // Android のアプリで、1回の戻るボタンに受け手が2つあっても1回だけ片づける（下の wireBack）
     Cap.back = function () {
-      var doc = root.document;
-      try {
-        if (doc && typeof root.CustomEvent === 'function') {
-          var ev = new root.CustomEvent('backbutton', { cancelable: true });
-          doc.dispatchEvent(ev);
-          if (ev.defaultPrevented) return true;
-        }
-      } catch (e) { }
-      for (var i = backFns.length - 1; i >= 0; i--) {
-        try { if (backFns[i]() === true) return true; } catch (e) { }
-      }
-      return defaultBack(doc);
+      if (backWire && lastBack && Date.now() - lastBack.t < BACK_SAME_MS) return lastBack.done;
+      var done = backOnce();
+      if (backWire) lastBack = { t: Date.now(), done: done };
+      return done;
     };
+    Cap._forgetBack = function () { lastBack = null; };
   }
+  var BACK_SAME_MS = 250;
+  function backOnce() {
+    var doc = root.document;
+    try {
+      if (doc && typeof root.CustomEvent === 'function') {
+        var ev = new root.CustomEvent('backbutton', { cancelable: true });
+        doc.dispatchEvent(ev);
+        if (ev.defaultPrevented) return true;
+      }
+    } catch (e) { }
+    for (var i = backFns.length - 1; i >= 0; i--) {
+      try { if (backFns[i]() === true) return true; } catch (e) { }
+    }
+    return defaultBack(doc);
+  }
+  /* @capacitor/app の 'backButton' をつなぐ（Android のアプリだけ。ブラウザ・iPhone では何もしない）。
+   * @capacitor/app は 'backButton' を聞いている関数があると、そのあとに document へ取り消せない素の 'backbutton' も流す。
+   * SA.Cap.back() が流す cancelable な 'backbutton' と二重にならないよう、素のほうは先回り（capture）して止める
+   * （store.js は ui.js より先に読まれるので、画面側の 'backbutton' の受け手より先に呼ばれる）。
+   * 画面側も Capacitor.Plugins.App に 'backButton' の受け手をつないで SA.Cap.back() を呼ぶことがある。1回の戻るボタンで
+   * 2回片づけない（重ねた画面が2枚閉じない）よう、Android のアプリでは 250ms 以内の2回目の SA.Cap.back() は1回目の答えを返すだけにする。 */
+  var backWire = null;
+  function unwireBack() {
+    if (!backWire) return;
+    try { if (backWire.doc) backWire.doc.removeEventListener('backbutton', backWire.swallow, true); } catch (e) { }
+    Promise.resolve(backWire.handle).then(function (h) { if (h && typeof h.remove === 'function') return h.remove(); }).catch(function () { });
+    backWire = null;
+    if (Cap._forgetBack) Cap._forgetBack();
+  }
+  function leaveApp(App) {
+    return Promise.resolve().then(function () {
+      if (typeof App.exitApp === 'function') return App.exitApp();
+      throw new Error('no exitApp');
+    }).catch(function () {
+      if (typeof App.minimizeApp === 'function') return App.minimizeApp();
+    }).catch(function () { });
+  }
+  function wireBack() {
+    if (backWire) return backWire;
+    if (!Cap.isNative() || Cap.platform() !== 'android' || !Cap.available('App')) return null;
+    var App = Cap.plugin('App');
+    if (!App || typeof App.addListener !== 'function') return null;
+    var doc = root.document || null;
+    var w = { app: App, doc: doc, handle: null, swallow: function (e) {
+      if (e && e.cancelable === false && typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
+    } };
+    try { if (doc && typeof doc.addEventListener === 'function') doc.addEventListener('backbutton', w.swallow, true); else w.doc = null; } catch (e) { w.doc = null; }
+    w.handle = Promise.resolve().then(function () {
+      return App.addListener('backButton', function () {
+        var done = false;
+        try { done = Cap.back() === true; } catch (e) { done = false; }
+        if (!done) leaveApp(App);
+      });
+    }).catch(function () { return null; });
+    backWire = w;
+    return w;
+  }
+  Cap.wireBack = wireBack;
+  Cap._unwireBack = unwireBack;
+
   function defaultBack(doc) {
     try {
       var UI = SA.UI, App = UI && UI.App;
@@ -168,7 +227,9 @@
   function hasText(t) { return typeof t === 'string' && /\S/.test(t); }
   var CORRUPT_APP = 'shinobi-ashi:corrupt';
   // app が違うので SA.Rules.migrate は null を返し、validate も通らない（うっかり新しい記録に直されない）
-  function corruptMark() { return { corrupt: true, app: CORRUPT_APP }; }
+  function corruptMark(reason) { return { corrupt: true, broken: true, app: CORRUPT_APP, reason: reason }; }
+  // 中身があるのに、記録の形（JSON のオブジェクト）として読めない
+  function isBad(text, obj) { return hasText(text) && (!obj || Array.isArray(obj)); }
   function enc(v) { return JSON.stringify(v === undefined ? null : v); }
   function dec(s) { if (s == null) return null; try { return JSON.parse(s); } catch (e) { return s; } }
 
@@ -305,22 +366,39 @@
     KEY: KEY,
     persistent: true,      // be() を呼んだ時点で決まる（下で一度呼ぶ）
     backend: 'local',
-    /** 進行データ。なければ null。壊れていて控えも読めなければ { corrupt: true, … }（上の説明） */
+    /** 最後の load() で壊れた保存を見つけたら { reason, recovered, kept }。なければ null（上の説明） */
+    lastError: null,
+    /** 進行データ。なければ null。壊れていて控えも読めなければ { corrupt: true, broken: true, reason, … }（上の説明） */
     load: function () {
       return serial(function () {
         var b = be();
+        Store.lastError = null;
+        function keep(text, reason, recovered, value) {
+          return Promise.resolve().then(function () { return b.keepBroken(text); }).catch(function () { return false; })
+            .then(function (kept) {
+              Store.lastError = { reason: reason, recovered: recovered, kept: !!kept };
+              return value;
+            });
+        }
         return b.readRaw().then(function (raw) {
           raw = raw || {};
           var main = parse(raw.main), bak = parse(raw.bak);
-          var got = accept(main) || accept(bak);
+          var mainBad = isBad(raw.main, main), bakBad = isBad(raw.bak, bak);
+          var got = accept(main);
           if (got) return got;
-          // 中身があるのに JSON として読めない（ほかのアプリのデータ・空はここに来ない）
-          var brokenText = hasText(raw.main) && !main ? raw.main : (!hasText(raw.main) && hasText(raw.bak) && !bak ? raw.bak : null);
-          if (brokenText == null) return null;
-          return Promise.resolve(b.keepBroken(brokenText)).catch(function () { return false; })
-            .then(function () { return corruptMark(); });
+          got = accept(bak);
+          // 本体だけ壊れていて控えから読めた: 次の保存で本体が上書きされる前に、壊れた中身を写しておく
+          if (got) return mainBad ? keep(raw.main, 'main-json', true, got) : got;
+          // 中身があるのに JSON として読めない（ほかのアプリのデータ・空・空白だけはここに来ない）
+          if (mainBad) return keep(raw.main, 'main-json', false, corruptMark('main-json'));
+          if (!hasText(raw.main) && bakBad) return keep(raw.bak, 'bak-json', false, corruptMark('bak-json'));
+          return null;
         });
-      }).then(function (o) { return o; }, function () { return null; });
+      }).then(function (o) { return o; }, function () {
+        // 読み込みそのものが例外になった（ふつうは起きない）。はじめての画面で上書きしないよう、壊れた扱いにする
+        Store.lastError = { reason: 'read', recovered: false, kept: false };
+        return corruptMark('read');
+      });
     },
     /** ひとつ前の保存（ブラウザは :bak、アプリは一時ファイル）。読めなければ null */
     loadBackup: function () {
@@ -370,9 +448,10 @@
       return Promise.resolve().then(function () { return be().removePref(String(key)); }).then(function () { return true; }, function () { return false; });
     },
     /** テスト用: 置き場所を選び直す（window.Capacitor を差し替えたあとなど） */
-    _reset: function () { if (Cap._clear) Cap._clear(); backend = null; be(); }
+    _reset: function () { if (Cap._clear) Cap._clear(); if (Cap._unwireBack) Cap._unwireBack(); backend = null; be(); if (Cap.wireBack) Cap.wireBack(); }
   };
   be();
+  try { if (Cap.wireBack) Cap.wireBack(); } catch (e) { }
 
   SA.Store = Store;
   if (typeof module !== 'undefined' && module.exports) module.exports = Store;

@@ -12,7 +12,7 @@ CryptoNinja（CC0・Ninja DAO）のキャラクターを使った個人制作の
 ```
 app/
   package.json            依存（版は固定）。npm scripts: copy-web / sync / sync:android / sync:ios / open:android / open:ios / test
-  capacitor.config.json   appId・appName・webDir。android.includePlugins で Android には歩数計プラグインを入れない
+  capacitor.config.json   appId・appName・webDir。android.includePlugins で Android には歩数計プラグインを入れない（@capacitor/app は Android だけ）
   scripts/copy-web.mjs    shinobi-ashi の中身を www/ に写す（下の「copy-web がすること」）
   scripts/test-platform.mjs  steps.js / store.js / notify.js の Node テスト（Capacitor は作り物に差し替え）
   scripts/make-icons.mjs  shinobi-ashi/icons/ の絵から、Android と iPhone のアイコン・スプラッシュを作って入れる
@@ -41,12 +41,25 @@ app/
 | 設定 | `@capacitor/preferences` | 同じ（バックアップに残すのはこれだけ） |
 | 通知 `notify.js` | `@capacitor/local-notifications`（端末の中だけ） | 同じ。正確なアラームの権限は使わない |
 | 書き出しの共有 | `@capacitor/share`（share.js） | 同じ |
-| 戻るボタン | （ない） | `MainActivity` が `SA.Cap.back()`（store.js）を呼ぶ。重ねた画面を閉じる → ホームへ戻す → どちらもなければアプリを閉じる |
+| 戻るボタン | （ない。iOS には `@capacitor/app` を入れない） | `@capacitor/app` の `backButton` から `SA.Cap.back()`（store.js）を呼ぶ。重ねた画面を閉じる → ホームへ戻す → どちらもなければアプリを閉じる（`App.exitApp()`） |
 
 ### 戻るボタン（Android）
 
-`@capacitor/app` を足さずに、`MainActivity` の `OnBackPressedCallback` から WebView の `SA.Cap.back()` を呼ぶ。
-`SA.Cap.back()` は次の順に片づけ、片づけたら true を返す（false ならふつうの戻る＝アプリを閉じる）。
+`@capacitor/app`（8.1.2。Capacitor 8 用。`peerDependencies` は `@capacitor/core >=8.0.0`）で受け取る。
+`store.js` が読み込まれたとき（Android のアプリで `App` プラグインがあるときだけ）`SA.Cap.wireBack()` が
+`App.addListener('backButton', …)` をつなぎ、戻るボタンが押されるたびに `SA.Cap.back()` を呼ぶ。
+true なら片づけたので何もしない。false なら `App.exitApp()`（アプリを閉じる。前の版の「ふつうの戻る」と同じ）。`exitApp` が使えないときだけ `App.minimizeApp()`。
+`MainActivity` は戻るボタンを横取りしない（前は `OnBackPressedCallback` で受けていたが、`@capacitor/app` も同じ所で受けるので外した。
+両方あると、`@capacitor/app` の受け手が「聞いている関数がない／WebView の履歴がない」ときに戻るを食べてしまい、アプリが閉じなくなる）。
+
+`@capacitor/app` は `backButton` を聞いている関数があると、そのあとに document へ取り消せない素の `backbutton` イベントも流す。
+`SA.Cap.back()` が流す cancelable な `backbutton` と二重に届く（重ねた画面が2枚閉じる）のを防ぐため、
+`store.js` が document に capture で先回りし、取り消せない（`cancelable === false`）`backbutton` だけを `stopImmediatePropagation()` で止める。
+画面側は今までどおり document の `backbutton`（cancelable なもの）を聞いて、片づけたら `preventDefault()` すればよい。
+画面側（`ui.js` の `hookNativeBack`）も `Capacitor.Plugins.App` に `backButton` の受け手をつなぐことがある。1回の戻るボタンで
+`SA.Cap.back()` が2回呼ばれて重ねた画面が2枚閉じないよう、Android のアプリでは 250ms 以内の2回目の `SA.Cap.back()` は1回目の答えを返すだけにしている。
+
+`SA.Cap.back()` は次の順に片づけ、片づけたら true を返す（false ならアプリを閉じる）。
 
 1. `document` に cancelable な `backbutton` イベントを流す。画面側が `preventDefault()` したら、それに任せる。
 2. `SA.Cap.onBack(fn)` で登録した関数（あとから登録したものから）。true を返したら、それに任せる。
@@ -56,14 +69,18 @@ app/
    重ねた画面がなく、ホーム（ながめるモードはいちばん左のタブ）以外にいればそこへ戻す。歩いているあいだは画面を動かさない。
 
 ブラウザの「戻る」（history）は画面担当の扱い（modal を開くときに `history.pushState` を1つ積み、`popstate` で `SA.Cap.back()` か同じ片づけを呼ぶ）。
-アプリの Android では WebView の history は使わない（戻るボタンは上の仕組みが先に受け取る）。
+アプリの Android では WebView の history は使わない（`backButton` を聞いているので、`@capacitor/app` は WebView の `goBack()` をしない）。
 
 ### 記録が読めなかったとき（store.js）
 
 `progress.json`（ブラウザは `shinobi-ashi:v1`）の JSON が壊れていて（途中で切れているなど）、控え（ブラウザは `:bak`、アプリは `progress.tmp.json`）も読めないとき、
-`SA.Store.load()` は null ではなく `{ corrupt: true, app: 'shinobi-ashi:corrupt' }` を返す（`SA.Store.isCorrupt(x)` で見分けられる）。
+`SA.Store.load()` は null ではなく `{ corrupt: true, broken: true, app: 'shinobi-ashi:corrupt', reason }` を返す（`SA.Store.isCorrupt(x)` で見分けられる）。
+`reason` は `'main-json'`（本体が JSON として読めない・記録の形でない）、`'bak-json'`（本体がなく控えだけ壊れている）、`'read'`（読み込みそのものが失敗）。
+`app` が違うので `SA.Rules.validate` を通らず `migrate` も null（うっかり新しい記録に直されない）。
+同じことを `SA.Store.lastError` にも残す（`{ reason, recovered: false, kept }`。`kept` は壊れた中身を写せたか。壊れていなければ null）。
+本体だけ壊れていて控えから読めたときは控えの state を返し、`lastError` は `{ reason: 'main-json', recovered: true, kept }`（画面は「ひとつ前の記録にもどしました」を出せる）。
 画面はこれを見て「記録が読めませんでした」（書き出しファイルから戻す）へ進む。はじめての画面に進んで黙って上書きすることはない。
-壊れた中身は、読み込んだときに `shinobi-ashi:v1:broken`（アプリは `progress.broken.json`）へ1つだけ写して残す（`SA.Store.brokenText()` で読める）。
+壊れた中身は、読み込んだときに `shinobi-ashi:v1:broken`（アプリは `progress.broken.json`）へ1つだけ写して残す（控えから戻したときも、次の保存で上書きされる前に写す。`clear()` でも消さない。`SA.Store.brokenText()` で読める）。
 `SA.Store.loadBackup()` は控えだけを読む（本体が検査を通らないときに画面が使う）。
 
 ### Android の自作プラグイン `ShinobiSteps`
@@ -90,7 +107,8 @@ app/
 - `res/xml/file_paths.xml`: 共有シートに渡せる場所を cache と `files/exports/` だけにした
 - `capacitor.config.json` の `android.includePlugins` で、Android には `@capgo/capacitor-pedometer` を入れない（Android の歩数は自作プラグイン）
 - `AndroidManifest.xml`: `MainActivity` に `android:screenOrientation="portrait"`（縦だけ。画面は縦長のスマホ前提。Android 16 からは幅 600dp 以上の端末ではこの指定が無視される）
-- `MainActivity.java`: 戻るボタン（上の「戻るボタン（Android）」）
+- `MainActivity.java`: 自作プラグイン `ShinobiSteps` の登録だけ。戻るボタンは `@capacitor/app`（上の「戻るボタン（Android）」）
+- `@capacitor/app`（8.1.2）: `npm install` と `npx cap sync` で `capacitor.settings.gradle`・`app/capacitor.build.gradle` に `:capacitor-app` が入る。権限は何も足さない（プラグインの AndroidManifest は空）
 - アイコンとスプラッシュ: `scripts/make-icons.mjs` で `shinobi-ashi/icons/` の絵に差し替えた（`mipmap-*/ic_launcher*.png`・`mipmap-anydpi-v26/ic_launcher*.xml`・`drawable*/splash.png`。Capacitor の既定のロゴ `drawable-v24/ic_launcher_foreground.xml` は消した）
 
 ### iOS の設定で変えたところ
@@ -196,7 +214,7 @@ node scripts/make-icons.mjs
 | バックアップから戻す | Android で「Google にバックアップ」→ 入れ直して復元 | 進行データは戻らず「はじめて」から。設定（おとな/こども・目標など）だけ戻る。(c) の基準は取り直す |
 | iCloud | iPhone の 設定 → Apple ID → iCloud → ストレージを管理 → バックアップ | 忍び足の進行データが入っていない（Library/NoCloud。`@capacitor/filesystem` の `notSyncedLibrary`） |
 | 歩行中 | 歩きながら起動。iPhone は「3秒で判定できたか」を10回ほど試して数える（CMPedometer の最初の通知は歩き始めて数秒後に来ることが多いので、3秒のうちに通知が来なかったときは直前10秒の歩数÷10秒で決めている） | 3秒の判定のあと、全部のボタンが押せず「止まってから見てね」。iPhone で歩いているのに押せてしまうことが多ければ、判定の時間を iOS だけ延ばす（ルール担当の `CONFIG` に足す） |
-| 戻るボタン（Android） | 図鑑の詳しい画面・出来事のカード・保護者設定を開いて戻るボタン。ホーム以外のタブで戻る。ホームで戻る | 重ねた画面だけが閉じる（出来事のカードは1枚ずつ「つぎへ」、最後の1枚で閉じる）。ホーム以外のタブならホームへ。ホームならアプリが閉じる |
+| 戻るボタン（Android） | 図鑑の詳しい画面・出来事のカード・保護者設定を開いて戻るボタン。ホーム以外のタブで戻る。ホームで戻る。Android 13 以降はジェスチャーの「戻る」でも | 重ねた画面だけが1枚ずつ閉じる（2枚いっぺんに閉じない。出来事のカードは1枚ずつ「つぎへ」、最後の1枚で閉じる）。ホーム以外のタブならホームへ。ホームならアプリが閉じる |
 | 縦だけ | 端末を横にする | 画面が回らない（縦のまま） |
 | アイコン | ホーム画面・アプリの切り替え画面・設定のアプリ一覧 | 月と足あとと巻物の絵。Capacitor のロゴが出ない |
 | 通知 | 18:30 の通知・最後の同期から6日目 18:00・月曜 7:30。21〜7時に時刻を置いても出ない。保護者設定で止めると全部消える | Android 12 以降でも「アラームとリマインダー」の設定画面は出ない（`isExactNotification: false`） |
@@ -224,13 +242,13 @@ node scripts/make-icons.mjs
     3. `toBuckets(...)` を消し、`com.google.android.gms.` で始まる import を消す（`app/build.gradle` の `play-services-fitness` の行も外してよい）
 
     `steps.js` は `isAvailable().recording` が false なら (c) を使う作りなので、JS 側は直さなくてよい。区間が取れないので、時間帯の相性は「この端末では判定できません」になる。
-  - `MainActivity.java`（戻るボタン）: androidx.activity の `OnBackPressedCallback` / `getOnBackPressedDispatcher()` と Capacitor の `bridge.getWebView()` の署名を写した stub と、android-all（`WebView.evaluateJavascript`）で javac が通った
+  - `MainActivity.java`: 戻るボタンの仕組みを外したので、`registerPlugin` と `super.onCreate` だけ（前の版は stub で javac が通っていた）。`@capacitor/app` の Java は公式のまま
   - `play-services-fitness` の版は 21.2.0（Recording API on mobile が入った版）にしてある。新しい版があれば `variables.gradle` の `playServicesFitnessVersion` を上げてよい
 
 ## ライセンス
 
 - `@capgo/capacitor-pedometer`（iPhone の歩数）: **MPL-2.0**（Mozilla Public License 2.0）。ファイル単位のコピーレフト。改変せずに使っているので、アプリ全体のライセンスには影響しない。配布するときは「このアプリは MPL-2.0 の @capgo/capacitor-pedometer を使っています。ソースは https://github.com/Cap-go/capacitor-pedometer 」とクレジット（このアプリについて）に書く。プラグインのファイルを直したときは、直したファイルを MPL-2.0 で公開する。
-- Capacitor 本体と公式プラグイン（core・cli・android・ios・preferences・filesystem・share・local-notifications）: MIT。
+- Capacitor 本体と公式プラグイン（core・cli・android・ios・app・preferences・filesystem・share・local-notifications）: MIT。
 - Google Play 開発者サービス（play-services-fitness）: Android SDK のライセンス。
 
 ## テスト
@@ -239,4 +257,5 @@ node scripts/make-icons.mjs
 node shinobi-ashi/app/scripts/test-platform.mjs
 ```
 
-ためし歩き（cont・bits・flat、次の日へ、7日すすめる、歩いている（テスト）、はじめから、7日の読み取り）、保存（localStorage・壊れたときの控え・控えもないときの corrupt の印と :broken の写し・容量いっぱい・メモリだけ・アプリの tmp→rename）、iPhone と Android (b)(c) の作り物での読み取り（7日・10日・再起動・値の減少・復元・同時読み取り）、iPhone の歩行中判定（通知が来ないときの直前10秒）、通知の予定（21〜7時・止める・6日目）、戻るボタン（重ねた画面・ホームへ・出来事のカードの「つぎへ」・閉じるボタンのない画面・歩行中・ながめるモード）、ためし歩きで10日すすめると「修行お休み」が出ることを確かめる。
+ためし歩き（cont・bits・flat、次の日へ、7日すすめる、歩いている（テスト）、はじめから、7日の読み取り）、保存（localStorage・壊れたときの控え・控えもないときの corrupt の印と :broken の写し・容量いっぱい・メモリだけ・アプリの tmp→rename）、iPhone と Android (b)(c) の作り物での読み取り（7日・10日・再起動・値の減少・復元・同時読み取り）、iPhone の歩行中判定（通知が来ないときの直前10秒）、通知の予定（21〜7時・止める・6日目）、戻るボタン（重ねた画面・ホームへ・出来事のカードの「つぎへ」・閉じるボタンのない画面・歩行中・ながめるモード・`@capacitor/app` の `backButton` のつなぎ（Android だけ・素の `backbutton` を止める・exitApp／minimizeApp・受け手が2つでも1回の戻るで1枚だけ閉じる））、ためし歩きで10日すすめると「修行お休み」（3日）、14日すすめると（7日）が出ること（`SA.Steps.sim.skipDays(14)` で今日が14日先になり、読めるのは7日分だけ）を確かめる。
+壊れた保存では、`load()` が `{ corrupt, broken, reason }` を返すこと・`SA.Store.lastError`・控えから戻したときの :broken の写し・`clear()` で :broken が残ることも確かめる。

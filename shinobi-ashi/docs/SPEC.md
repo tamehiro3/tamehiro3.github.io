@@ -67,7 +67,7 @@ SA.Rules.ingest(state, days, ctx) -> { state, events }
   //   buckets は 15分ごと（96個）でもよい。長さで判断する（24→60分、96→15分）。null は区間なし（相性の時間帯系は判定なし）。
   // ctx: { today:'YYYY-MM-DD' }
   // events: 画面が順に見せる出来事（下の 2.2.2）
-SA.Rules.setChoice(state, date, { home: bool }) -> state        // 今日は「道を進める」か「里に納める（我が家）」か。その日の取り込み前でも後でもよい（後なら、その日の分を道の累計と隠れ里の累計の間で付け替える。着いた宿場の数 stationsReached は減らさない。次の宿場は「いちばん先に着いた宿場の次」）
+SA.Rules.setChoice(state, date, { home: bool }, today) -> state        // 今日は「道を進める」か「里に納める（我が家）」か。today は 'YYYY-MM-DD'（{ today } の形でもよい）。date が today でなければ state はそのまま返す。その日の取り込み前でも後でもよい（後なら、その日の分を道の累計と隠れ里の累計の間で付け替える。着いた宿場の数 stationsReached は減らさない。次の宿場は「いちばん先に着いた宿場の次」）
 SA.Rules.setFamilyDay(state, date, bool) -> state             // 「家族で歩いた日」
 SA.Rules.setSlots(state, ids /*長さ3、null可*/, alloc /*合計100、10きざみ*/) -> state   // 修行枠。主相棒は必ずどこかの枠に入る。来訪済みの体だけ入れられる。同じ体を2つの枠に入れない。割り当て変更は「その日の、まだ取り込んでいない分」から効く
 SA.Rules.openScroll(state, charId) -> { state, jutsu: { charId, fx, rank, okugi, secret } } | null   // 巻物を1本開く（巻物がなければ null）
@@ -179,7 +179,11 @@ await SA.Notify.cancelAll()
 
 ### 2.4 保存 `SA.Store`（store.js）
 ```js
-await SA.Store.load() -> state|null
+await SA.Store.load() -> state | null | { corrupt: true, broken: true, app: 'shinobi-ashi:corrupt', reason: 'main-json'|'bak-json'|'read' }
+  // null は記録なし（はじめて）。壊れていて控え（:bak・アプリは progress.tmp.json）も読めないときは corrupt の印を返す（SA.Store.isCorrupt(x) で見分ける）。
+  // 画面はそのとき「記録が読めませんでした」（broken）を出す。理由は SA.Store.lastError（{ reason, recovered, kept }、壊れていなければ null）にも残る。
+  // 本体だけ壊れていて控えから読めたときは控えの state を返し、lastError.recovered が true（画面は「ひとつ前の記録にもどしました」）。
+  // 壊れた本体は :broken（アプリは progress.broken.json）に写し、SA.Store.brokenText() で読める。clear() でも消さない。
 await SA.Store.save(state)            // 失敗しても例外を投げずに false。画面は「保存できませんでした」を出す
 await SA.Store.clear()
 await SA.Store.getPref(key) / setPref(key, value)   // 小さな設定（おとな/こども・目標・通知時刻・同期時刻・最後の書き出し日・(c) の基準値）
@@ -284,11 +288,11 @@ SA.TEXT = {
 図鑑と忍びの道の閲覧と「書き出しファイルを開く」の3つだけ。図鑑は全体を「？」の影で見せ、書き出しファイルを開いたらその記録の様子を見せる（読むだけ）。
 
 ### 3.12 ためし歩き（ブラウザの試遊だけ）
-画面の下から出る引き出し「ためし{歩|ある}き（{試遊版|しゆうばん}だけ）」: +500/+1,000/+3,000/+10,000 歩（時間帯を 朝・昼・夕・夜・深夜 から選ぶ、歩き方 続けて／こまめに）、「次の日へ」「7日すすめる」「歩いている（テスト）」スイッチ、「はじめから」。押すとすぐ取り込みが走る。アプリでは出さない。
+画面の下から出る引き出し「ためし{歩|ある}き（{試遊版|しゆうばん}だけ）」: +500/+1,000/+3,000/+10,000 歩（時間帯を 朝・昼・夕・夜・深夜 から選ぶ、歩き方 続けて／こまめに）、「次の日へ」「7日すすめる」「14日とばす（修行お休みを試す）」「歩いている（テスト）」スイッチ、「はじめから」。押すとすぐ取り込みが走る。アプリでは出さない。
 
 ## 4. アプリ化（app/。アプリ担当）
 - Capacitor 8 系。`app/package.json`、`app/capacitor.config.json`（appId `io.github.tamehiro3.shinobiashi`、appName「忍び足」、webDir `www`）、`app/scripts/copy-web.mjs`（shinobi-ashi の中身を www に写す。sw.js・tools・docs・app は除く）。
-- 依存: @capacitor/core, cli, android, ios, preferences, filesystem, share, local-notifications、@capgo/capacitor-pedometer（iOS の歩数。ライセンスは MPL-2.0 であることを README に書く）。
+- 依存: @capacitor/core, cli, android, ios, preferences, filesystem, share, local-notifications, app（@capacitor/app。Android の戻るボタンだけ。store.js の `SA.Cap.wireBack()` がつなぐ）、@capgo/capacitor-pedometer（iOS の歩数。ライセンスは MPL-2.0 であることを README に書く）。
 - Android 自作プラグイン `ShinobiSteps`（Java）: `isAvailable()`, `checkPermission()/requestPermission()`（ACTIVITY_RECOGNITION）, `subscribe()`（Recording API の購読）, `readHourly({start,end})`（(b): 1時間ごとの歩数）, `readCounter()`（(c): TYPE_STEP_COUNTER の現在値・BOOT_COUNT・elapsedRealtime）, `walkingNow({ms})`（TYPE_STEP_DETECTOR のイベント数）。API 名は play-services-fitness の AAR（maven.google.com）を javap で確かめ、可能なら javac で型検査する。
 - AndroidManifest: ACTIVITY_RECOGNITION、INTERNET 権限を外す（`tools:node="remove"`、[確認18]）、`android:dataExtractionRules` と `android:fullBackupContent` で進行データを除外（Preferences だけ残す）。
 - iOS: Info.plist に NSMotionUsageDescription、TARGETED_DEVICE_FAMILY=1（iPhone のみ）、外部通信なし。

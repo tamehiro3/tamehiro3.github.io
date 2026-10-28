@@ -61,16 +61,18 @@ app/
 - `variables.gradle`: `minSdkVersion = 29`（Recording API on mobile と、実行時の許可としての ACTIVITY_RECOGNITION が Android 10 から）、`playServicesFitnessVersion = '21.2.0'`
 - `app/build.gradle`: `com.google.android.gms:play-services-fitness`
 - `AndroidManifest.xml`: `ACTIVITY_RECOGNITION` を足す。`INTERNET`・`ACCESS_NETWORK_STATE`・`SCHEDULE_EXACT_ALARM`・`AD_ID` を `tools:node="remove"` で外す。`android:dataExtractionRules="@xml/data_extraction_rules"`・`android:fullBackupContent="@xml/backup_rules"`（どちらも `CapacitorStorage.xml`＝Preferences だけを入れる。progress.json は入れない）。`usesCleartextTraffic="false"`
+- `AndroidManifest.xml`: 家族の掲示板で QR をカメラで読むため `android.permission.CAMERA` と `<uses-feature android:name="android.hardware.camera" android:required="false"/>`（カメラのない端末にも入れられる。許可は WebView の getUserMedia のときに Capacitor が聞く）
 - `res/xml/file_paths.xml`: 共有シートに渡せる場所を cache と `files/exports/` だけにした
 - `capacitor.config.json` の `android.includePlugins` で、Android には `@capgo/capacitor-pedometer` を入れない（Android の歩数は自作プラグイン）
 
 ### iOS の設定で変えたところ
 
 - `ios/App/App/Info.plist`: `NSMotionUsageDescription` = 「毎日歩く習慣づくりのために、iPhone が数えた歩数を相棒の修行に使います。歩数はインターネットには送りません」、`CFBundleDevelopmentRegion` = ja、`ITSAppUsesNonExemptEncryption` = false
+- `ios/App/App/Info.plist`: `NSCameraUsageDescription` = 「家族の相棒の QR コードを読むためにカメラを使います。映像は保存も送信もしません」（ないままカメラを使うとアプリが落ちる）
 - `ios/App/App.xcodeproj/project.pbxproj`: `TARGETED_DEVICE_FAMILY = 1`（iPhone のみ。Debug と Release の両方）
 
-`npx cap add ios` をやり直したときは、上の2つをもう一度入れる。Xcode で入れるなら:
-1. App ターゲット → Info → 「Privacy - Motion Usage Description」を足して上の文言
+`npx cap add ios` をやり直したときは、上の3つをもう一度入れる。Xcode で入れるなら:
+1. App ターゲット → Info → 「Privacy - Motion Usage Description」と「Privacy - Camera Usage Description」を足して上の文言
 2. App ターゲット → General → Supported Destinations で iPad と Mac を消して iPhone だけ（Build Settings の Targeted Device Family が `1`）
 
 ## 組み立て

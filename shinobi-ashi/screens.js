@@ -110,21 +110,28 @@
   function mdF(date) { var p = String(date || '').split('-'); return p.length === 3 ? (+p[1]) + '/' + (+p[2]) : U().esc(date || ''); }
   function isSecret(id) { return (D().SECRET_JUTSU || []).indexOf(id) >= 0; }
   /** 秘密の術の名を見せてよいか（おとなモードで保護者が「見る」にしたときだけ） */
-  function secretOpen() { var s = S(); return !!(s && s.mode === 'otona' && s.settings && s.settings.showSecretNames); }
+  // ながめるモード（関門なしで入れる）では、開いたファイルがおとなモードでも、いつもこども向けに見せる
+  function secretOpen() { if (A().view) return false; var s = S(); return !!(s && s.mode === 'otona' && s.settings && s.settings.showSecretNames); }
   function jutsuF(id) {
     var c = CH().BY_ID[id];
     if (!c) return '';
     if (isSecret(id) && !secretOpen()) return 'ひみつの{術|じゅつ}';
     return word(c.jutsu);
   }
-  function kidsNow() { var s = S(); return !s || s.mode !== 'otona'; }
-  function bioF(id) {
+  function kidsNow() { if (A().view) return true; var s = S(); return !s || s.mode !== 'otona'; }
+  /** こども向けにやわらげた紹介文を出すときはその文、出さないときは null */
+  function kidsBio(id) {
     var KB = D().KIDS_BIO || {};
     // こどもモードでは、やわらげた紹介文があればいつもそれを出す（ひみつの術の体は、名前を見せない間も）
     if (kidsNow() || (isSecret(id) && !secretOpen())) {
       if (KB[id]) return KB[id];
       if (kidsNow() && KIDS_BIO_UI[id]) return KIDS_BIO_UI[id];
     }
+    return null;
+  }
+  function bioF(id) {
+    var kb = kidsBio(id);
+    if (kb) return kb;
     var o = T().official && T().official.bio && T().official.bio[id];
     return o || BIO[id] || '';
   }
@@ -389,14 +396,19 @@
     var p = t.split('-');
     var dateLine = (+p[1]) + '{月|がつ}' + (+p[2]) + '{日|にち}（' + wd + '）' + (sm.holiday ? ' ' + (hasKanji(sm.holiday.name) ? '{' + sm.holiday.name + '|' + sm.holiday.kana + '}' : sm.holiday.name) : '');
     var night = nightNow();
-    var mainSt = night ? 'hide' : (sm.goalReached ? 'happy' : 'normal');
+    // 深夜はかくれて眠る（hide＋sleep）。上限に届いた日は「ひと休み」なので、跳ねて喜ばずにふつうの形
+    var mainSt = night ? 'hide' : (sm.capped ? 'normal' : (sm.goalReached ? 'happy' : 'normal'));
+    var sleepO = night ? { sleep: true } : null;
     var others = (s.slots || []).filter(function (id) { return id && id !== s.mainId; });
-    var hero = h('div.hero', [
+    // 背の低い画面（360×640 など）では絵を小さくして、「取り込む」と手がかりを最初の画面に入れる
+    var short = root.innerHeight > 0 && root.innerHeight < 720;
+    var mainPx = short ? 110 : 150, sidePx = short ? 58 : 72;
+    var hero = h('div.hero' + (short ? '.short' : ''), [
       h('div.hero-date', { text: dateLine + (sm.solarTerm ? '　' + (hasKanji(sm.solarTerm.name) ? '{' + sm.solarTerm.name + '|' + sm.solarTerm.kana + '}' : sm.solarTerm.name) : '') + (sm.fullMoon ? '　{満月|まんげつ}' : '') }),
       h('div.hero-figs', [
-        h('div.hero-side', others.slice(0, 1).map(function (id) { return fig(id, night ? 'hide' : 'normal', 72); })),
-        h('div.hero-main', [fig(s.mainId, mainSt, 150)]),
-        h('div.hero-side', others.slice(1, 2).map(function (id) { return fig(id, night ? 'hide' : 'normal', 72); }))
+        h('div.hero-side', others.slice(0, 1).map(function (id) { return fig(id, night ? 'hide' : 'normal', sidePx, sleepO); })),
+        h('div.hero-main', [fig(s.mainId, mainSt, mainPx, sleepO)]),
+        h('div.hero-side', others.slice(1, 2).map(function (id) { return fig(id, night ? 'hide' : 'normal', sidePx, sleepO); }))
       ]),
       h('div.bubble', [h('b', { text: nameF(s.mainId) }), h('span', { text: speech(sm) })]),
       guestStrip(sm)
@@ -413,7 +425,7 @@
     var today2 = h('div.today-box', [ringBox, stat]);
     // 吹き出しが「今日はここまで…」を言うので、緑の枠は短い見出しだけ
     var capMsg = sm.capped ? h('div.cap-msg', { text: '✓ {今日|きょう}の{修行値|しゅぎょうち}は{上限|じょうげん}に{届|とど}いたよ' }) : null;
-    // 試遊で、まだ1歩も足していないときの手がかり（はじめのうちだけ）
+    // 試遊で、まだ1歩も足していないときの手がかり（はじめのうちだけ）。背の低い画面でも見えるように、手がかりと「取り込む」を輪より上に出す
     var simHint = U().isSim() && !sm.steps && !s.visitTotal ? h('div.sim-hint', { attrs: { 'data-hint': 'sim' } }, [h('span', { text: '{下|した}の「ためし{歩|ある}き」で、{歩数|ほすう}を{足|た}してみよう' }), h('span.sim-hint-arrow', { html: '▼', attrs: { 'aria-hidden': 'true' } })]) : null;
     var syncB = btn('{取|と}り{込|こ}む', function () { U().sync('button'); }, 'primary big sync-b', { attrs: { type: 'button', 'data-act': 'sync' } });
     var choice = null;
@@ -444,7 +456,7 @@
     }
     var info = A().info || {};
     var note = info.route === 'androidC' ? h('p.muted', { text: '（この{端末|たんまつ}では、{開|ひら}かなかった{日|ひ}の{分|ぶん}は、{開|ひら}いた{日|ひ}の{修行|しゅぎょう}に{入|はい}る）' }) : null;
-    return screenWrap(null, [hero, section(null, [today2, capMsg, syncB, simHint, choice, fam]), section(null, bars), note], 'home');
+    return screenWrap(null, [hero, section(null, simHint ? [simHint, syncB, today2, capMsg, choice, fam] : [today2, capMsg, syncB, choice, fam]), section(null, bars), note], 'home');
   }
   function furiInline(t) { return U().furi(t); }
   function setChoice(home) {
@@ -720,7 +732,7 @@
       case 'okugi': art = fig(e.id, 'serious', 140); cls += ' menkyo'; lines.push(U().fill(sp.okugi || '{name}が{奥義|おうぎ}に{目覚|めざ}めた！', { name: nameF(e.id) })); break;
       case 'station': {
         var stn = (D().STATIONS || [])[e.idx] || {}, col = stn.clan ? ((D().CLANS || {})[stn.clan] || {}).color : D().ROAD_COLOR;
-        art = fig(main, 'walk', 120, { view: 'walkR' });
+        art = fig(main, 'walk', 120, { view: e.round === 2 ? 'walkL' : 'walkR' }); // 帰り道は道の画面の印と同じく左向き
         cls += ' st';
         extra.push(h('div.st-name', { style: { '--c': col || '#777' }, text: stationF(e.idx) }));
         if (e.round === 2) lines.push((sp.round2 && e.idx === 49) ? sp.round2 : '{帰|かえ}り{道|みち}の{宿場|しゅくば}に{着|つ}いたよ。');
@@ -855,7 +867,7 @@
       var p = stXY(i2), got = rs.go[i2], back = rs.back[i2];
       var col = st.clan ? ((D().CLANS || {})[st.clan] || {}).color : '#7a7a80';
       svg += '<g class="st-pt' + (got ? ' got' : '') + '" data-st="' + i2 + '" tabindex="0" role="button" aria-label="' + U().esc(st.name) + '">' +
-        '<circle cx="' + p.x + '" cy="' + p.y + '" r="24" fill="transparent"/>' +
+        '<circle cx="' + p.x + '" cy="' + p.y + '" r="26" fill="transparent"/>' +   // 見えない当たり判定（360幅でも 44px 以上）
         '<circle cx="' + p.x + '" cy="' + p.y + '" r="' + (st.clan || st.start || st.goal ? 8 : 6) + '" fill="' + (got ? col : '#fffaf0') + '" stroke="' + col + '" stroke-width="2.5"/>' +
         (back ? '<circle cx="' + p.x + '" cy="' + p.y + '" r="11.5" fill="none" stroke="#d8a63a" stroke-width="2"/>' : '') + '</g>';
       // 名前は「いま」「次」「はじめ」「おわり」だけ（となり合うときは、はじめ・おわりを出さない。次は点の上に出す）
@@ -911,7 +923,7 @@
       h('div.st-name', { style: { '--c': col || '#777' }, text: stationF(idx) }),
       st.clan ? h('p.muted', { text: clanF(st.clan) + 'の{土地|とち}' }) : null,
       h('p', { text: (T().stations && T().stations[idx] && T().stations[idx].tale) || '' }),
-      stamps.length ? h('ul.diary', stamps.map(function (d) { return h('li', [h('span.d-date', { html: mdF(d.date) }), d.stamp != null && T().stamps ? h('span.d-stamp', { text: T().stamps[d.stamp] }) : null]); })) : null
+      stamps.length ? h('ul.diary', stamps.map(function (d) { return h('li', [h('span.d-date', { html: U().furi('{着|つ}いた{日|ひ} ') + mdF(d.date) }), d.stamp != null && T().stamps ? h('span.d-stamp', { text: T().stamps[d.stamp] }) : null]); })) : null
     ], { title: '{宿場|しゅくば}の{小話|こばなし}' });
   }
 
@@ -983,7 +995,8 @@
       tabs, tabBox,
       info && info.nextAt ? bar(info.progress, ((info.nextIsOkugi ? '{奥義|おうぎ}' : '{次|つぎ}の{位|くらい}') + 'まで ' + n(info.toNext) + '{歩|ほ}')) : null,
       dl,
-      bio ? h('div.bio', [h('h3', { text: '{公式|こうしき}の{紹介文|しょうかいぶん}' }), h('p', { text: bio })]) : null,
+      // やわらげた文は公式の文そのものではないので、見出しで分ける
+      bio ? h('div.bio', [h('h3', { text: kidsBio(id) ? '{紹介文|しょうかいぶん}（こども{向|む}け）' : '{公式|こうしき}の{紹介文|しょうかいぶん}' }), h('p', { text: bio }), kidsBio(id) ? h('p.muted', { text: '{公式|こうしき}の{紹介文|しょうかいぶん}をもとに、やさしく{書|か}き{直|なお}した{文|ぶん}です。' }) : null]) : null,
       !shadow && TX.zukan && TX.zukan[id] ? h('div.bio', [h('h3', { text: 'ゲームでの{様子|ようす}' }), h('p', { text: TX.zukan[id] })]) : null,
       lines.length ? h('div.bio', [h('h3', { text: '{聞|き}いた{一言|ひとこと}' }), h('ul.lines', lines.map(function (l) { return h('li', { text: l }); }))]) : null,
       h('p.unofficial', { text: (TX.parent && TX.parent.unofficial) || 'CryptoNinja（CC0・Ninja DAO）のキャラクターを{使|つか}った{個人|こじん}{制作|せいさく}の{非公式|ひこうしき}ファンゲームです。' })
@@ -1308,7 +1321,7 @@
             if (!ok) return;
             var ns = r.state;
             if (A().info && A().info.route) ns.route = A().info.route;
-            A().state = ns; U().save().then(function () { U().toast('{読|よ}み{込|こ}んだよ'); U().go('home'); });
+            A().state = ns; U().save().then(function () { U().go('home'); U().toast('{読|よ}み{込|こ}んだよ'); });
           });
         });
       }, { id: 'import' })
@@ -1354,7 +1367,7 @@
           if (!U().has('Share', 'importFile')) { U().toast('{準備中|じゅんびちゅう}'); return; }
           var r = SA.Share.importFile(text);
           if (!r.ok) { U().toast(SA.Share.message ? SA.Share.message(r.reason) : '{読|よ}めませんでした', 'ng'); return; }
-          A().viewState = r.state; U().toast('{開|ひら}いたよ'); U().go('zukan');
+          A().viewState = r.state; U().go('zukan'); U().toast('{開|ひら}いたよ');
         });
       }, { id: 'view-open', cls: 'primary' }),
       vs ? h('p.muted', { text: 'いま{開|ひら}いている{記録|きろく}：' + U().esc(vs.createdAt) + 'から・{会|あ}えた{忍|しのび} ' + Object.keys(vs.chars || {}).length }) : null
@@ -1366,7 +1379,7 @@
     var h = U().h;
     return screenWrap('{記録|きろく}が{読|よ}めませんでした', [section(null, [
       h('div.center', [fig('anne', 'surprised', 110)]),
-      h('p', { text: 'この{端末|たんまつ}に{保存|ほぞん}した{記録|きろく}が、こわれているか、{新|あたら}しい{版|はん}のアプリで{作|つく}られたため、{読|よ}めませんでした。' }),
+      h('p', { text: 'この{端末|たんまつ}に{保存|ほぞん}した{記録|きろく}が、こわれているか、{新|あたら}しい{版|ばん}のアプリで{作|つく}られたため、{読|よ}めませんでした。' }),
       h('p.muted', { text: '{書|か}き{出|だ}しファイルがあれば、そこから{記録|きろく}をもどせます。ないときは「はじめから」で{始|はじ}め{直|なお}せます。' }),
       h('div.ob-foot.col', [
         fileButton('{書|か}き{出|だ}しファイルを{開|ひら}く', '.json,application/json,text/plain', function (f) {
@@ -1376,8 +1389,13 @@
             if (!r.ok) { U().toast(SA.Share.message ? SA.Share.message(r.reason) : '{読|よ}めませんでした', 'ng'); return; }
             var ns = r.state;
             if (A().info && A().info.route) ns.route = A().info.route;
-            A().broken = null; A().state = ns; A().screen = 'home';
-            U().save().then(function () { U().toast('{読|よ}み{込|こ}んだよ'); U().render(); return U().onOpen('boot'); });
+            function take() {
+              A().broken = null; A().state = ns; A().screen = 'home';
+              U().save().then(function () { U().toast('{読|よ}み{込|こ}んだよ'); U().render(); return U().onOpen('boot'); });
+            }
+            // おとなモードの記録は、保護者設定の読み込みと同じく関門を通してから（こどもモードの守りの抜け道にしない）
+            if (ns.mode === 'otona') U().gate(function (ok) { if (ok) take(); });
+            else take();
           });
         }, { id: 'broken-import', cls: 'primary big' }),
         U().btn('はじめから（{確認|かくにん}2{回|かい}）', function () { U().resetAll(); }, 'red', { attrs: { type: 'button', 'data-act': 'broken-reset' } })

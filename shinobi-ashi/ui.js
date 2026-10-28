@@ -22,7 +22,14 @@
   function furi(text, on) {
     var s = esc(text);
     var show = on === undefined ? furiOn() : !!on;
-    return s.replace(FURI_RE, show ? '<ruby>$1<rt>$2</rt></ruby>' : '$1');
+    if (!show) return s.replace(FURI_RE, '$1');
+    // ルビが親字より長いとき、となりがルビでない側（かな・数字・記号・文の端）には、ルビを少しはみ出させる
+    // （親字の間が空いて一語に見えなくなるのを防ぐ。となりもルビのときは重ならないように、はみ出させない）
+    return s.replace(FURI_RE, function (m, base, rt, off, str) {
+      var l = !(off > 0 && str.charAt(off - 1) === '}'), r = str.charAt(off + m.length) !== '{';
+      var c = l && r ? ' class="oh"' : l ? ' class="oh-l"' : r ? ' class="oh-r"' : '';
+      return '<ruby' + c + '>' + base + '<rt>' + rt + '</rt></ruby>';
+    });
   }
   /** ふりがな書式を外した文字（title 属性・aria-label 用） */
   function plain(text) { return String(text == null ? '' : text).replace(FURI_RE, '$1'); }
@@ -141,7 +148,8 @@
     slot: '<circle cx="6" cy="9" r="3"/><circle cx="12" cy="7" r="3.4"/><circle cx="18" cy="9" r="3"/><path d="M2 20c1-5 7-5 7-5h6s6 0 7 5z"/>',
     road: '<path d="M5 21c0-6 14-6 14-11S12 3 12 3" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="3 3"/><circle cx="12" cy="3.5" r="2"/><circle cx="5" cy="20" r="2"/>',
     book: '<path d="M4 4h7v16H4zM13 4h7v16h-7z"/><path d="M6 8h3M6 11h3M15 8h3M15 11h3" stroke="#f7f1e5" stroke-width="1.4"/>',
-    sato: '<path d="M3 12 12 4l9 8h-2v8H5v-8z"/><path d="M10 20v-5h4v5" fill="#f7f1e5"/>',
+    // 里は鳥居の形（ホームの家と見分けられるように）
+    sato: '<path d="M2 4.2q10 2.4 20 0v2.6q-10 2-20 0z"/><path d="M4 9.6h16v2.2H4z"/><path d="M5.8 6.6h2.6V21H5.8zM15.6 6.6h2.6V21h-2.6z"/><path d="M10.9 7.2h2.2v2.6h-2.2z"/>',
     menu: '<path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>',
     file: '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4" fill="#f7f1e5"/>'
   };
@@ -162,6 +170,7 @@
   }
   /** 画面へ移る（params はその画面へ渡す） */
   function go(id, params) {
+    clearToast();
     App.screen = id; App.params = params || {};
     render();
     var main = doc.getElementById('screen');
@@ -198,14 +207,23 @@
   }
 
   /* ================= 小さな知らせ（トースト） ================= */
-  var toastTimer = 0;
+  var toastTimer = 0, toastAt = 0;
   function toast(text, kind) {
     var t = doc.getElementById('toast');
     if (!t) return;
     t.innerHTML = furi(text);
     t.className = 'toast show' + (kind ? ' ' + kind : '');
+    toastAt = Date.now();
     clearTimeout(toastTimer);
     toastTimer = setTimeout(function () { t.className = 'toast'; }, 2600);
+  }
+  /** 画面を移る・重ねるときに、前の画面の知らせを消す（次の画面の中身に重ならないように）。
+   * 出したばかり（同じ操作の中で出した知らせ）は消さない */
+  function clearToast() {
+    if (Date.now() - toastAt < 400) return;
+    var t = doc && doc.getElementById('toast');
+    clearTimeout(toastTimer);
+    if (t) t.className = 'toast';
   }
 
   /* ================= 重ねる画面（モーダル） ================= */
@@ -213,6 +231,7 @@
   /** modal(内容の要素, { title, cls, onClose, closeLabel, noClose }) → { close, el } */
   function modal(content, opt) {
     opt = opt || {};
+    clearToast();
     var layer = doc.getElementById('layer');
     var back = h('div.modal-back');
     var box = h('div.modal', { cls: opt.cls || '', attrs: { role: 'dialog', 'aria-modal': 'true' } });
@@ -254,11 +273,16 @@
     e.preventDefault();
     top.close();
   });
-  function confirmBox(text, yes, no, cb) {
-    var m = modal([h('p', { text: text }), h('div.row', [
-      btn(no || 'やめる', function () { m.close(); cb(false); }, 'ghost'),
-      btn(yes || 'はい', function () { m.close(); cb(true); }, 'primary')
-    ])], { noClose: true });
+  /** 確かめる。opt.danger（消すなど、もどせない操作）のときは「やめる」を目立つ主ボタンにし、進む方は赤い控えめなボタンにする */
+  function confirmBox(text, yes, no, cb, opt) {
+    var danger = !!(opt && opt.danger);
+    var m = modal([h('p', { text: text }), h('div.row', danger ? [
+      btn(yes || 'はい', function () { m.close(); cb(true); }, 'ghost red-t', { attrs: { type: 'button', 'data-act': 'confirm-yes' } }),
+      btn(no || 'やめる', function () { m.close(); cb(false); }, 'primary', { attrs: { type: 'button', 'data-act': 'confirm-no' } })
+    ] : [
+      btn(no || 'やめる', function () { m.close(); cb(false); }, 'ghost', { attrs: { type: 'button', 'data-act': 'confirm-no' } }),
+      btn(yes || 'はい', function () { m.close(); cb(true); }, 'primary', { attrs: { type: 'button', 'data-act': 'confirm-yes' } })
+    ])], { noClose: true, cls: danger ? 'danger' : '' });
     return m;
   }
 
@@ -282,42 +306,80 @@
   }
 
   /* ================= 関門（保護者だけ） ================= */
-  var KANJI_NUM = ['〇', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
-  var GATE_LOCK_MS = 60000;
-  var gateMiss = 0;
-  function gateLockedUntil() { return App.gateLock || 0; }
-  /** 3回まちがえたときの待ち時間を、読み直しても残るように保存する */
-  function setGateLock(t) {
-    App.gateLock = t;
-    if (has('Store', 'setPref')) try { Promise.resolve(SA.Store.setPref('gateLock', t)).catch(function () { }); } catch (e) { }
+  // 数字は大字（壱・弐・参…）で書く。小学校では習わない字なので、こどもが読んで解きにくい
+  var DAIJI = ['〇', '壱', '弐', '参', '肆', '伍', '陸', '漆', '捌', '玖'];
+  // まちがえが3回たまるたびに待つ。待つ時間は回を重ねるごとに長くする（1分→5分→15分）
+  var GATE_LOCKS = [60000, 300000, 900000];
+  var GATE_MISS_MAX = 3;
+  var GATE_LEVEL_RESET_MS = 6 * 3600000;   // 最後の待ちから6時間たったら、待つ時間は1分にもどす
+  var gateMem = { miss: 0, level: 0, lock: 0, loaded: false };
+  function gateLockedUntil() { return Math.max(App.gateLock || 0, gateMem.lock || 0); }
+  function gatePut(key, v) {
+    if (has('Store', 'setPref')) try { Promise.resolve(SA.Store.setPref(key, v)).catch(function () { }); } catch (e) { }
   }
-  function loadGateLock() {
-    if (!has('Store', 'getPref')) return Promise.resolve(gateLockedUntil());
-    return Promise.resolve(SA.Store.getPref('gateLock')).then(function (v) {
-      var t = Number(v) || 0;
-      // 端末の時計を戻されても、待ちが1分より長くはならないようにする
-      if (t > Date.now() + GATE_LOCK_MS) t = Date.now() + GATE_LOCK_MS;
-      if (t > gateLockedUntil()) App.gateLock = t;
+  /** 待ちの終わりの時刻を、読み直しても残るように保存する */
+  function setGateLock(t) { App.gateLock = t; gateMem.lock = t; gatePut('gateLock', t); }
+  function setGateMiss(n) { gateMem.miss = n; gatePut('gateMiss', n); }
+  function setGateLevel(n) { gateMem.level = n; gatePut('gateLevel', n); }
+  /** 保存したまちがいの回数・待ちの段・待ちの終わりを読む（読み直し・開き直しでも数え続ける） */
+  function loadGate() {
+    function fix() {
+      var now = Date.now(), maxMs = GATE_LOCKS[GATE_LOCKS.length - 1];
+      // 端末の時計を戻されても、待ちがいちばん長い待ちより長くはならないようにする
+      if (gateMem.lock > now + maxMs) gateMem.lock = now + maxMs;
+      if (gateMem.level > 0 && gateMem.lock && now - gateMem.lock > GATE_LEVEL_RESET_MS) setGateLevel(0);
+      App.gateLock = gateMem.lock;
       return gateLockedUntil();
-    }, function () { return gateLockedUntil(); });
+    }
+    if (gateMem.loaded || !has('Store', 'getPref')) return Promise.resolve(fix());
+    function num(p) { return Promise.resolve(p).then(function (v) { return Number(v) || 0; }, function () { return 0; }); }
+    var g = function (k) { try { return num(SA.Store.getPref(k)); } catch (e) { return Promise.resolve(0); } };
+    return Promise.all([g('gateLock'), g('gateMiss'), g('gateLevel')]).then(function (v) {
+      gateMem.loaded = true;
+      gateMem.lock = Math.max(gateMem.lock, v[0]);
+      gateMem.miss = Math.max(gateMem.miss, Math.min(GATE_MISS_MAX, Math.max(0, Math.floor(v[1]))));
+      gateMem.level = Math.max(gateMem.level, Math.min(GATE_LOCKS.length, Math.max(0, Math.floor(v[2]))));
+      return fix();
+    }, function () { return fix(); });
   }
-  /** 100〜999 の数（どのけたも1〜9）を漢字で書く。例: 732 → 七百三十二、115 → 百十五 */
-  function kanjiNum3(x) {
-    var K = (T().parent && T().parent.gateNums) || KANJI_NUM;
+  function gateMiss() {
+    var n = gateMem.miss + 1;
+    if (n < GATE_MISS_MAX) { setGateMiss(n); return false; }
+    var ms = GATE_LOCKS[Math.min(gateMem.level, GATE_LOCKS.length - 1)];
+    setGateMiss(0);
+    setGateLevel(Math.min(GATE_LOCKS.length, gateMem.level + 1));
+    setGateLock(Date.now() + ms);
+    return true;
+  }
+  function gatePassed() { setGateMiss(0); setGateLevel(0); }
+  /** 100〜999 の数（どのけたも1〜9）を大字で書く。例: 327 → 参百弐拾漆 */
+  function daijiNum3(x) {
     var hd = Math.floor(x / 100), td = Math.floor(x / 10) % 10, od = x % 10;
-    return (hd > 1 ? K[hd] : '') + '百' + (td > 1 ? K[td] : '') + (td ? '十' : '') + (od ? K[od] : '');
+    return DAIJI[hd] + '百' + DAIJI[td] + '拾' + DAIJI[od];
   }
-  /** 問題を作る。3けたの漢字の数と、押すけたの順（6通り）。答えは3つの数字 */
-  function gateQuestion() {
-    var pool = [1, 2, 3, 4, 5, 6, 7, 8, 9], dg = [];
-    for (var i = 0; i < 3; i++) dg.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
-    var num = dg[0] * 100 + dg[1] * 10 + dg[2];
-    var place = { '百の位': dg[0], '十の位': dg[1], '一の位': dg[2] };
-    var names = ['百の位', '十の位', '一の位'], order = [];
-    while (names.length) order.push(names.splice(Math.floor(Math.random() * names.length), 1)[0]);
-    // ふりがなを付けない文（関門の仕掛け）。数字の漢字のほかは、小学4年より上で習う漢字（位・順）で書く
-    var tmpl = (T().parent && T().parent.gateAsk3) || '「{num}」の数字を、{order}の順に押してください';
-    return { text: plain(fill(tmpl, { num: kanjiNum3(num), order: order.join('・') })), answer: order.map(function (p) { return place[p]; }) };
+  // ふりがなを付けない問題文（関門の仕掛け）。各・桁・偶数・奇数・昇順・降順は、小学校で習わないか高学年の字とことば
+  var GATE_FORMS = [
+    { id: 'low', text: '「{num}」の各桁を、下の桁から順に押してください', f: function (d) { return [d[2], d[1], d[0]]; } },
+    { id: 'asc', text: '「{num}」の各桁を、昇順に押してください', f: function (d) { return d.slice().sort(); } },
+    { id: 'desc', text: '「{num}」の各桁を、降順に押してください', f: function (d) { return d.slice().sort().reverse(); } },
+    { id: 'evenDesc', text: '「{num}」の各桁のうち、偶数だけを大きい順に押してください', f: function (d) { return d.filter(function (x) { return x % 2 === 0; }).sort().reverse(); } },
+    { id: 'evenAsc', text: '「{num}」の各桁のうち、偶数だけを小さい順に押してください', f: function (d) { return d.filter(function (x) { return x % 2 === 0; }).sort(); } },
+    { id: 'oddDesc', text: '「{num}」の各桁のうち、奇数だけを大きい順に押してください', f: function (d) { return d.filter(function (x) { return x % 2 === 1; }).sort().reverse(); } },
+    { id: 'oddAsc', text: '「{num}」の各桁のうち、奇数だけを小さい順に押してください', f: function (d) { return d.filter(function (x) { return x % 2 === 1; }).sort(); } }
+  ];
+  /** 問題を作る。3けたの大字の数（どのけたもちがう1〜9、偶数と奇数をどちらもふくむ）と、押し方の指示。
+   * 答えの数字の個数は1〜3でちがうので、押したあとに「決める」を押す */
+  function gateQuestion(rnd) {
+    rnd = rnd || Math.random;
+    var dg;
+    do {
+      var pool = [1, 2, 3, 4, 5, 6, 7, 8, 9]; dg = [];
+      for (var i = 0; i < 3; i++) dg.push(pool.splice(Math.floor(rnd() * pool.length), 1)[0]);
+    } while (dg.every(function (x) { return x % 2 === 0; }) || dg.every(function (x) { return x % 2 === 1; }));
+    var forms = (T().parent && T().parent.gateForms) || null;
+    var fm = GATE_FORMS[Math.floor(rnd() * GATE_FORMS.length)];
+    var tmpl = (forms && forms[fm.id]) || fm.text;
+    return { text: plain(fill(tmpl, { num: daijiNum3(dg[0] * 100 + dg[1] * 10 + dg[2]) })), answer: fm.f(dg), form: fm.id };
   }
   /** 3秒の長押しボタンを作る。押し切ったら onDone */
   function holdButton(label, onDone, cls) {
@@ -355,8 +417,9 @@
       (function loop() {
         if (m.closed) return;
         var left = Math.ceil((gateLockedUntil() - Date.now()) / 1000);
-        if (left <= 0) { gateMiss = 0; ask(); return; }
-        p.innerHTML = furi((T().parent && T().parent.gateWaitLock) || '3{回|かい}まちがえたので、1{分|ぷん}{待|ま}ってね。') + '<br>' + furi('あと') + ' <b>' + left + '</b> ' + furi('{秒|びょう}');
+        if (left <= 0) { ask(); return; }
+        var mm = Math.floor(left / 60), ss = left % 60;
+        p.innerHTML = furi((T().parent && T().parent.gateWaitLock) || 'まちがえが{続|つづ}いたので、{少|すこ}し{待|ま}ってね。') + '<br>' + furi('あと') + ' <b>' + mm + ':' + (ss < 10 ? '0' : '') + ss + '</b>';
         setTimeout(loop, 500);
       })();
     }
@@ -369,23 +432,26 @@
       var shown = h('div.gate-in', { attrs: { 'aria-live': 'polite' } });
       body.appendChild(shown);
       var got = [];
+      function show() { shown.textContent = got.length ? got.map(function () { return '●'; }).join(' ') : ''; }
       var pad = h('div.gate-pad');
       [1, 2, 3, 4, 5, 6, 7, 8, 9, 0].forEach(function (d) {
         pad.appendChild(h('button', { cls: 'btn gate-k', attrs: { type: 'button', 'data-num': String(d) }, html: String(d), on: { click: function () {
-          got.push(d);
-          shown.textContent = got.map(function () { return '●'; }).join(' ');
-          if (got.length < 3) return;
-          if (got.join() === nums.join()) { passed = true; gateMiss = 0; m.close(); cb(true); return; }
-          gateMiss++;
-          if (gateMiss >= 3) { setGateLock(Date.now() + GATE_LOCK_MS); toast((T().parent && T().parent.gateLockToast) || '3{回|かい}まちがえたので、1{分|ぷん}{待|ま}ってね', 'ng'); wait(); return; }
-          toast((T().parent && T().parent.gateWrong) || 'ちがうみたい。もう{一度|いちど}どうぞ。', 'ng');
-          ask();
+          if (got.length >= 6) return;
+          got.push(d); show();
         } } }));
       });
+      pad.appendChild(btn('{消|け}す', function () { got = []; show(); }, 'gate-k gate-clear', { attrs: { type: 'button', 'data-act': 'gate-clear' } }));
+      pad.appendChild(btn('{決|き}める', function () {
+        if (!got.length) return;
+        if (got.join() === nums.join()) { passed = true; gatePassed(); m.close(); cb(true); return; }
+        if (gateMiss()) { toast((T().parent && T().parent.gateLockToast) || 'まちがえが{続|つづ}いたので、{少|すこ}し{待|ま}ってね', 'ng'); wait(); return; }
+        toast((T().parent && T().parent.gateWrong) || 'ちがうみたい。もう{一度|いちど}どうぞ。', 'ng');
+        ask();
+      }, 'primary gate-k gate-ok', { attrs: { type: 'button', 'data-act': 'gate-ok' } }));
       body.appendChild(pad);
-      body.appendChild(h('p.muted', { text: 'お{子|こ}さまが{設定|せってい}を{変|か}えないための{確|たし}かめです。' }));
+      body.appendChild(h('p.muted', { text: 'お{子|こ}さまが{設定|せってい}を{変|か}えないための{確|たし}かめです。{数字|すうじ}を{押|お}したら「{決|き}める」を{押|お}してください。' }));
     }
-    loadGateLock().then(function (lock) { if (m.closed) return; if (lock > Date.now()) wait(); else ask(); });
+    loadGate().then(function (lock) { if (m.closed) return; if (lock > Date.now()) wait(); else ask(); });
     return m;
   }
 
@@ -582,8 +648,8 @@
     if (skipConfirm) return doit();
     confirmBox('{記録|きろく}をぜんぶ{消|け}して、はじめからにしますか？', '{消|け}す', 'やめる', function (ok1) {
       if (!ok1) return;
-      confirmBox('{本当|ほんとう}に{消|け}しますか？ もとにはもどせません。', '{本当|ほんとう}に{消|け}す', 'やめる', function (ok2) { if (ok2) doit(); });
-    });
+      confirmBox('{本当|ほんとう}に{消|け}しますか？ もとにはもどせません。', '{本当|ほんとう}に{消|け}す', 'やめる', function (ok2) { if (ok2) doit(); }, { danger: true });
+    }, { danger: true });
   }
 
   /* ================= 起動 ================= */

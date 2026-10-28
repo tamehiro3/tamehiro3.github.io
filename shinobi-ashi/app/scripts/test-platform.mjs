@@ -169,6 +169,34 @@ section('保存（localStorage）');
   ls._m.set('shinobi-ashi:v1', JSON.stringify({ app: 'other' }));
   ls._m.delete('shinobi-ashi:v1:bak');
   eq(await Store.load(), null, 'ほかのアプリのデータは読まない');
+  // 壊れていて控えもない → null ではなく「壊れていた」の印（はじめての画面に進んで上書きしないように）
+  ls._m.set('shinobi-ashi:v1', '{"app":"shinobi-ashi","v":1,"chars":{"an');
+  const cor = await Store.load();
+  eq(cor, { corrupt: true, app: 'shinobi-ashi:corrupt' }, '壊れていて :bak もなければ corrupt の印');
+  ok(Store.isCorrupt(cor) && !Store.isCorrupt({ app: 'shinobi-ashi' }) && !Store.isCorrupt(null), 'isCorrupt');
+  eq(ls._m.get('shinobi-ashi:v1:broken'), '{"app":"shinobi-ashi","v":1,"chars":{"an', '壊れた中身は :broken に写して残す');
+  eq(await Store.brokenText(), '{"app":"shinobi-ashi","v":1,"chars":{"an', 'brokenText で読める');
+  eq(await Store.loadBackup(), null, 'loadBackup は控えがなければ null');
+  ls._m.set('shinobi-ashi:v1:bak', '{壊');
+  eq((await Store.load()).corrupt, true, '本体も :bak も壊れていれば corrupt');
+  ls._m.delete('shinobi-ashi:v1');
+  eq((await Store.load()).corrupt, true, '本体がなく :bak だけ壊れていても corrupt');
+  ls._m.set('shinobi-ashi:v1', '   ');
+  ls._m.delete('shinobi-ashi:v1:bak');
+  eq(await Store.load(), null, '空白だけは「記録なし」');
+  ls._m.set('shinobi-ashi:v1', '{壊');
+  ls._m.set('shinobi-ashi:v1:bak', JSON.stringify({ app: 'shinobi-ashi', v: 1, n: 7 }));
+  eq((await Store.loadBackup()).n, 7, 'loadBackup は :bak を読む');
+  eq((await Store.load()).n, 7, ':bak が読めれば corrupt にしない');
+  // 実の rules.js でも、印は新しい記録に直されない（validate も通らない）
+  {
+    globalThis.NSL_CHARS = require(path.join(SRC, 'chars.js'));
+    const R = require(path.join(SRC, 'rules.js'));
+    const mk = { corrupt: true, app: 'shinobi-ashi:corrupt' };
+    eq([R.validate(mk).ok, R.migrate(mk)], [false, null], 'corrupt の印は Rules.validate を通らず migrate も null');
+    delete SA.Rules;
+  }
+  ls._m.delete('shinobi-ashi:v1:bak'); ls._m.delete('shinobi-ashi:v1'); ls._m.delete('shinobi-ashi:v1:broken');
   const cyc = {}; cyc.self = cyc;
   eq(await Store.save(cyc), false, '循環して JSON にできないものは false');
   await Store.setPref('goal', 9500);
@@ -257,6 +285,11 @@ function makePrefs() {
   eq((await Store.load()).n, 99, '本体がなければ一時ファイルから読む');
   FS.files.set('LIBRARY_NO_CLOUD/progress.json', '{壊');
   eq((await Store.load()).n, 99, '本体が壊れていても一時ファイルから読む');
+  FS.files.delete('LIBRARY_NO_CLOUD/progress.tmp.json');
+  eq((await Store.load()).corrupt, true, '本体が壊れていて一時ファイルもなければ corrupt');
+  eq(FS.files.get('LIBRARY_NO_CLOUD/progress.broken.json'), '{壊', '壊れた中身は progress.broken.json に写す');
+  eq(await Store.brokenText(), '{壊', 'アプリでも brokenText');
+  FS.files.set('LIBRARY_NO_CLOUD/progress.tmp.json', JSON.stringify({ app: 'shinobi-ashi', n: 99 }));
   await Store.setPref('mode', 'otona');
   eq(PR.m.get('mode'), '"otona"', 'Preferences には JSON の文字で入れる');
   eq(await Store.getPref('mode'), 'otona', 'Preferences から読む');
@@ -493,6 +526,33 @@ section('通知（notify.js）');
   eq(await Notify.cancelAll(), true, 'cancelAll');
 }
 
+/* ================= ためし歩きと「修行お休み」（実の rules.js） ================= */
+section('ためし歩きで修行お休み（rules.js と合わせて）');
+{
+  setWeb(); globalThis.localStorage = makeLS(); delete globalThis.Capacitor; Store._reset(); Steps._reset();
+  globalThis.NSL_CHARS = globalThis.NSL_CHARS || require(path.join(SRC, 'chars.js'));
+  const R = require(path.join(SRC, 'rules.js'));
+  const info = await Steps.detect();
+  const restAfter = async (n) => {
+    Steps.sim.reset();
+    const t = Steps.today();
+    let st = R.newState({ mainId: 'anne', mode: 'kodomo', today: t, route: 'sim' });
+    Steps.sim.addSteps(2000, { hour: 8 });
+    st = R.ingest(st, await Steps.read(t, t), { today: t }).state;
+    Steps.sim.skipDays(n);
+    const t2 = Steps.today();
+    let from = R.addDays(t2, -(info.historyDays - 1));
+    if (st.lastSyncDate > from) from = st.lastSyncDate;
+    const ev = R.ingest(st, await Steps.read(from, t2), { today: t2 }).events.filter((e) => e.type === 'rest');
+    return ev.length ? ev[0].days : 0;
+  };
+  eq(info.historyDays, D.CONFIG.HISTORY_DAYS.ios, 'ためし歩きのさかのぼりは iPhone と同じ日数');
+  eq(await restAfter(7), 0, '7日すすめても修行お休みは出ない（7日はさかのぼれる）');
+  eq(await restAfter(10), 3, '10日すすめると修行お休み（3日）');
+  delete SA.Rules;
+  Steps.sim.reset();
+}
+
 /* ================= 戻るボタン（Android の MainActivity が SA.Cap.back() を呼ぶ） ================= */
 section('戻るボタン（SA.Cap.back）');
 {
@@ -507,8 +567,9 @@ section('戻るボタン（SA.Cap.back）');
     d.querySelector = (sel) => (sel === '#nav [data-nav]' ? { getAttribute: () => 'zukan' } : null);
     d.open = (withClose) => {
       const m = { closed: false };
-      const btn = withClose ? { disabled: false, click: () => { m.closed = true; d.modals = d.modals.filter((x) => x !== m); d.layer.hidden = !d.modals.length; } } : null;
-      m.querySelector = () => btn;
+      // withClose: true＝とじるボタン、'next'＝出来事のカードの「つぎへ」だけ、false＝どちらもない
+      const btn = withClose ? { disabled: false, click: () => { m.clicked = (m.clicked || 0) + 1; m.closed = true; d.modals = d.modals.filter((x) => x !== m); d.layer.hidden = !d.modals.length; } } : null;
+      m.querySelector = (sel) => (withClose === 'next' ? (sel.includes('ev-next') ? btn : null) : (sel.includes('close') ? btn : null));
       d.modals.push(m); d.layer.hidden = false;
       return m;
     };
@@ -526,7 +587,14 @@ section('戻るボタン（SA.Cap.back）');
   eq([Cap.back(), m2.closed, m1.closed], [true, true, false], '重ねた画面はいちばん上だけ閉じる');
   eq([Cap.back(), m1.closed, doc.layer.hidden], [true, true, true], 'もう一度で次の画面を閉じる');
   const card = doc.open(false);
-  eq([Cap.back(), card.closed], [true, false], '閉じるボタンのない画面（出来事のカード）は閉じず、戻るを食べるだけ');
+  eq([Cap.back(), card.closed], [true, false], '閉じるボタンも「つぎへ」もない画面は閉じず、戻るを食べるだけ');
+  doc.modals = []; doc.layer.hidden = true;
+  const ev = doc.open('next');
+  eq([Cap.back(), ev.clicked, ev.closed], [true, 1, true], '出来事のカードは「つぎへ」を押す（最後のカードなら閉じる）');
+  App.walking = true;
+  const ev2 = doc.open('next');
+  eq([Cap.back(), ev2.clicked || 0], [true, 0], '歩いているあいだは出来事のカードも進めない');
+  App.walking = false;
   doc.modals = []; doc.layer.hidden = true;
   App.screen = 'road'; App.walking = true; went.length = 0;
   eq([Cap.back(), went], [false, []], '歩いているあいだは画面を動かさない');

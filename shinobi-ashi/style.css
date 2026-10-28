@@ -16,7 +16,11 @@ html, body { margin: 0; height: 100%; background: var(--edge); color: var(--ink)
 body { background: var(--edge) repeating-linear-gradient(0deg, rgba(255,255,255,.12) 0 2px, transparent 2px 6px); }
 button, input, select { font-family: inherit; color: inherit; font-size: inherit; }
 [hidden] { display: none !important; }
-ruby { ruby-position: over; }
+ruby { ruby-position: over; ruby-align: center; }
+/* となりがルビでない側だけ、ルビを親字の外へはみ出させる（ui.js の furi() が oh / oh-l / oh-r を付ける） */
+ruby.oh > rt { margin: 0 -.6em; }
+ruby.oh-l > rt { margin-left: -.6em; }
+ruby.oh-r > rt { margin-right: -.6em; }
 /* ふりがなは親の半分。ただし小さい文字でも 9px より小さくしない（こどもが読めるように） */
 rt { font-size: max(.5em, 9px); line-height: 1; letter-spacing: 0; font-weight: 500; color: inherit; opacity: .85; }
 b rt, strong rt { font-weight: 500; }
@@ -140,6 +144,7 @@ p.center { display: block; }
 .hero { position: relative; background: linear-gradient(180deg, #efe6d2 0%, #f7f1e5 70%); border: 2px solid var(--line); border-radius: 18px; padding: 8px 8px 0; margin-bottom: 12px; overflow: hidden; }
 .hero-date { font-size: 13.5px; color: var(--muted); padding: 0 4px; }
 .hero-figs { display: flex; align-items: flex-end; justify-content: center; gap: 2px; min-height: 160px; }
+.hero.short .hero-figs { min-height: 118px; }
 .hero-side { width: 76px; display: flex; justify-content: center; }
 .hero-main .sa-fig { filter: drop-shadow(0 4px 0 rgba(59, 42, 32, .06)); }
 .bubble { position: relative; background: var(--paper); border: 2px solid var(--ink); border-radius: 14px; padding: 6px 10px; margin: 2px 4px 10px; font-size: 14.5px; }
@@ -164,7 +169,8 @@ p.center { display: block; }
 .scroll-b b { font-size: 18px; }
 .cap-msg { margin: 10px 0 0; padding: 8px 10px; border-radius: 12px; background: #e9f0df; border: 2px solid var(--green2); font-weight: 700; font-size: 14.5px; }
 .sync-b { width: 100%; margin-top: 12px; }
-.sim-hint { margin: 8px 0 0; padding: 8px 10px; border: 2px dashed #6a4a8a; border-radius: 12px; background: #f6f0fb; color: #3a2a50; font-weight: 700; font-size: 14.5px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.sim-hint + .sync-b { margin: 0 0 12px; }
+.sim-hint { margin: 0 0 8px; padding: 8px 10px; border: 2px dashed #6a4a8a; border-radius: 12px; background: #f6f0fb; color: #3a2a50; font-weight: 700; font-size: 14.5px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .sim-hint-arrow { font-size: 18px; animation: hint 1.2s ease-in-out infinite; }
 @keyframes hint { 50% { transform: translateY(4px); } }
 .fam-b { width: 100%; }
@@ -317,6 +323,7 @@ p.center { display: block; }
 .wk-labels { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
 .wk-col { display: flex; flex-direction: column; align-items: center; font-size: 13px; line-height: 1.6; padding-top: 4px; white-space: nowrap; }
 .wk-col .muted { font-size: 12px; }
+.wk-col .wk-wd { font-size: 13px; font-weight: 600; }
 .wk-bar { height: 100%; width: 70%; display: flex; align-items: flex-end; background: repeating-linear-gradient(0deg, transparent 0 24px, rgba(59,42,32,.06) 24px 25px); border-radius: 6px 6px 0 0; }
 .wk-bar i { display: block; width: 100%; background: var(--green2); border-radius: 6px 6px 0 0; min-height: 2px; }
 .wk-bar i.goal { background: var(--gold); }
@@ -338,6 +345,8 @@ p.center { display: block; }
 .gate-in { text-align: center; min-height: 1.8em; font-size: 18px; letter-spacing: .3em; }
 .gate-pad { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 6px 0; }
 .gate-k { min-height: 52px; font-size: 22px; padding: 0; }
+.gate-k.gate-clear { grid-column: span 2; font-size: 16px; }
+.gate-k.gate-ok { grid-column: span 3; font-size: 17px; }
 .gate-wait { text-align: center; font-size: 16px; }
 .gate-wait b { font-size: 32px; }
 

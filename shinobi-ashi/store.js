@@ -6,6 +6,9 @@
  *           一時ファイル progress.tmp.json に書いてから rename で置き換える（途中で落ちても片方は残る）。
  *           小さな設定は @capacitor/preferences（Android のバックアップに残すのはこちらだけ）。
  * どの関数も例外を外に投げない（save は失敗すると false）。
+ * 読めなかったとき: 保存があるのに JSON が壊れていて（途中で切れているなど）、控え（:bak・一時ファイル）も読めなければ、
+ *   load() は null ではなく { corrupt: true, app: 'shinobi-ashi:corrupt' } を返す（画面は「記録が読めませんでした」へ）。
+ *   壊れた中身は消さずに 'shinobi-ashi:v1:broken'（アプリは progress.broken.json）に1つだけ写しておく。
  * ビルドなしの素の JS。window.SA に足す。Node では require('./store.js') で同じものが返る。
  */
 (function (root) {
@@ -17,6 +20,8 @@
   var PREF = 'shinobi-ashi:pref:';
   var FILE = 'progress.json';
   var TMP = 'progress.tmp.json';
+  var BROKEN_FILE = 'progress.broken.json';
+  var BROKEN = KEY + ':broken';
   var DIR = 'LIBRARY_NO_CLOUD';   // Directory.LibraryNoCloud（iOS: Library/NoCloud、Android: アプリの files/）
   var ENC = 'utf8';               // Encoding.UTF8
   var KEEP_ON_CLEAR = /^steps\./; // clear() でも消さない設定（歩数センサーの基準など。消すと二重に数えるおそれ）
@@ -87,10 +92,10 @@
    *   1. document に cancelable な 'backbutton' イベントを流す。画面側が preventDefault したら片づけた扱い。
    *   2. SA.Cap.onBack(fn) で登録した関数を、あとから登録したものから呼ぶ。true を返したら片づけた扱い。
    *   3. どちらもなければ、画面の形から片づける: 重ねた画面（#layer の .modal-back）があれば、いちばん上の
-   *      「とじる」（[data-act=close]）を押す。閉じるボタンのない重ねた画面（出来事のカードや確かめの箱）は
-   *      閉じずに、戻るを食べるだけ（うっかりアプリが閉じないように）。重ねた画面がなく、ホーム（ながめるモードは
-   *      いちばん左のタブ）以外にいれば、そこへ戻す。
-   * ブラウザでは呼ばれない（ブラウザの戻るは画面側の history の扱い）。 */
+   *      「とじる」（[data-act=close]）を押す。出来事のカード（閉じるボタンがない）は「つぎへ」（[data-act=ev-next]）を
+   *      押す（最後のカードでは「とじる」になる）。どちらもない重ねた画面は閉じずに、戻るを食べるだけ
+   *      （うっかりアプリが閉じないように）。重ねた画面がなく、ホーム（ながめるモードはいちばん左のタブ）以外にいれば、そこへ戻す。
+   * ブラウザでは MainActivity は呼ばないが、画面側が popstate から SA.Cap.back() を呼んでもよい（同じ片づけ方になる）。 */
   if (!Cap.onBack) {
     var backFns = [];
     Cap.onBack = function (fn) {
@@ -123,6 +128,8 @@
         if (App && App.walking) return true;                    // 歩いているあいだは何もしない（閉じもしない）
         var top = backs[backs.length - 1];
         var close = top.querySelector('.modal > .modal-foot [data-act="close"]') || top.querySelector('[data-act="close"]');
+        // 出来事のカード（閉じるボタンがない）は「つぎへ」を押す。最後のカードの「つぎへ」は「とじる」なので、押し続ければ閉じる
+        if (!close) close = top.querySelector('[data-act="ev-next"]');
         if (close && !close.disabled) close.click();
         return true;
       }
@@ -158,6 +165,10 @@
     }
     return obj;
   }
+  function hasText(t) { return typeof t === 'string' && /\S/.test(t); }
+  var CORRUPT_APP = 'shinobi-ashi:corrupt';
+  // app が違うので SA.Rules.migrate は null を返し、validate も通らない（うっかり新しい記録に直されない）
+  function corruptMark() { return { corrupt: true, app: CORRUPT_APP }; }
   function enc(v) { return JSON.stringify(v === undefined ? null : v); }
   function dec(s) { if (s == null) return null; try { return JSON.parse(s); } catch (e) { return s; } }
 
@@ -166,7 +177,8 @@
 
   var memoryBackend = {
     name: 'memory', persistent: false,
-    read: function () { return Promise.resolve(parse(mem.main) || parse(mem.bak)); },
+    readRaw: function () { return Promise.resolve({ main: mem.main, bak: mem.bak }); },
+    keepBroken: function () { return Promise.resolve(false); },
     write: function (text) { if (mem.main) mem.bak = mem.main; mem.main = text; return Promise.resolve(true); },
     clear: function () { mem.main = null; mem.bak = null; return Promise.resolve(); },
     getPref: function (k) { return Promise.resolve(k in mem.prefs ? dec(mem.prefs[k]) : null); },
@@ -177,11 +189,14 @@
 
   var localBackend = {
     name: 'local', persistent: true,
-    read: function () {
+    readRaw: function () {
       try {
         var ls = root.localStorage;
-        return Promise.resolve(parse(ls.getItem(KEY)) || parse(ls.getItem(BAK)));
-      } catch (e) { return Promise.resolve(null); }
+        return Promise.resolve({ main: ls.getItem(KEY), bak: ls.getItem(BAK) });
+      } catch (e) { return Promise.resolve({ main: null, bak: null }); }
+    },
+    keepBroken: function (text) {
+      try { root.localStorage.setItem(BROKEN, text); return Promise.resolve(true); } catch (e) { return Promise.resolve(false); }
     },
     write: function (text) {
       try {
@@ -212,9 +227,9 @@
   };
 
   function appBackend(FS, PR) {
-    function readFile(path) {
+    function readText(path) {
       return FS.readFile({ path: path, directory: DIR, encoding: ENC })
-        .then(function (r) { return parse(r && typeof r.data === 'string' ? r.data : null); }, function () { return null; });
+        .then(function (r) { return r && typeof r.data === 'string' ? r.data : null; }, function () { return null; });
     }
     function del(path) { return FS.deleteFile({ path: path, directory: DIR }).then(function () { return true; }, function () { return false; }); }
     function check(path, text) {
@@ -223,8 +238,12 @@
     }
     var b = {
       name: 'app', persistent: true,
-      read: function () {
-        return readFile(FILE).then(function (o) { return o || readFile(TMP); });
+      readRaw: function () {
+        return Promise.all([readText(FILE), readText(TMP)]).then(function (a) { return { main: a[0], bak: a[1] }; });
+      },
+      keepBroken: function (text) {
+        return FS.writeFile({ path: BROKEN_FILE, data: text, directory: DIR, encoding: ENC, recursive: true })
+          .then(function () { return true; }, function () { return false; });
       },
       write: function (text) {
         return FS.writeFile({ path: TMP, data: text, directory: DIR, encoding: ENC, recursive: true })
@@ -286,10 +305,41 @@
     KEY: KEY,
     persistent: true,      // be() を呼んだ時点で決まる（下で一度呼ぶ）
     backend: 'local',
+    /** 進行データ。なければ null。壊れていて控えも読めなければ { corrupt: true, … }（上の説明） */
     load: function () {
-      return serial(function () { return be().read(); })
-        .then(function (o) { return accept(o); }, function () { return null; });
+      return serial(function () {
+        var b = be();
+        return b.readRaw().then(function (raw) {
+          raw = raw || {};
+          var main = parse(raw.main), bak = parse(raw.bak);
+          var got = accept(main) || accept(bak);
+          if (got) return got;
+          // 中身があるのに JSON として読めない（ほかのアプリのデータ・空はここに来ない）
+          var brokenText = hasText(raw.main) && !main ? raw.main : (!hasText(raw.main) && hasText(raw.bak) && !bak ? raw.bak : null);
+          if (brokenText == null) return null;
+          return Promise.resolve(b.keepBroken(brokenText)).catch(function () { return false; })
+            .then(function () { return corruptMark(); });
+        });
+      }).then(function (o) { return o; }, function () { return null; });
     },
+    /** ひとつ前の保存（ブラウザは :bak、アプリは一時ファイル）。読めなければ null */
+    loadBackup: function () {
+      return serial(function () { return be().readRaw(); })
+        .then(function (raw) { return accept(parse(raw && raw.bak)); }, function () { return null; });
+    },
+    /** 壊れていた保存の写し（読み込んだときに写したもの）。なければ null。書き出して調べる用 */
+    brokenText: function () {
+      return serial(function () {
+        var b = be();
+        if (b.name === 'local') { try { return root.localStorage.getItem(BROKEN); } catch (e) { return null; } }
+        if (b.name === 'app') {
+          return Cap.plugin('Filesystem').readFile({ path: BROKEN_FILE, directory: DIR, encoding: ENC })
+            .then(function (r) { return r && typeof r.data === 'string' ? r.data : null; }, function () { return null; });
+        }
+        return null;
+      }).then(function (t) { return t || null; }, function () { return null; });
+    },
+    isCorrupt: function (o) { return !!(o && typeof o === 'object' && o.corrupt === true && o.app === CORRUPT_APP); },
     save: function (state) {
       var text;
       try { text = JSON.stringify(state); } catch (e) { return Promise.resolve(false); }

@@ -68,12 +68,12 @@ python3 -m http.server 8765
 リポジトリの直下で走らせます。Playwright は `require('playwright')` で読める所に入っていること（`playwright install` は要らない環境で確かめた）。
 
 ```sh
-node shinobi-ashi/tools/test_rules.mjs                 # 合格 440 / 不合格 0（約0.3秒）
-node shinobi-ashi/tools/test_share.mjs                 # 合格 1054 / 不合格 0（--no-browser で Node の部だけ: 1037）
+node shinobi-ashi/tools/test_rules.mjs                 # 合格 445 / 不合格 0（約0.3秒）
+node shinobi-ashi/tools/test_share.mjs                 # 合格 1059 / 不合格 0（--no-browser で Node の部だけ: 1042）
 node shinobi-ashi/tools/test_figure.mjs                # 4095 合格 / 0 不合格（約2秒）
 node shinobi-ashi/tools/test_figure.mjs --browser --fx # 4113 合格 / 0 不合格（約70秒。全32種の演出を再生）
-node shinobi-ashi/tools/check_content.mjs              # 合格 986 / 不合格 0（--list で読みが2通りある親字の一覧）
-node shinobi-ashi/app/scripts/test-platform.mjs        # 170 件合格 / 0 件不合格（Capacitor は作り物に差し替え）
+node shinobi-ashi/tools/check_content.mjs              # 合格 987 / 不合格 0（--list で読みが2通りある親字の一覧）
+node shinobi-ashi/app/scripts/test-platform.mjs        # 189 件合格 / 0 件不合格（Capacitor は作り物に差し替え）
 node shinobi-ashi/tools/e2e.mjs [--out <dir>]          # 合格 578 / 不合格 0（約2分。2つの画面の大きさ）
 ```
 

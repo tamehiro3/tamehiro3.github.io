@@ -479,11 +479,13 @@
   }
 
   /* ================= 選択・設定 ================= */
-  // 「今日は」の選択。date が today のときだけ受け付ける（ほかの日は state をそのまま返す）。
-  // today を渡さない古い呼び方では、最後に取り込んだ日より前の日だけ断る（UI は today を渡すこと）
+  // 「今日は」の選択。date が今日のときだけ受け付ける（ほかの日は state をそのまま返す）。
+  // 4つ目に today（'YYYY-MM-DD' か ingest と同じ { today }）を渡す。rules.js は時計を読まないので、
+  // 渡さない古い呼び方では今日がわからず、最後に取り込んだ日（lastSyncDate）より前の日だけ断る
   function setChoice(state, date, opt, today) {
-    if (!isDate(date)) return state;
-    if (isDate(today)) { if (date !== today) return state; }
+    if (!isDate(date) || !state || typeof state !== 'object') return state;
+    var t = today && typeof today === 'object' ? today.today : today;
+    if (isDate(t)) { if (date !== t) return state; }
     else if (state.lastSyncDate && isDate(state.lastSyncDate) && date < state.lastSyncDate) return state;
     var s = clone(state), rec = dayRec(s, date);
     var home = !!(opt && opt.home);

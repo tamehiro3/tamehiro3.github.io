@@ -407,6 +407,17 @@ section('我が家の付け替え（setChoice）');
   eq(R.setChoice(s, '2026-10-27', { home: false }, '2026-10-28'), s, '過去の日は付け替えられない（state はそのまま）');
   eq(R.setChoice(s, '2026-10-29', { home: true }, '2026-10-28'), s, '先の日も選べない');
   eq(R.setChoice(s, '2026-10-27', { home: false }), s, 'today なしの呼び方でも、最後に取り込んだ日より前の日は断る');
+  eq(R.setChoice(s, '2026-10-27', { home: false }, { today: '2026-10-28' }), s, '{ today } の形でも過去の日は断る');
+  {
+    // 指摘の例: 前回の同期日と今日の間の過去の日（today を渡せば断る）
+    let q = mk('anne');
+    q = run(q, '2026-10-15', 5000).state;
+    eq(R.setChoice(q, '2026-10-20', { home: true }, '2026-10-28'), q, '前回の同期日と今日の間の過去の日も断る');
+    eq(R.setChoice(q, '2026-10-20', { home: true }, { today: '2026-10-28' }), q, '{ today } の形でも同じ');
+    const ok = R.setChoice(q, '2026-10-28', { home: true }, { today: '2026-10-28' });
+    eq([ok !== q, ok.daily['2026-10-28'].home], [true, true], '取り込み前の今日は選べる（{ today } の形）');
+    eq(R.setChoice(null, '2026-10-28', { home: true }, '2026-10-28'), null, 'state がないときは投げずにそのまま');
+  }
   s = R.setChoice(s, '2026-10-28', { home: true }, '2026-10-28');
   eq([s.roadTotal, s.hideTotal], [12000, 25500], '今日の分は付け替えられる');
   s = R.setChoice(s, '2026-10-28', { home: false }, '2026-10-28');

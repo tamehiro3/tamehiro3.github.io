@@ -47,6 +47,34 @@ ok(typeof jsQR === 'function', 'vendor/jsQR.js が jsQR 関数を出す');
   ok(/qrcode-generator/.test(lic) && /2\.0\.4/.test(lic) && /Permission is hereby granted, free of charge/.test(lic), 'LICENSES.md に qrcode-generator の版と MIT 全文');
   ok(/jsQR/.test(lic) && /1\.4\.0/.test(lic) && /TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION/.test(lic) && /END OF TERMS AND CONDITIONS/.test(lic), 'LICENSES.md に jsQR の版と Apache-2.0 全文');
   ok(/registry\.npmjs\.org\/qrcode-generator/.test(lic) && /registry\.npmjs\.org\/jsqr/.test(lic), 'LICENSES.md に取得元');
+  // アプリ版の部品（content.js の parent.partsApp が「vendor/LICENSES.md に全文」と言うので、中身と合わせる）
+  const APP = path.join(ROOT, 'app');
+  if (fs.existsSync(path.join(APP, 'package.json'))) {
+    const pkg = JSON.parse(fs.readFileSync(path.join(APP, 'package.json'), 'utf8'));
+    const deps = pkg.dependencies || {};
+    const missing = Object.keys(deps).filter(n => !(lic.includes(n.replace(/^@capacitor\/(core|android|ios)$/, '@capacitor/$1')) && lic.includes(deps[n])));
+    ok(missing.length === 0, 'LICENSES.md にアプリの依存（名前と版）がすべてある' + (missing.length ? '（ない: ' + missing.join(', ') + '）' : ''));
+    ok(/Mozilla Public License Version 2\.0/.test(lic) && /Exhibit B - "Incompatible With Secondary Licenses" Notice/.test(lic) && /github\.com\/Cap-go\/capacitor-pedometer/.test(lic), 'LICENSES.md に MPL-2.0 の全文とソースの場所（@capgo/capacitor-pedometer）');
+    const nm = path.join(APP, 'node_modules');
+    if (fs.existsSync(nm)) {
+      const norm = t => t.replace(/\s+/g, ' ').trim();
+      const nlic = norm(lic);
+      const notIn = Object.keys(deps).filter(n => {
+        const f = path.join(nm, n, 'LICENSE');
+        return fs.existsSync(f) && !nlic.includes(norm(fs.readFileSync(f, 'utf8')));
+      });
+      ok(notIn.length === 0, 'LICENSES.md に node_modules の各依存の LICENSE の文がそのまま入っている' + (notIn.length ? '（ない: ' + notIn.join(', ') + '）' : ''));
+    }
+    const vg = path.join(APP, 'android', 'variables.gradle');
+    if (fs.existsSync(vg)) {
+      const v = fs.readFileSync(vg, 'utf8');
+      const ver = k => (v.match(new RegExp(k + "\\s*=\\s*'([^']+)'")) || [])[1];
+      const want = [['play-services-fitness', ver('playServicesFitnessVersion')], ['appcompat', ver('androidxAppCompatVersion')], ['core-splashscreen', ver('coreSplashScreenVersion')], ['webkit', ver('androidxWebkitVersion')], ['org.apache.cordova:framework', ver('cordovaAndroidVersion')]];
+      const bad = want.filter(([n, x]) => !x || !lic.includes(n) || !lic.includes(x)).map(([n, x]) => n + ' ' + x);
+      ok(bad.length === 0, 'LICENSES.md の Android の部品の版が variables.gradle と合う' + (bad.length ? '（合わない: ' + bad.join(', ') + '）' : ''));
+    }
+    ok(/Android Software Development Kit License/.test(lic) && /AndroidX/.test(lic) && /Apache Cordova/.test(lic) && /The Apache Software Foundation \(http:\/\/www\.apache\.org\/\)/.test(lic), 'LICENSES.md に AndroidX・Play 開発者サービス・Apache Cordova（NOTICE）');
+  }
 }
 
 /* ---------- 2. CRC32・UTF-8 ---------- */

@@ -143,23 +143,39 @@ async function runFlow(browser, base, W, H) {
   };
   const solveGate = async () => {
     const q = await page.locator('#gate-q').textContent();
-    const K = { '〇': 0, '一': 1, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8, '九': 9 };
-    let nums;
-    const m3 = q.match(/「([〇一二三四五六七八九百十]+)」.*?、(.+?)の順/);
-    if (m3) {
-      // 「九百七十八」の数字を、一の位・百の位・十の位の順に押してください
-      let rest = m3[1], hd = 0, td = 0, od = 0;
+    // 大字（壱・弐・参…）と漢数字の両方を読む
+    const K = { '〇': 0, '零': 0, '一': 1, '壱': 1, '二': 2, '弐': 2, '三': 3, '参': 3, '四': 4, '肆': 4, '五': 5, '伍': 5,
+      '六': 6, '陸': 6, '七': 7, '漆': 7, '八': 8, '捌': 8, '九': 9, '玖': 9 };
+    const num3 = (str) => {
+      let rest = str, hd = 0, td = 0, od = 0;
       let i = rest.indexOf('百'); if (i >= 0) { hd = i === 0 ? 1 : K[rest[i - 1]]; rest = rest.slice(i + 1); }
-      i = rest.indexOf('十'); if (i >= 0) { td = i === 0 ? 1 : K[rest[i - 1]]; rest = rest.slice(i + 1); }
+      i = rest.search(/[十拾]/); if (i >= 0) { td = i === 0 ? 1 : K[rest[i - 1]]; rest = rest.slice(i + 1); }
       if (rest) od = K[rest];
-      const place = { '百の位': hd, '十の位': td, '一の位': od };
-      nums = m3[2].split('・').map(x => place[x.trim()]);
+      return [hd, td, od];
+    };
+    let nums = null;
+    const mq = q.match(/「([^」]+)」/);
+    const d = mq ? num3(mq[1]) : null;
+    const asc = (a) => a.slice().sort((x, y) => x - y);
+    if (d && /各桁/.test(q)) {
+      let pick = d;
+      if (/偶数だけ/.test(q)) pick = d.filter(x => x % 2 === 0);
+      else if (/奇数だけ/.test(q)) pick = d.filter(x => x % 2 === 1);
+      if (/下の桁から/.test(q)) nums = [d[2], d[1], d[0]];
+      else if (/昇順|小さい順/.test(q)) nums = asc(pick);
+      else if (/降順|大きい順/.test(q)) nums = asc(pick).reverse();
+    } else if (d && /の順/.test(q)) {
+      // 「九百七十八」の数字を、一の位・百の位・十の位の順に押してください
+      const place = { '百の位': d[0], '十の位': d[1], '一の位': d[2] };
+      const m3 = q.match(/、([^、]+?)の順/);
+      if (m3) nums = m3[1].split('・').map(x => place[x.trim()]);
     } else {
       // 三、七、一の順に押してください
       nums = q.split('の順')[0].split('、').map(x => K[x.trim()]);
     }
-    ok(nums.length === 3 && nums.every(x => x >= 0), `[${tag}] 関門の問題文が読める`, q);
-    for (const d of nums) await click('[data-num="' + d + '"]', 120);
+    ok(Array.isArray(nums) && nums.length >= 1 && nums.length <= 3 && nums.every(x => x >= 0 && x <= 9), `[${tag}] 関門の問題文が読める`, q);
+    for (const x of nums || []) await click('[data-num="' + x + '"]', 120);
+    if (await has('[data-act="gate-ok"]')) await click('[data-act="gate-ok"]', 120);
     await sleep(250);
   };
   const holdParent = async () => {
@@ -347,9 +363,9 @@ async function runFlow(browser, base, W, H) {
   // ===== 10) はじめから =====
   await click('[data-act="reset"]', 250);
   await snap('reset-1');
-  await page.locator('.modal').last().locator('button.primary').click(); await sleep(250);
+  await page.locator('.modal').last().locator('[data-act="confirm-yes"]').click(); await sleep(250);
   await snap('reset-2');
-  await page.locator('.modal').last().locator('button.primary').click(); await sleep(600);
+  await page.locator('.modal').last().locator('[data-act="confirm-yes"]').click(); await sleep(600);
   ok(await page.evaluate(() => SA.UI.App.state === null && SA.UI.App.screen === 'onboard'), `[${tag}] はじめからで、はじめての画面にもどる`);
   ok(await page.evaluate(() => { try { return localStorage.getItem('shinobi-ashi:v1') === null; } catch (e) { return true; } }), `[${tag}] 保存した記録が消えた`);
   await snap('reset-done');
@@ -360,7 +376,7 @@ async function runFlow(browser, base, W, H) {
   await holdParent(); await solveGate();
   await page.locator('input[data-file="import"]').setInputFiles(expPath); await sleep(400);
   await snap('import-confirm'); await check('読み込みの確認');
-  await page.locator('.modal').last().locator('button.primary').click(); await sleep(600);
+  await page.locator('.modal').last().locator('[data-act="confirm-yes"]').click(); await sleep(600);
   s = await S();
   ok(s.mainId === 'sakuya' && s.visits === saved.visits && s.visitTotal === saved.visitTotal && s.board.length === saved.board.length, `[${tag}] 読み込みで書き出したときの記録にもどった`, [s.mainId, s.visits, s.visitTotal]);
   ok(await page.evaluate(() => { try { return !!localStorage.getItem('shinobi-ashi:v1'); } catch (e) { return false; } }), `[${tag}] 読み込んだ記録が保存された`);

@@ -3,7 +3,7 @@
 毎日の歩数で、忍者の相棒を育てる家族向けのゲームです。歩いた分が相棒の「修行」になり、巻物で忍術を見せてくれます。仲間が里に来て、宿場をたどる「忍びの道」も進みます。
 無料で、広告・課金はありません。歩数はインターネットに送りません。
 
-- 遊ぶ: https://tamehiro3.github.io/shinobi-ashi/ （ブラウザでは「ためし歩き」で試遊できます）
+- 遊ぶ: https://tamehiro3.github.io/shinobi-ashi/ （このブランチを master に入れたあとで開けます。ブラウザでは「ためし歩き」で試遊できます）
 - 遊び方・おうちの方へ: `about.html`
 - 実装の仕様: `docs/SPEC.md`
 
@@ -34,7 +34,7 @@ python3 -m http.server 8765
 
 ## ファイル
 
-読み込み順（`index.html`）: `vendor/qrcode.js` → `vendor/jsQR.js` → `art.js` → `chars.js` → `data.js` → `content.js` → `rules.js` → `figure.js` → `fx.js` → `store.js` → `steps.js` → `notify.js` → `share.js` → `screens.js` → `ui.js`（どれも `?v=2` 付き）
+読み込み順（`index.html`）: `vendor/qrcode.js` → `vendor/jsQR.js` → `art.js` → `chars.js` → `data.js` → `content.js` → `rules.js` → `figure.js` → `fx.js` → `store.js` → `steps.js` → `notify.js` → `share.js` → `screens.js` → `ui.js`（どれも `?v=3` 付き）
 
 | ファイル | 役割 |
 |---|---|
@@ -72,9 +72,9 @@ node shinobi-ashi/tools/test_rules.mjs                 # 合格 445 / 不合格 
 node shinobi-ashi/tools/test_share.mjs                 # 合格 1059 / 不合格 0（--no-browser で Node の部だけ: 1042）
 node shinobi-ashi/tools/test_figure.mjs                # 4095 合格 / 0 不合格（約2秒）
 node shinobi-ashi/tools/test_figure.mjs --browser --fx # 4113 合格 / 0 不合格（約70秒。全32種の演出を再生）
-node shinobi-ashi/tools/check_content.mjs              # 合格 1011 / 不合格 0（--list で読みが2通りある親字の一覧）
-node shinobi-ashi/app/scripts/test-platform.mjs        # 211 件合格 / 0 件不合格（Capacitor は作り物に差し替え）
-node shinobi-ashi/tools/e2e.mjs [--out <dir>]          # 合格 686 / 不合格 0（約2分半。2つの画面の大きさ）
+node shinobi-ashi/tools/check_content.mjs              # 合格 1012 / 不合格 0（--list で読みが2通りある親字の一覧）
+node shinobi-ashi/app/scripts/test-platform.mjs        # 215 件合格 / 0 件不合格（Capacitor は作り物に差し替え）
+node shinobi-ashi/tools/e2e.mjs [--out <dir>]          # 合格 704 / 不合格 0（約2分半。2つの画面の大きさ）
 ```
 
 `e2e.mjs` は、リポジトリ直下で `python3 -m http.server` を空いているポートに立て、`http://127.0.0.1:<port>/shinobi-ashi/` を開きます（終わったら止めます）。通しの中身:
@@ -101,7 +101,7 @@ npm run sync      # shinobi-ashi の中身を www に写し（sw.js・tools・do
 
 ## 更新するとき
 
-- 中身を変えたら `index.html`（と `about.html`）の `?v=N`（いまは `?v=2`）と、`sw.js` の `CACHE`（`shinobi-ashi-v2`）・`V`（`?v=2`）を同じ番号に上げる。上げないと、ホーム画面に追加した人に古い版が残る
+- 中身を変えたら `index.html`（と `about.html`）の `?v=N`（いまは `?v=3`）と、`sw.js` の `CACHE`（`shinobi-ashi-v3`）・`V`（`?v=3`）を同じ番号に上げる。上げないと、ホーム画面に追加した人に古い版が残る
 - ファイルを足したら `sw.js` の `CORE` にも足す（`tools/`・`docs/`・`app/` は入れない）
 - `data.js` の数値を変えたら、理由を `docs/CHANGES.md` に1行書く。文章の数値（上限・巻物など）は content.js が `CONFIG` から差し込むので追随する（こどもの時間帯の文だけは手で直す）
 - アイコンは `node shinobi-ashi/tools/build_icons.mjs` で作り直す。図柄は月・足袋の足あと・巻物で、キャラクターと CryptoNinja の語は入れていない

@@ -9,6 +9,7 @@
 - **プライバシーポリシー**(`privacy.html`・AdSense審査の必須要件)
 - **ニンジャ里ライフ(試作版)の置き場所**(`ninja-sato-life/` → https://tamehiro3.github.io/ninja-sato-life/ )。ほかの2本のゲームは別リポジトリですが、このゲームはこのリポジトリの中にあります。中身と作り直し方は [`ninja-sato-life/README.md`](ninja-sato-life/README.md)
 - **ニンジャからくり工房(試作版)の置き場所**(`ninja-karakuri-kobo/` → https://tamehiro3.github.io/ninja-karakuri-kobo/ )。忍者の試験を遊んで作るアスレチック・パズル。中身・テスト・作り直し方は [`ninja-karakuri-kobo/README.md`](ninja-karakuri-kobo/README.md)
+- **忍び足(試作版)の置き場所**(`shinobi-ashi/`)。毎日の歩数で CryptoNinja の相棒を育てる家族向けゲーム。歩数はアプリ(Capacitor)で読み、ブラウザでは「ためし歩き」で試遊できます。広告・課金・外部への通信なし。まだトップページには載せていません。中身・テスト・アプリ化は [`shinobi-ashi/README.md`](shinobi-ashi/README.md) と [`shinobi-ashi/app/README.md`](shinobi-ashi/app/README.md)
 
 ## AdSense の状況と残りの手順
 

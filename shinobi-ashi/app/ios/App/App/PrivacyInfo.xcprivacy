@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  忍び足 のプライバシーマニフェスト（App ターゲットの Copy Bundle Resources に入れる）。
+  追跡なし・集めるデータなし・追跡用のドメインなし。
+  理由が要る API は、プラグインが使う2つだけ:
+    @capacitor/preferences … UserDefaults（CA92.1: このアプリの中だけで読み書きする）
+    @capacitor/filesystem  … ファイルの日時（C617.1: アプリの入れ物の中のファイルの日時を見る）
+  `npx cap add ios` でプロジェクトを作り直したときは、このファイルを入れ直す（app/README.md）。
+-->
+<plist version="1.0">
+<dict>
+	<key>NSPrivacyTracking</key>
+	<false/>
+	<key>NSPrivacyTrackingDomains</key>
+	<array/>
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array/>
+	<key>NSPrivacyAccessedAPITypes</key>
+	<array>
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>CA92.1</string>
+			</array>
+		</dict>
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryFileTimestamp</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>C617.1</string>
+			</array>
+		</dict>
+	</array>
+</dict>
+</plist>

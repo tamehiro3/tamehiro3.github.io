@@ -4,6 +4,7 @@
  *   向き: front / quarter / side / back（NinjaArt.VIEWS のほかの名前や数値の yaw も受ける）
  *   染め: DYES の色で装束の主な色（と同系の色）を差し替える
  *   武器: weapon=false のとき、体ごとの表（WEAPON_PARTS）の部品を外す。孫市の銃は CONFIG.SHOW_GUN=false なら常に外す
+ *   かくれて眠る: state='hide' に sleep:true を足すと、目を閉じて柱にもたれ、すやすやの印（深夜0〜5時のホーム用）
  *   ラスタ化: SVG → Image → canvas（OffscreenCanvas があれば ImageBitmap）。25MB を目安に古いものから捨てる
  * ブラウザでも Node でも動く（Node では svg / def / silhouette だけ。el・bitmap・sheet6 はブラウザだけ）。
  */
@@ -221,15 +222,42 @@
     }
     return o;
   }
+  /* かくれて眠る（opts.sleep=true）: 目を閉じた顔にして、口は閉じた形に寄せる。art.js は変えず、複製した定義を直す */
+  var OPEN_MOUTH = { open: 'smile', openFang: 'fang', grin: 'smile', grinFang: 'fang', shout: 'smile', tongue: 'smile' };
+  function sleepDef(def) {
+    var e = def.eyes = Object.assign({}, def.eyes || {});
+    e.style = 'closed';
+    delete e.styleL; delete e.styleR; delete e.wink; delete e.lock; delete e.pupil;
+    if (def.mouth && OPEN_MOUTH[def.mouth]) def.mouth = OPEN_MOUTH[def.mouth];
+    if (def.brows === 'angry') delete def.brows;
+    delete def.shadowLid;
+    return def;
+  }
+  // 「すやすや」の印（文字を使わない z の形。端末のフォントに頼らない）
+  function zzz() {
+    var o = '<g fill="none" stroke="#5a6fa8" stroke-linecap="round" stroke-linejoin="round">';
+    [[16, 92, 9, 3.2], [30, 74, 12, 3.6], [14, 54, 15, 4]].forEach(function (z) {
+      var x = z[0], y = z[1], s = z[2];
+      o += '<path d="M' + x + ' ' + y + 'h' + s + 'l-' + s + ' ' + s + 'h' + s + '" stroke-width="' + z[3] + '"/>';
+    });
+    return o + '</g>';
+  }
   function hideInner(def, opts, yaw) {
     var uid = 'sah' + (++seq).toString(36);
     var cx = 92, cy = 50, cw = 100, chh = 176;
+    var sleep = !!opts.sleep;
     var o = '';
     o += clothFrame(cx, cy, cw, chh);
-    o += '<g transform="translate(-14 4)">' + A.render(def, { raw: true, yaw: yaw, pose: 'surprised', expr: 'surprised', prop: false, companions: false, shadow: opts.shadow !== false }) + '</g>';
+    var ro = { raw: true, yaw: yaw, pose: sleep ? 'stand' : 'surprised', expr: sleep ? 'normal' : 'surprised', prop: false, companions: false, shadow: opts.shadow !== false };
+    var hd = def.head || {};
+    if (sleep && hd.kind === 'gorilla') ro.expr = 'serious'; // ゴリラの顔は serious が細い目と閉じた口
+    if (sleep) sleepDef(def);
+    // 眠るときは幕の柱にもたれて少し傾く
+    o += '<g transform="translate(-14 4)' + (sleep ? ' rotate(5 100 232)' : '') + '">' + A.render(def, ro) + '</g>';
     o += bambooCloth(cx, cy, cw, chh, uid);
     o += grass(4, 236, 4) + grass(150, 236, 4);
-    o += '<g stroke="#f08c1c" stroke-width="3" stroke-linecap="round"><path d="M22 88l-9 -6M19 99l-11 1M24 78l-5 -9"/></g>';
+    if (sleep) o += zzz();
+    else o += '<g stroke="#f08c1c" stroke-width="3" stroke-linecap="round"><path d="M22 88l-9 -6M19 99l-11 1M24 78l-5 -9"/></g>';
     return o;
   }
 
@@ -299,7 +327,7 @@
   function cacheKey(id, opts, px) {
     var o = opts || {};
     return [id, o.state || 'normal', o.view == null ? '' : o.view, o.dye || 'none', o.weapon ? 1 : 0, o.frame | 0, o.shadow === false ? 0 : 1,
-      o.silhouette ? 'S' + (o.color || '') + (o.q === false ? 'n' : 'q') : '', o.fx === false ? 0 : 1, o.companions === false ? 0 : 1, px].join('|');
+      o.silhouette ? 'S' + (o.color || '') + (o.q === false ? 'n' : 'q') : '', o.fx === false ? 0 : 1, o.companions === false ? 0 : 1, o.sleep ? 'z' : '', px].join('|');
   }
   function cachePut(k, bmp, bytes) {
     if (cache.has(k)) { cacheBytes -= cache.get(k).bytes; cache.delete(k); }

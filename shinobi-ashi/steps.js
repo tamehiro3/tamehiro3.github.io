@@ -213,21 +213,41 @@
       });
     }, Promise.resolve()).then(function () { return out; });
   }
+  /* 歩行中判定（iPhone）。startMeasurementUpdates のあと ms の間に届いた measurement の歩調を見る。
+   * CMPedometer の最初の通知は歩き始めて数秒たってから来ることが多く（間隔は OS が決める）、3秒では1回も
+   * 届かないことがある。届かなかった・歩調が足りなかったときは、直前 IOS_LOOKBACK_MS の getMeasurement の
+   * 歩数÷秒数を代わりに使う（どちらかが WALKING_CADENCE 以上なら歩行中）。 */
+  var IOS_LOOKBACK_MS = 10000;
+  function cadenceOf(m) {
+    if (!m) return 0;
+    var c = Number(m.currentCadence) || 0;
+    var s = Number(m.startDate), e = Number(m.endDate);
+    if (!c && m.numberOfSteps && s && e && e > s) c = Number(m.numberOfSteps) / ((e - s) / 1000);
+    return c > 0 && isFinite(c) ? c : 0;
+  }
+  function iosRecentCadence(P) {
+    var end = now(), start = end - IOS_LOOKBACK_MS;
+    return withTimeout(P.getMeasurement({ start: start, end: end }).then(function (m) {
+      return int(m && m.numberOfSteps) / (IOS_LOOKBACK_MS / 1000);
+    }), 2000, 0);
+  }
   function iosWalking(ms) {
     var P = iosPlugin(); if (!P) return Promise.resolve(false);
     var best = 0, handle = null;
     return Promise.resolve()
       .then(function () {
         return P.addListener('measurement', function (m) {
-          if (!m) return;
-          var c = Number(m.currentCadence) || 0;
-          if (!c && m.numberOfSteps && m.startDate && m.endDate && m.endDate > m.startDate) c = m.numberOfSteps / ((m.endDate - m.startDate) / 1000);
+          var c = cadenceOf(m);
           if (c > best) best = c;
         });
       })
       .then(function (h) { handle = h; return P.startMeasurementUpdates(); })
-      .then(function () { return delay(ms); })
-      .then(function () { return best >= CFG.WALKING_CADENCE; }, function () { return false; })
+      .then(function () { return delay(ms); }, function () { /* 通知が使えなくても、代わりの読み取りはする */ })
+      .then(function () {
+        if (best >= CFG.WALKING_CADENCE) return true;
+        return iosRecentCadence(P).then(function (c) { return c >= CFG.WALKING_CADENCE; }, function () { return false; });
+      })
+      .catch(function () { return false; })
       .then(function (walking) {
         var stop = function () { };
         try { stop = P.stopMeasurementUpdates(); } catch (e) { }

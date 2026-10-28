@@ -18,6 +18,7 @@ function eq(a, b, msg) { const A = JSON.stringify(a), B = JSON.stringify(b); ok(
 function section(t) { console.log('■ ' + t); }
 const types = (ev) => ev.map(e => e.type);
 const ofType = (ev, t) => ev.filter(e => e.type === t);
+const sortKeys = (o) => Object.fromEntries(Object.entries(o).sort((a, b) => a[0] < b[0] ? -1 : 1));
 
 const T0 = '2026-10-26'; // 月曜
 function mk(mainId = 'anne', mode = 'otona', today = T0, route = 'sim') { return R.newState({ mainId, mode, today, route }); }
@@ -387,41 +388,123 @@ section('巻物（1,000歩ごと）と忍術の間');
 section('我が家の付け替え（setChoice）');
 {
   let s = mk('anne');
-  s = R.setChoice(s, T0, { home: true });
+  s = R.setChoice(s, T0, { home: true }, T0);
   let r = run(s, T0, 10000); s = r.state;
   eq([s.visitTotal, s.roadTotal, s.hideTotal], [10000, 0, 10000], '取り込みの前に我が家: 道は進まず隠れ里へ');
   eq(r.state.chars.anne.shugyo, 10000, '我が家の日も修行値は入る');
-  s = R.setChoice(s, T0, { home: false });
+  s = R.setChoice(s, T0, { home: false }, T0);
   eq([s.roadTotal, s.hideTotal], [10000, 0], '取り込みの後に付け替え（道へ戻す）');
   // 宿場に着いたあとで我が家に付け替えても、着いた宿場の数は減らない
   s = mk('anne');
   s = run(s, T0, 12000).state;
   s = run(s, '2026-10-27', 9000).state;
   eq(s.stationsReached, 1, '2万をこえて宿場1');
-  s = R.setChoice(s, '2026-10-27', { home: true });
+  s = R.setChoice(s, '2026-10-27', { home: true }, '2026-10-27');
   eq([s.roadTotal, s.hideTotal, s.stationsReached], [12000, 9000, 1], '付け替えても stationsReached は減らない');
   r = R.ingest(s, [day('2026-10-28', 16500)], { today: '2026-10-28' }); s = r.state;
   eq([s.roadTotal, s.stationsReached], [28500, 1], '次の宿場は「いちばん先に着いた宿場の次」（4万）');
-  s = R.setChoice(s, '2026-10-27', { home: false });
+  // 「今日は」の選択なので、ほかの日は付け替えられない
+  eq(R.setChoice(s, '2026-10-27', { home: false }, '2026-10-28'), s, '過去の日は付け替えられない（state はそのまま）');
+  eq(R.setChoice(s, '2026-10-29', { home: true }, '2026-10-28'), s, '先の日も選べない');
+  eq(R.setChoice(s, '2026-10-27', { home: false }), s, 'today なしの呼び方でも、最後に取り込んだ日より前の日は断る');
+  s = R.setChoice(s, '2026-10-28', { home: true }, '2026-10-28');
+  eq([s.roadTotal, s.hideTotal], [12000, 25500], '今日の分は付け替えられる');
+  s = R.setChoice(s, '2026-10-28', { home: false }, '2026-10-28');
   r = R.ingest(s, [], { today: '2026-10-28' });
-  eq([r.state.roadTotal, r.state.stationsReached, ofType(r.events, 'station').length], [37500, 1, 0], '道に戻しても4万までは着かない');
-  s = R.setChoice(r.state, '2026-10-28', { home: false });
-  r = R.ingest(s, [day('2026-10-29', 2500)], { today: '2026-10-29' });
+  eq([r.state.roadTotal, r.state.stationsReached, ofType(r.events, 'station').length], [28500, 1, 0], '道に戻しても4万までは着かない');
+  r = R.ingest(r.state, [day('2026-10-29', 11500)], { today: '2026-10-29' });
   eq([r.state.roadTotal, r.state.stationsReached], [40000, 2], '4万で宿場2');
   const sf = R.setFamilyDay(mk(), T0, true);
   ok(sf.daily[T0].family === true, '家族で歩いた日');
 }
 
-section('かくれる探し（14万から・5,000ごとに1回・先頭3体・決定的）');
+section('我が家と道の相性は同じ日に両方合わない');
+{
+  const prep = () => {
+    let s = mk('anne');
+    for (const id of ['nemu', 'ichiya']) s.chars[id] = { joined: T0, shugyo: 0, rank: 0, okugi: 0, bond: 0, dye: 'none', lastBondDate: null };
+    return R.setSlots(s, ['anne', 'nemu', 'ichiya'], [0, 50, 50]);
+  };
+  // 道の日に取り込み → 我が家に付け替え → もう一度取り込み
+  let s = prep();
+  let r = run(s, T0, 4000); s = r.state;
+  eq(ofType(r.events, 'affinity').map(e => e.id), ['ichiya'], '道の日: 一夜（道）が合う');
+  s = R.setChoice(s, T0, { home: true }, T0);
+  r = run(s, T0, 8000); s = r.state;
+  eq(ofType(r.events, 'affinity').length, 0, '我が家に付け替えても、ネム（我が家）は同じ日には合わない');
+  eq(Object.keys(s.daily[T0].aff), ['ichiya'], 'その日の相性は先に合った側だけ');
+  eq([s.chars.ichiya.shugyo, s.chars.nemu.shugyo], [4800, 4000], '1.2倍は一夜だけ');
+  // 逆（我が家の日に取り込み → 道に戻す）
+  s = R.setChoice(prep(), T0, { home: true }, T0);
+  r = run(s, T0, 4000); s = r.state;
+  eq(ofType(r.events, 'affinity').map(e => e.id), ['nemu'], '我が家の日: ネムが合う');
+  s = R.setChoice(s, T0, { home: false }, T0);
+  r = run(s, T0, 8000); s = r.state;
+  eq([ofType(r.events, 'affinity').length, Object.keys(s.daily[T0].aff)], [0, ['nemu']], '道に戻しても一夜は合わない');
+  const sm = R.summary(s, T0);
+  eq(sm.slots.find(x => x.id === 'ichiya').affNow, false, 'summary: 一夜の affNow は false');
+}
+
+section('配分は何回に分けて読んでも同じ（増えた分の累計で割る）');
+{
+  const three = () => {
+    let s = mk('anne');
+    for (const id of ['sakuya', 'kohaku']) s.chars[id] = { joined: T0, shugyo: 0, rank: 0, okugi: 0, bond: 0, dye: 'none', lastBondDate: null };
+    return R.setSlots(s, ['anne', 'sakuya', 'kohaku'], [34, 33, 33]);
+  };
+  let s = three();
+  for (let i = 1; i <= 1000; i++) s = run(s, T0, 9 * i).state;
+  eq(sortKeys(s.daily[T0].alloc), { anne: 3060, kohaku: 2970, sakuya: 2970 }, '9歩ずつ1,000回でも 3,060/2,970/2,970');
+  eq(sortKeys(run(three(), T0, 9000).state.daily[T0].alloc), { anne: 3060, kohaku: 2970, sakuya: 2970 }, '一度に9,000歩と同じ');
+  let t = three();
+  for (let i = 1; i <= 50; i++) t = run(t, T0, i).state;
+  const a = t.daily[T0].alloc;
+  eq((a.anne || 0) + (a.sakuya || 0) + (a.kohaku || 0), 50, '1歩ずつでも配った合計は増えた分と同じ');
+  eq(sortKeys(a), sortKeys(run(three(), T0, 50).state.daily[T0].alloc), '1歩ずつ50回と一度に50歩が同じ');
+  // 90/10 で 9,999 → 10,000
+  let u = mk('anne');
+  u.chars.sakuya = { joined: T0, shugyo: 0, rank: 0, okugi: 0, bond: 0, dye: 'none', lastBondDate: null };
+  u = R.setSlots(u, ['anne', 'sakuya', null], [90, 10, 0]);
+  u = run(u, T0, 9999).state;
+  eq(u.daily[T0].alloc.sakuya, 999, '9,999歩: 咲耶は999');
+  const r = run(u, T0, 10000);
+  eq([r.state.daily[T0].alloc.sakuya, ofType(r.events, 'bond').some(e => e.id === 'sakuya')], [1000, true], '10,000歩で咲耶は1,000になり絆が付く');
+  // 割り当てを変えたら新しい累計（配り済みは動かさない）
+  let v = R.setSlots(r.state, ['anne', 'sakuya', null], [50, 50, 0]);
+  v = run(v, T0, 12000).state;
+  eq(sortKeys(v.daily[T0].alloc), { anne: 10000, sakuya: 2000 }, '割り当て変更のあとは、変更後の増えた分だけを新しい割合で');
+}
+
+section('割り当て0%の体と、歩いていない日には相性のカードを出さない');
 {
   let s = mk('anne');
-  s = R.setChoice(s, T0, { home: true });
+  s.chars.fuuta = { joined: T0, shugyo: 0, rank: 0, okugi: 0, bond: 0, dye: 'none', lastBondDate: null };
+  s = R.setSlots(s, ['anne', 'fuuta', null], [100, 0, 0]);
+  let r = run(s, '2026-11-03', 3000);
+  eq(ofType(r.events, 'affinity').filter(e => e.id === 'fuuta').length, 0, '0%の風太には文化の日でも affinity が出ない');
+  s = R.setSlots(r.state, ['anne', 'fuuta', null], [50, 50, 0]);
+  r = run(s, '2026-11-03', 5000);
+  eq(ofType(r.events, 'affinity').map(e => e.id), ['fuuta'], '割り当てが増えたら、その取り込みで合う');
+  eq(r.state.chars.fuuta.shugyo, 1200, '風太は増えた分（1,000）の1.2倍');
+  r = run(mk('anne'), '2026-11-03', 0);
+  eq(ofType(r.events, 'affinity').length, 0, '歩数0の日は相性のカードなし');
+}
+
+section('かくれる探し（14万から・14万からの隠れ里の累計5,000ごとに1回・先頭3体・決定的）');
+{
+  let s = mk('anne');
+  s = R.setChoice(s, T0, { home: true }, T0);
   s = run(s, T0, 10000).state;
   eq(R.search(s).found, null, '14万までは探せない');
   eq(R.search(s).reason, 'notOpen', '理由: まだ静か');
   const w = walker(s, '2026-10-27').to(140000);
   s = w.s;
-  eq(R.searchesLeft(s), 2, '隠れ里の累計1万で2回');
+  eq([s.hideBase, R.searchesLeft(s)], [10000, 0], '14万より前の我が家の分（1万）は数えない');
+  const d = R.addDays(w.date, 1);
+  s = R.setChoice(s, d, { home: true }, d);
+  s = run(s, d, 10000).state;
+  eq(R.searchesLeft(s), 2, '14万のあとの隠れ里の累計1万で2回');
+  eq(R.summary(s, d).hide.toNextSearch, 5000, '次の「探す」まで5,000');
   const cands = R.hideCandidates(s);
   eq(cands, R.queue(s).slice(0, 3), '候補は来訪の列の先頭3体');
   eq(cands, ['ichiya', 'oto', 'uka'], '14万の時点の候補');
@@ -434,8 +517,14 @@ section('かくれる探し（14万から・5,000ごとに1回・先頭3体・�
   ok(b.found && b.found !== a1.found, '2回目は別の体');
   const c = R.search(b.state);
   eq([c.found, c.reason], [null, 'noSearch'], '回数を使いきったら探せない');
-  const w2 = walker(b.state, w.date).to(160000);
+  const w2 = walker(b.state, R.addDays(d, 1)).to(160000);
   eq(ofType(w2.take(), 'visit').map(e => e.id), [a1.found], '次の来訪で見つけた体が来る');
+  // 14万をまたぐ取り込みが我が家の日なら、14万より後の分は数える
+  const hw = walker(mk('anne')).to(134000);
+  const hd = R.addDays(hw.date, 1);
+  let h = R.setChoice(hw.s, hd, { home: true }, hd);
+  const hr = run(h, hd, 11000);
+  eq([ofType(hr.events, 'hideOpen').length, hr.state.hideTotal, hr.state.hideBase, R.searchesLeft(hr.state)], [1, 11000, 6000, 1], '14万をまたいだ日: 14万より後の5,000で1回');
 }
 
 section('家族の掲示板（最大5・置き換え・14日）と里の客（7日）');
@@ -655,6 +744,134 @@ section('validate / migrate');
   eq(R.migrate('not json'), null, '壊れた文字列は null');
   const w = walker(mk('kohaku')).to(300000);
   ok(R.validate(w.s).ok && R.validate(R.migrate(JSON.parse(JSON.stringify(w.s)))).ok, '遊んだあとの state も validate・migrate を通る');
+}
+
+section('端末の時計が戻ったときに、先の日の実歩数を消さない');
+{
+  let s = mk('anne');
+  s = run(s, '2026-10-26', 3000).state;
+  s = run(s, '2026-10-27', 4000).state;
+  const r = R.ingest(s, [day('2026-10-25', 100)], { today: '2026-10-25' });
+  eq(sortKeys(r.state.recent), { '2026-10-25': 100, '2026-10-26': 3000, '2026-10-27': 4000 }, '時計が戻っても 10-26・10-27 の歩数は残る');
+  eq([r.state.lastSyncDate, R.dayReview(r.state, '2026-10-27').steps], ['2026-10-27', 4000], 'lastSyncDate は戻さない・ふりかえりの歩数も残る');
+  const r2 = R.ingest(r.state, [day('2026-11-03', 100)], { today: '2026-11-03' });
+  ok(!('2026-10-27' in r2.state.recent) && ('2026-11-03' in r2.state.recent), '時計が進めば、いつもどおり7日を過ぎた日を消す');
+}
+
+section('おかしな引数でも例外を投げない（summary・weekReview・dayReview・newState）');
+{
+  const s = run(mk('anne'), T0, 3000).state;
+  let threw = false, sm, wk, dr;
+  try { sm = R.summary(s, 'xx'); wk = R.weekReview(s, 'xx'); dr = R.dayReview(s, 'xx'); } catch (e) { threw = true; }
+  ok(!threw, 'summary/weekReview/dayReview に変な日付を渡しても投げない');
+  eq([sm, wk.days, wk.goalDays, wk.total, dr.shugyo, dr.steps], [null, [], 0, 0, 0, null], '変な日付は null・空のまとめ');
+  threw = false; try { R.newState({ mainId: 'ichiya', mode: 'otona', today: T0 }); } catch (e) { threw = true; }
+  ok(threw, '主相棒は REPS の4体だけ（一夜は選べない）');
+  for (const id of D.REPS.map(r => r.id)) ok(R.validate(mk(id)).ok, id + ' は主相棒にできる');
+  eq(R.newState({ mainId: 'anne', mode: 'otona', today: T0, route: 'zzz' }).route, 'none', '知らない経路は none');
+  for (const rt of ['ios', 'androidB', 'androidC', 'sim', 'none']) eq(mk('anne', 'otona', T0, rt).route, rt, '経路 ' + rt);
+  const bad = R.clone(s); bad.route = 'zzz';
+  ok(R.validate(bad).errors.includes('route'), 'validate は知らない経路を通さない');
+  const bm = R.clone(s); bm.mainId = 'ichiya'; bm.chars.ichiya = bm.chars.anne; bm.slots = ['ichiya', null, null];
+  ok(R.validate(bm).errors.includes('mainId'), 'validate は REPS 以外の主相棒を通さない');
+}
+
+section('validate を通る state は ingest で落ちない');
+{
+  const base = run(mk('anne'), T0, 3000).state;
+  const cases = {
+    'daily が文字列': (c) => { c.daily['2026-10-27'] = 'x'; },
+    'daily が数': (c) => { c.daily['2026-10-27'] = 5; },
+    'daily.aff が null': (c) => { c.daily[T0].aff = null; },
+    'daily.alloc が null': (c) => { c.daily[T0].alloc = null; },
+    'daily.gain が配列': (c) => { c.daily[T0].gain = []; },
+    'daily.visits が文字列': (c) => { c.daily[T0].visits = 'x'; },
+    'daily.alloc の値が文字列': (c) => { c.daily[T0].alloc.anne = '3000'; },
+    'guests の charIndex が99': (c) => { c.guests = [{ charIndex: 99, dye: 'none', until: T0 }]; },
+    'board の shugyo が文字': (c) => { c.board = [{ charIndex: 0, rank: 0, okugi: 0, shugyo: 'x', dye: 'none', bond: 0, station: 0, round: 1, date: T0, readAt: T0 }]; },
+    'board の charIndex が39': (c) => { c.board = [{ charIndex: 39, rank: 0, okugi: 0, shugyo: 0, dye: 'none', bond: 0, station: 0, round: 1, date: T0, readAt: T0 }]; },
+    'board の round が3': (c) => { c.board = [{ charIndex: 0, rank: 0, okugi: 0, shugyo: 0, dye: 'none', bond: 0, station: 0, round: 3, date: T0, readAt: T0 }]; },
+    'diary の要素が null': (c) => { c.diary = [null]; },
+    'settings.notify が null': (c) => { c.settings.notify = null; }
+  };
+  for (const [name, f] of Object.entries(cases)) {
+    const c = R.clone(base); f(c);
+    ok(!R.validate(c).ok, 'validate が見つける: ' + name);
+  }
+  const g = R.clone(base); g.guests = [{ charIndex: 99, dye: 'none', until: '2026-12-31' }, { charIndex: 3, dye: 'none', until: '2026-12-31' }];
+  g.board = [{ charIndex: 99, readAt: T0 }, { charIndex: 3, rank: 0, okugi: 0, shugyo: 0, dye: 'none', bond: 0, station: 0, round: 1, date: T0, readAt: T0 }];
+  eq([R.guestsOf(g, T0).map(x => x.id), R.boardOf(g, T0).map(x => x.id)], [['shiba'], ['shiba']], 'guestsOf・boardOf は範囲外の charIndex を捨てる');
+}
+
+section('壊れた保存データでも migrate は投げず、migrate → validate が ok');
+{
+  const base = () => { let s = mk('anne', 'otona', '2026-10-01', 'ios'); s = run(s, '2026-10-01', 5000).state; s.chars.sakuya = { joined: '2026-10-01', shugyo: 100, rank: 0, okugi: 0, bond: 0, dye: 'none', lastBondDate: null }; return s; };
+  const broken = {
+    'chars が null': { chars: null },
+    'daily が null': { daily: null },
+    'dyes が文字列': { dyes: 'abc' },
+    'dyes が null': { dyes: null },
+    'chars.sakuya が null': (s) => { s.chars.sakuya = null; },
+    'chars.sakuya が文字列': (s) => { s.chars.sakuya = 'x'; },
+    'chars.anne の数がおかしい': (s) => { s.chars.anne = { shugyo: -3, rank: 'a', okugi: 9, bond: null, dye: 'zzz' }; },
+    'daily の1日が "x"': (s) => { s.daily['2026-10-26'] = 'x'; },
+    'daily の1日が 5': (s) => { s.daily['2026-10-26'] = 5; },
+    'daily の中身の型がおかしい': (s) => { s.daily['2026-10-01'].aff = null; s.daily['2026-10-01'].alloc = 'x'; s.daily['2026-10-01'].visits = null; s.daily['2026-10-01'].shugyo = 'abc'; s.daily['2026-10-01'].allocRun = 5; },
+    'recent が null': { recent: null },
+    'board が {}': { board: {} },
+    'guests が null': { guests: null },
+    'jin が null': { jin: null },
+    'settings が null': { settings: null },
+    'settings.notify が null': (s) => { s.settings.notify = null; },
+    'foundIds が null': { foundIds: null },
+    'diary が null': { diary: null },
+    'visitTotal が -5': { visitTotal: -5 },
+    "visitTotal が 'abc'": { visitTotal: 'abc' },
+    'goal が 50000': { goal: 50000 },
+    'round が 3': { round: 3 },
+    'scrollsOpened が scrolls より多い': { scrolls: 2, scrollsOpened: 9 },
+    'stationsReached が 500': { stationsReached: 500 },
+    'createdAt の形がおかしい': { createdAt: '2026/10/01' },
+    'slots が文字列': { slots: 'x', alloc: null },
+    'board の要素が壊れている': { board: [null, 5, { charIndex: 99 }, { charIndex: 2, readAt: 'x' }] },
+    'guests の要素が壊れている': { guests: [null, { charIndex: 99, until: '2026-10-01', dye: 'none' }] },
+    'mainId が REPS でない': { mainId: 'ichiya' },
+    'route が知らない値': { route: 'zzz' },
+    'lastSync が文字列・lastSyncDate がおかしい': { lastSync: 'x', lastSyncDate: 'y' },
+    'hideBase が負': { hideBase: -1 }
+  };
+  let n = 0;
+  for (const [name, b] of Object.entries(broken)) {
+    const s = base();
+    if (typeof b === 'function') b(s); else Object.assign(s, b);
+    let m = null, threw = false;
+    try { m = R.migrate(s); } catch (e) { threw = true; }
+    const v = m ? R.validate(m) : { ok: false, errors: ['null'] };
+    ok(!threw && m && v.ok, '壊れたデータ「' + name + '」: migrate が投げず validate が ok' + (v.ok ? '' : ' ' + JSON.stringify(v.errors)));
+    let t2 = false;
+    try { if (m) { const r = R.ingest(m, [day('2026-10-02', 6000, hours({ 9: 3000, 15: 3000 }))], { today: '2026-10-02' }); R.summary(r.state, '2026-10-02'); R.weekReview(r.state, '2026-10-02'); } } catch (e) { t2 = true; console.log('    ' + e.message); }
+    ok(!t2, '壊れたデータ「' + name + '」: 直したあと ingest・summary が動く');
+    n++;
+  }
+  ok(n >= 20, '壊れたデータは20通り以上（' + n + '）');
+  const m1 = R.migrate(Object.assign(base(), { goal: 50000 }));
+  eq(m1.goal, 12000, 'goal は範囲に丸める');
+  const m2 = R.migrate(Object.assign(base(), { goal: 7777 }));
+  eq(m2.goal, 8000, 'goal は500きざみに丸める');
+  const m3 = R.migrate(Object.assign(base(), { scrolls: 2, scrollsOpened: 9, stationsReached: 500, round: 3 }));
+  eq([m3.scrollsOpened, m3.stationsReached, m3.round], [2, 100, 2], 'scrollsOpened・stationsReached・round を直す');
+  const m4 = R.migrate(Object.assign(base(), { createdAt: 'bad' }));
+  eq(m4.createdAt, '2026-10-01', 'createdAt がおかしければ、いちばん古い記録の日');
+  const m5 = R.migrate(Object.assign(base(), { createdAt: 'bad', daily: {} }));
+  eq(m5.createdAt, '2026-01-01', '記録もなければ 2026-01-01');
+  const m6 = R.migrate(Object.assign(base(), { dyes: ['shu', 'shu', 'zzz'] }));
+  eq(m6.dyes, ['none', 'ai', 'shu'], 'dyes: はじめの色を補い、重複と知らない色を捨てる');
+  const m7 = base(); m7.chars.sakuya = null;
+  ok(!('sakuya' in R.migrate(m7).chars), 'オブジェクトでない chars[id] は消す');
+  eq([R.migrate(5), R.migrate([]), R.migrate(null), R.migrate('[]')], [null, null, null, null], 'オブジェクトでないものは null');
+  const loop = base(); loop.self = loop;   // JSON にできない（循環）
+  let lt = false, lm; try { lm = R.migrate(loop); } catch (e) { lt = true; }
+  ok(!lt && lm === null, '写せないデータは投げずに null');
 }
 
 section('長い期間の通し（毎日10,000歩で200日）');

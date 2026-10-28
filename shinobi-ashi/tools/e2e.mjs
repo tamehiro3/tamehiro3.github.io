@@ -144,7 +144,20 @@ async function runFlow(browser, base, W, H) {
   const solveGate = async () => {
     const q = await page.locator('#gate-q').textContent();
     const K = { '〇': 0, '一': 1, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8, '九': 9 };
-    const nums = q.split('の順')[0].split('、').map(x => K[x.trim()]);
+    let nums;
+    const m3 = q.match(/「([〇一二三四五六七八九百十]+)」.*?、(.+?)の順/);
+    if (m3) {
+      // 「九百七十八」の数字を、一の位・百の位・十の位の順に押してください
+      let rest = m3[1], hd = 0, td = 0, od = 0;
+      let i = rest.indexOf('百'); if (i >= 0) { hd = i === 0 ? 1 : K[rest[i - 1]]; rest = rest.slice(i + 1); }
+      i = rest.indexOf('十'); if (i >= 0) { td = i === 0 ? 1 : K[rest[i - 1]]; rest = rest.slice(i + 1); }
+      if (rest) od = K[rest];
+      const place = { '百の位': hd, '十の位': td, '一の位': od };
+      nums = m3[2].split('・').map(x => place[x.trim()]);
+    } else {
+      // 三、七、一の順に押してください
+      nums = q.split('の順')[0].split('、').map(x => K[x.trim()]);
+    }
     ok(nums.length === 3 && nums.every(x => x >= 0), `[${tag}] 関門の問題文が読める`, q);
     for (const d of nums) await click('[data-num="' + d + '"]', 120);
     await sleep(250);

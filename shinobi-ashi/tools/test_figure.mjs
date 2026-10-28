@@ -1,5 +1,5 @@
 // 忍び足 — 絵（figure.js）のテスト。node shinobi-ashi/tools/test_figure.mjs
-// 39体×6状態×4向き（＋あるくの4コマ）の SVG が例外なく作れること、weapon=false で武器の部品が消えること、
+// 39体×6状態×4向き（＋あるくの4コマ）の SVG が例外なく作れること、かくれて眠る（hide+sleep）の形、weapon=false で武器の部品が消えること、
 // dye で色が変わること、孫市の銃は SHOW_GUN=false なら出ないこと、「？」影が作れることを確かめる。
 // --browser: el・sheet6・bitmap とキャッシュ（Playwright）。--fx: 演出を全種類再生してエラー0・外への通信0（Playwright）。
 import { createRequire } from 'module';
@@ -113,6 +113,24 @@ ok(Fig.svg('anne', { state: 'nope' }).length > 1500, '知らない状態はふ�
 let threw = false; try { Fig.svg('nobody', {}); } catch (e) { threw = true; }
 ok(threw, '知らない体は例外');
 
+// 5b) かくれて眠る（state:'hide' + sleep:true）: 目を閉じて「すやすや」の印。びっくりの線は出さない。もとの定義は変えない
+for (const id of ids) {
+  const before = JSON.stringify(CH.BY_ID[id].art);
+  const z = Fig.svg(id, { state: 'hide', sleep: true });
+  const h = Fig.svg(id, { state: 'hide' });
+  ok(z.includes('#5a6fa8') && !z.includes('#f08c1c'), `${id} 眠るかくれるに z の印があり、びっくりの線がない`);
+  ok(h.includes('#f08c1c') && !h.includes('#5a6fa8'), `${id} ふつうのかくれるはびっくりのまま`);
+  ok(!/NaN|undefined/.test(z) && z.includes('viewBox="0 0 200 240"'), `${id} 眠るかくれるの SVG の形`);
+  for (const view of views) ok(Fig.svg(id, { state: 'hide', sleep: true, view, weapon: true, dye: 'kin' }).length > 1500, `${id} 眠るかくれる ${view}`);
+  ok(JSON.stringify(CH.BY_ID[id].art) === before, `${id} 眠るかくれるで chars.js の定義を書き換えない`);
+}
+// 眠るときは目を閉じる: 開いた目（白目の楕円）が減る
+{
+  const wide = (s) => (s.match(/fill="#ffffff"/g) || []).length;
+  ok(wide(Fig.svg('anne', { state: 'hide', sleep: true })) < wide(Fig.svg('anne', { state: 'hide' })), '眠るかくれるは白目が減る（目を閉じる）');
+}
+ok(!Fig.svg('anne', { state: 'normal', sleep: true }).includes('#5a6fa8'), 'sleep は hide のときだけ効く');
+
 // 6) ブラウザ（--browser のとき）: el / sheet6 / silhouetteEl / bitmap とキャッシュ
 if (process.argv.includes('--browser')) {
   const { chromium } = require('playwright');
@@ -143,6 +161,9 @@ if (process.argv.includes('--browser')) {
       out.cache = SA.Fig.cacheInfo();
       const b3 = await SA.Fig.bitmap('shiba', { state: 'walk', frame: 2 }, 240);
       out.evicted = b3 !== b;
+      const z1 = await SA.Fig.bitmap('anne', { state: 'hide' }, 120);
+      const z2 = await SA.Fig.bitmap('anne', { state: 'hide', sleep: true }, 120);
+      out.sleepKey = z1 !== z2;
       return out;
     });
     ok(r.el, 'el が SVG を包んだ 120px の div');
@@ -152,6 +173,7 @@ if (process.argv.includes('--browser')) {
     ok(r.same, 'bitmap は同じ opts ならキャッシュを返す');
     ok(r.cache.bytes <= r.cache.limit, `キャッシュは 25MB 以下 ${r.cache.bytes}`);
     ok(r.evicted, 'いちばん古いものから捨てる');
+    ok(r.sleepKey, '眠るかくれるは別のキャッシュ');
     ok(errs.length === 0, 'ブラウザのエラー 0: ' + errs.join(' / '));
   } finally { await browser.close(); }
 }

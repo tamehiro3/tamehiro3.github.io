@@ -28,7 +28,7 @@
   var WORD = {
     '火遁': 'かとん', '口寄せ': '{口寄|くちよ}せ', '変わり身': '{変|か}わり{身|み}', '水遁': 'すいとん', '金遁': 'きんとん', '毒霧': 'どくぎり',
     '影分身': 'かげぶんしん', '影縫い': '{影縫|かげぬ}い', '閃光': 'せんこう', '毒手裏剣': 'どくしゅりけん', '逢魔刻': 'おうまがとき', '鷹の目': '{鷹|たか}の{目|め}',
-    '九尾の焔': '{九尾|きゅうび}の{焔|ほのお}', '幻術・漆黒': '{幻術|げんじゅつ}・{漆黒|しっこく}', '桜吹雪': 'さくらふぶき', '風遁': 'ふうとん', '人身御供': 'ひとみごくう',
+    '九尾の焔': '{九尾|きゅうび}の{焔|ほむら}', '幻術・漆黒': '{幻術|げんじゅつ}・{漆黒|しっこく}', '桜吹雪': 'さくらふぶき', '風遁': 'ふうとん', '人身御供': 'ひとみごくう',
     '涅槃': 'ねはん', '影分身の術': '{影分身|かげぶんしん}の{術|じゅつ}', '祝詞': 'のりと', '領域・罪業': '{領域|りょういき}・{罪業|ざいごう}', '忍びいろは': '{忍|しの}びいろは',
     '動植綵絵': 'どうしょくさいえ', '雷遁': 'らいとん', '巨人の一撃': '{巨人|きょじん}の{一撃|いちげき}', '野アザミ': '{野|の}アザミ', '丑の刻参り': '{丑|うし}の{刻参|こくまい}り',
     '猫の目の選択': '{猫|ねこ}の{目|め}の{選択|せんたく}', '一発必中': 'いっぱつひっちゅう', '泰山府君祭': 'たいざんふくんさい', '糸脈': 'いとみゃく', '飯綱の法': '{飯綱|いづな}の{法|ほう}',
@@ -72,6 +72,14 @@
     oen: '{実家|じっか}は{雑賀|さいか}クラン。{里|さと}を{離|はな}れて{甲賀|こうか}クランに{忍術|にんじゅつ}の{修行|しゅぎょう}に{来|き}ている。',
     izuna: '{宇迦|うか}の{姉|あね}。'
   };
+  // こどもモードで出す、やわらげた紹介文（data.js の KIDS_BIO に無いときだけ使う。文章担当が KIDS_BIO に移す）
+  var KIDS_BIO_UI = {
+    jin: '{忍者|にんじゃ}の{祖|そ}。{謎|なぞ}{多|おお}き{伝説|でんせつ}の{忍者|にんじゃ}。',
+    shion: '{小|ちい}さいころから{令|れい}が{面倒|めんどう}を{見|み}ている。{人見知|ひとみし}りだが、{餡音|あんね}にはなついている。',
+    fuuta: 'お{調子者|ちょうしもの}。けんかを{好|この}まず、{風遁|ふうとん}でさっと{逃|に}げがち。やるときはやる。',
+    rotten: '{風魔|ふうま}の{幹部|かんぶ}。アトザの{部下|ぶか}。',
+    shiba: '{普段|ふだん}は{犬|いぬ}の{姿|すがた}だが、いざというときは{忍術|にんじゅつ}で{人|ひと}の{姿|すがた}になって{体術|たいじゅつ}を{使|つか}う。'
+  };
   function hasKanji(s) { return /[一-鿿々]/.test(s); }
   function word(w) {
     if (w == null) return '';
@@ -98,6 +106,8 @@
   function dyeOf(id) { return (D().DYES || []).filter(function (d) { return d.id === id; })[0] || null; }
   function dyeF(id) { var d = dyeOf(id); return d ? d.name : ''; }
   function stationF(idx) { var s = (D().STATIONS || [])[idx]; return s ? (hasKanji(s.name) ? '{' + s.name + '|' + s.kana + '}' : s.name) : ''; }
+  /** 'YYYY-MM-DD' → '11/11' */
+  function mdF(date) { var p = String(date || '').split('-'); return p.length === 3 ? (+p[1]) + '/' + (+p[2]) : U().esc(date || ''); }
   function isSecret(id) { return (D().SECRET_JUTSU || []).indexOf(id) >= 0; }
   /** 秘密の術の名を見せてよいか（おとなモードで保護者が「見る」にしたときだけ） */
   function secretOpen() { var s = S(); return !!(s && s.mode === 'otona' && s.settings && s.settings.showSecretNames); }
@@ -107,8 +117,14 @@
     if (isSecret(id) && !secretOpen()) return 'ひみつの{術|じゅつ}';
     return word(c.jutsu);
   }
+  function kidsNow() { var s = S(); return !s || s.mode !== 'otona'; }
   function bioF(id) {
-    if (isSecret(id) && !secretOpen() && (D().KIDS_BIO || {})[id]) return D().KIDS_BIO[id];
+    var KB = D().KIDS_BIO || {};
+    // こどもモードでは、やわらげた紹介文があればいつもそれを出す（ひみつの術の体は、名前を見せない間も）
+    if (kidsNow() || (isSecret(id) && !secretOpen())) {
+      if (KB[id]) return KB[id];
+      if (kidsNow() && KIDS_BIO_UI[id]) return KIDS_BIO_UI[id];
+    }
     var o = T().official && T().official.bio && T().official.bio[id];
     return o || BIO[id] || '';
   }
@@ -185,12 +201,16 @@
 
   /* ================= 3.1 はじめて ================= */
   var ob = { mainId: null, mode: 'kodomo', panel: 0, permMsg: null };
+  /** はじめての画面を最初から始めるときに呼ぶ（前回の相棒・おとなモードを残さない） */
+  function resetOnboard() { ob = { mainId: null, mode: 'kodomo', panel: 0, permMsg: null }; }
   function onboard(p) {
     var h = U().h, btn = U().btn, step = p.step || 0;
     var P = T().parent || {};
     var info = A().info || { route: 'none' };
     var dots = h('div.ob-dots', [0, 1, 2, 3, 4, 5, 6].map(function (i) { return h('i', { cls: i === step ? 'on' : '' }); }));
     function next(st) { U().go('onboard', { step: st }); }
+    // 前の手順にもどる（選んだ相棒・おとな／こどもは残す）
+    function prevB(st, before) { return btn('もどる', function () { if (before) before(); next(st); }, 'ghost', { attrs: { type: 'button', 'data-act': 'prev' } }); }
     var body = [];
     if (step === 0) {
       body = [
@@ -218,7 +238,8 @@
             if (U().has('Store', 'setPref')) SA.Store.setPref('viewMode', true);
             U().enterView();
           }, canPlay ? '' : 'primary big', { attrs: { type: 'button', 'data-act': 'view' } }),
-          !canPlay ? h('p.muted', { text: 'この{端末|たんまつ}では{歩数|ほすう}を{数|かぞ}えられないので、ながめるモードで{遊|あそ}べます。' }) : null
+          !canPlay ? h('p.muted', { text: 'この{端末|たんまつ}では{歩数|ほすう}を{数|かぞ}えられないので、ながめるモードで{遊|あそ}べます。' }) : null,
+          prevB(0)
         ])
       ];
     } else if (step === 2) {
@@ -233,7 +254,7 @@
             h('div.rep-x', [h('b.rep-n', { text: nameF(r.id, true) }), h('span.clan-tag', { text: clanF(r.clan) + 'の{里|さと}', style: { '--c': ((D().CLANS || {})[r.clan] || {}).color || '#666' } }), h('p', { text: r.pitch })])
           ]);
         })),
-        h('div.ob-foot', [btn('この{相棒|あいぼう}にする', function () { if (ob.mainId) next(3); }, 'primary big', { attrs: { type: 'button', 'data-act': 'next' }, disabled: !ob.mainId })])
+        h('div.ob-foot', [prevB(1), btn('この{相棒|あいぼう}にする', function () { if (ob.mainId) next(3); }, 'primary big', { attrs: { type: 'button', 'data-act': 'next' }, disabled: !ob.mainId })])
       ];
     } else if (step === 3) {
       var G = CFG().GOAL || { kodomo: { def: 10000 }, otona: { def: 8000 } };
@@ -248,7 +269,7 @@
           } } }, [h('b', { text: 'おとな' }), h('span', { text: '{目標|もくひょう} ' + U().n(G.otona.def) + '{歩|ほ}。おとなに{変|か}えるときは、{保護者|ほごしゃ}の{確|たし}かめがあります。' })])
         ]),
         h('p.muted', { text: '{年齢|ねんれい}や{名前|なまえ}は{聞|き}きません。あとから{保護者|ほごしゃ}{設定|せってい}で{変|か}えられます。' }),
-        h('div.ob-foot', [btn('つぎへ', function () { next(4); }, 'primary big', { attrs: { type: 'button', 'data-act': 'next' } })])
+        h('div.ob-foot', [prevB(2), btn('つぎへ', function () { ob.panel = 0; next(4); }, 'primary big', { attrs: { type: 'button', 'data-act': 'next' } })])
       ];
     } else if (step === 4) {
       var panels = [
@@ -261,7 +282,7 @@
         h('h1.scr-t', { text: '{遊|あそ}び{方|かた}（' + (pn + 1) + '/3）' }),
         section(pp.t, [h('div.center', [fig(pp.f[0], pp.f[1], 120, pp.f[1] === 'walk' ? { view: 'walkR' } : null)]), h('p', { text: pp.p })], 'panel-koma'),
         h('div.ob-foot', [
-          pn > 0 ? btn('もどる', function () { ob.panel = pn - 1; U().render(); }, 'ghost', { attrs: { type: 'button', 'data-act': 'prev' } }) : null,
+          pn > 0 ? btn('もどる', function () { ob.panel = pn - 1; U().render(); }, 'ghost', { attrs: { type: 'button', 'data-act': 'prev' } }) : prevB(3),
           btn(pn < 2 ? 'つぎ' : 'わかった', function () { if (pn < 2) { ob.panel = pn + 1; U().render(); } else { ob.panel = 0; next(5); } }, 'primary big', { attrs: { type: 'button', 'data-act': 'next' } })
         ])
       ];
@@ -277,11 +298,13 @@
           btn('{許可|きょか}して{進|すす}む', function () {
             if (!U().has('Steps', 'request')) { next(6); return; }
             Promise.resolve(SA.Steps.request()).then(function (r) {
-              if (r === 'granted') { ob.permMsg = null; next(6); }
+              // 許可のあとに経路が変わることがある（Android の (b)→(c)）。新しい情報に入れ替えてから進む
+              if (r === 'granted') { ob.permMsg = null; return refreshInfo().then(function () { next(6); }); }
               else { ob.permMsg = '{許可|きょか}されませんでした。{端末|たんまつ}の「{設定|せってい}」から{許可|きょか}するか、ながめるモードで{遊|あそ}べます。'; U().render(); }
             }, function () { next(6); });
           }, 'primary big', { attrs: { type: 'button', 'data-act': 'permit' } }),
-          ob.permMsg ? btn('ながめるモードにする', function () { U().enterView(); }, '', { attrs: { type: 'button', 'data-act': 'view' } }) : null
+          ob.permMsg ? btn('ながめるモードにする', function () { U().enterView(); }, '', { attrs: { type: 'button', 'data-act': 'view' } }) : null,
+          prevB(4, function () { ob.panel = 2; })
         ])
       ];
     } else {
@@ -291,15 +314,23 @@
           h('div.center', [fig(ob.mainId || 'anne', 'walk', 130, { view: 'walkR' })]),
           h('p', { text: info.route === 'ios' ? 'iPhone は7{日|にち}{前|まえ}までの{歩数|ほすう}を{読|よ}めるよ。' : '{今日|きょう}の{歩数|ほすう}から{数|かぞ}えはじめるよ。' })
         ]),
-        h('div.ob-foot', [btn('{取|と}り{込|こ}んではじめる', function (e) { e.target.disabled = true; firstStart(); }, 'primary big', { attrs: { type: 'button', 'data-act': 'start' } })])
+        h('div.ob-foot', [prevB(5), btn('{取|と}り{込|こ}んではじめる', function (e) { var b = e.currentTarget || e.target; if (b) b.disabled = true; firstStart(); }, 'primary big', { attrs: { type: 'button', 'data-act': 'start' } })])
       ];
     }
     if (!U().has('Rules', 'newState') && step >= 2) body.unshift(notReady('ルール'));
     return screenWrap(null, [dots].concat(body), 'ob');
   }
+  /** SA.Steps の最新の情報（許可のあとに detect し直したもの）を画面側にも入れる */
+  function refreshInfo() {
+    if (!SA.Steps) return Promise.resolve(A().info);
+    if (SA.Steps.info) { A().info = SA.Steps.info; return Promise.resolve(A().info); }
+    if (typeof SA.Steps.detect !== 'function') return Promise.resolve(A().info);
+    return Promise.resolve(SA.Steps.detect()).then(function (i) { if (i) A().info = i; return A().info; }, function () { return A().info; });
+  }
   function firstStart() {
     var Rr = R();
     if (!Rr || !Rr.newState) { U().toast('ルールの{部品|ぶひん}が{準備中|じゅんびちゅう}です'); return; }
+    if (SA.Steps && SA.Steps.info) A().info = SA.Steps.info;
     var info = A().info || { route: 'none' };
     var t = U().today();
     var s;
@@ -321,6 +352,10 @@
     [P.gate, P.exportNote, P.erase, P.medical].forEach(function (t) { if (t) kids.push(h('p', { text: t })); });
     if (P.unofficial) kids.push(h('p.unofficial', { text: P.unofficial }));
     if (!kids.length) kids.push(U().soon('{文章|ぶんしょう}'));
+    // 同じフォルダのページ（外部リンクではない）。遊び方とおうちの方へを1ページで読める
+    var a = h('a.btn.ghost.small', { attrs: { href: 'about.html', 'data-act': 'about-page' } });
+    a.innerHTML = '<span class="bl">' + U().furi('{別|べつ}のページで{開|ひら}く') + '</span>';
+    kids.push(h('div.center', [a]));
     U().modal(kids, { title: 'おうちの{方|かた}へ', cls: 'long' });
   }
 
@@ -376,7 +411,10 @@
       btn('{巻物|まきもの} <b>' + sm.scrolls + '</b>', function () { U().go('jutsu'); }, 'scroll-b' + (sm.scrolls > 0 ? ' has' : ''), { attrs: { type: 'button', 'data-act': 'scrolls' }, html: furiInline('{巻物|まきもの}') + ' <b data-scrolls="' + sm.scrolls + '">' + sm.scrolls + '</b>' })
     ]);
     var today2 = h('div.today-box', [ringBox, stat]);
-    var capMsg = sm.capped ? h('div.cap-msg', { text: '{今日|きょう}はここまで。あとは{休|やす}むのも{修行|しゅぎょう}。' }) : null;
+    // 吹き出しが「今日はここまで…」を言うので、緑の枠は短い見出しだけ
+    var capMsg = sm.capped ? h('div.cap-msg', { text: '✓ {今日|きょう}の{修行値|しゅぎょうち}は{上限|じょうげん}に{届|とど}いたよ' }) : null;
+    // 試遊で、まだ1歩も足していないときの手がかり（はじめのうちだけ）
+    var simHint = U().isSim() && !sm.steps && !s.visitTotal ? h('div.sim-hint', { attrs: { 'data-hint': 'sim' } }, [h('span', { text: '{下|した}の「ためし{歩|ある}き」で、{歩数|ほすう}を{足|た}してみよう' }), h('span.sim-hint-arrow', { html: '▼', attrs: { 'aria-hidden': 'true' } })]) : null;
     var syncB = btn('{取|と}り{込|こ}む', function () { U().sync('button'); }, 'primary big sync-b', { attrs: { type: 'button', 'data-act': 'sync' } });
     var choice = null;
     if (!s.settings || s.settings.homeButton !== false) {
@@ -406,7 +444,7 @@
     }
     var info = A().info || {};
     var note = info.route === 'androidC' ? h('p.muted', { text: '（この{端末|たんまつ}では、{開|ひら}かなかった{日|ひ}の{分|ぶん}は、{開|ひら}いた{日|ひ}の{修行|しゅぎょう}に{入|はい}る）' }) : null;
-    return screenWrap(null, [hero, section(null, [today2, capMsg, syncB, choice, fam]), section(null, bars), note], 'home');
+    return screenWrap(null, [hero, section(null, [today2, capMsg, syncB, simHint, choice, fam]), section(null, bars), note], 'home');
   }
   function furiInline(t) { return U().furi(t); }
   function setChoice(home) {
@@ -529,7 +567,7 @@
       var ss = sm && sm.slots && sm.slots[i] || {};
       var a = (D().AFFINITY || {})[id] || {};
       var needB = ['clan', 'win', 'cont', 'bits'].indexOf(a.type) >= 0;
-      var affNote = needB && !canB ? h('small.ng', { text: (T().special && T().special.noJudge) || 'この{端末|たんまつ}では{判定|はんてい}できません' }) : (ss.affMatched ? h('small.ok', { text: '{今日|きょう}は{相性|あいしょう}が{合|あ}った！' }) : h('small.muted', { text: '{今日|きょう}はまだ' }));
+      var affNote = needB && !canB ? h('small.ng', { text: (T().special && T().special.noJudge) || 'この{端末|たんまつ}では{判定|はんてい}できません' }) : (ss.affMatched ? h('small.ok', { text: '{今日|きょう}は{相性|あいしょう}が{合|あ}った！' }) : h('small.muted', { text: '{今日|きょう}はまだ{合|あ}っていない' }));
       var nextTxt = info.nextAt ? ((info.nextIsOkugi ? '{奥義|おうぎ}' : '{次|つぎ}の{位|くらい}') + 'まで ' + n(info.toNext) + '{歩|ほ}') : '{免許皆伝|めんきょかいでん}';
       return h('div.slot', { attrs: { 'data-slot-id': id } }, [
         h('div.slot-top', [
@@ -758,11 +796,12 @@
       var e = list[i];
       var card = eventCard(e, function (stop) { if (stop) { i = list.length; if (m) m.close(); } });
       var nav = h('div.ev-nav', [
-        h('span.muted', { html: (i + 1) + ' / ' + list.length }),
+        h('span.muted.ev-count', { html: (i + 1) + ' / ' + list.length }),
         list.length - i > 2 ? U().btn('まとめて{見|み}る', function () { all(); }, 'ghost small', { attrs: { type: 'button', 'data-act': 'ev-all' } }) : null,
         U().btn(i < list.length - 1 ? 'つぎへ' : 'とじる', function () { i++; show(); }, 'primary', { attrs: { type: 'button', 'data-act': 'ev-next' } })
       ]);
-      m = U().modal([card, nav], { cls: 'ev-modal', noClose: true });
+      // 「つぎへ」はスクロールの外（下に固定）。カードが長くても見える
+      m = U().modal([card], { cls: 'ev-modal', noClose: true, foot: [nav] });
       card.addEventListener('click', function (ev) { if (ev.target.closest('button,input,label,a')) return; i++; show(); });
     }
     function all() {
@@ -816,7 +855,7 @@
       var p = stXY(i2), got = rs.go[i2], back = rs.back[i2];
       var col = st.clan ? ((D().CLANS || {})[st.clan] || {}).color : '#7a7a80';
       svg += '<g class="st-pt' + (got ? ' got' : '') + '" data-st="' + i2 + '" tabindex="0" role="button" aria-label="' + U().esc(st.name) + '">' +
-        '<circle cx="' + p.x + '" cy="' + p.y + '" r="19" fill="transparent"/>' +
+        '<circle cx="' + p.x + '" cy="' + p.y + '" r="24" fill="transparent"/>' +
         '<circle cx="' + p.x + '" cy="' + p.y + '" r="' + (st.clan || st.start || st.goal ? 8 : 6) + '" fill="' + (got ? col : '#fffaf0') + '" stroke="' + col + '" stroke-width="2.5"/>' +
         (back ? '<circle cx="' + p.x + '" cy="' + p.y + '" r="11.5" fill="none" stroke="#d8a63a" stroke-width="2"/>' : '') + '</g>';
       // 名前は「いま」「次」「はじめ」「おわり」だけ（となり合うときは、はじめ・おわりを出さない。次は点の上に出す）
@@ -872,7 +911,7 @@
       h('div.st-name', { style: { '--c': col || '#777' }, text: stationF(idx) }),
       st.clan ? h('p.muted', { text: clanF(st.clan) + 'の{土地|とち}' }) : null,
       h('p', { text: (T().stations && T().stations[idx] && T().stations[idx].tale) || '' }),
-      stamps.length ? h('ul.diary', stamps.map(function (d) { return h('li', [h('span.d-date', { html: U().esc(d.date) }), d.stamp != null && T().stamps ? h('span.d-stamp', { text: T().stamps[d.stamp] }) : null]); })) : null
+      stamps.length ? h('ul.diary', stamps.map(function (d) { return h('li', [h('span.d-date', { html: mdF(d.date) }), d.stamp != null && T().stamps ? h('span.d-stamp', { text: T().stamps[d.stamp] }) : null]); })) : null
     ], { title: '{宿場|しゅくば}の{小話|こばなし}' });
   }
 
@@ -981,10 +1020,10 @@
         if (SA.Fig && SA.Fig.el) { try { el = SA.Fig.el(b.id, { state: st ? 'hide' : 'happy', dye: b.dye || 'none', weapon: (b.rank || 0) >= 3 && !(b.id === 'magoichi' && !CFG().SHOW_GUN) }, 70); } catch (e) { el = null; } }
         return h('div.fuda' + (st ? '.stale' : ''), { attrs: { 'data-board': b.id } }, [el || U().soon('{絵|え}'), h('div.fuda-x', [
           h('b', { text: nameF(b.id, true) }),
+          // 修行値などの数はならべない（ほかの人と数で比べないように）。位・奥義・宿場だけ
           h('span', { text: rankF(b.rank) + (b.okugi ? '・{奥義|おうぎ}' : '') }),
-          h('span.muted', { text: '{修行値|しゅぎょうち} ' + n(b.shugyo) + '・{絆|きずな} ' + (b.bond || 0) }),
-          h('span.muted', { text: '「' + stationF(b.station) + '」' + (b.round === 2 ? '（{帰|かえ}り）' : '') }),
-          st ? h('span.muted', { text: (T().special && T().special.hiddenCard) || 'しばらく{読|よ}んでいない{札|ふだ}は、かくれてしまったよ。' }) : h('span.muted', { text: '{読|よ}んだ{日|ひ} ' + U().esc(b.readAt) })
+          h('span.muted', { text: 'いまいる{宿場|しゅくば}：' + stationF(b.station) + (b.round === 2 ? '（{帰|かえ}り{道|みち}）' : '') }),
+          st ? h('span.muted', { text: (T().special && T().special.hiddenCard) || 'しばらく{読|よ}んでいない{札|ふだ}は、かくれてしまったよ。' }) : h('span.muted', { text: '{読|よ}んだ{日|ひ} ' + mdF(b.readAt) })
         ])]);
       })) : h('p', { text: 'まだ{札|ふだ}はないよ。' })
     ]);
@@ -1046,7 +1085,7 @@
       if (stop) try { stop(); } catch (e) { }
       m.close();
       var e2 = r.entry;
-      U().modal([h('div.center', [fig(e2.id, 'happy', 120, { real: true, dye: e2.dye, weapon: false })]), h('p', { text: nameF(e2.id, true) + 'の{札|ふだ}を{掲示板|けいじばん}に{貼|は}ったよ。' + (CFG().GUEST_DAYS || 7) + '{日|にち}のあいだ「{里|さと}の{客|きゃく}」としてホームを{歩|ある}くよ。' }), h('p.muted', { text: rankF(e2.rank) + '・{修行値|しゅぎょうち} ' + U().n(e2.shugyo) })], { title: '{読|よ}めた！', onClose: function () { U().render(); } });
+      U().modal([h('div.center', [fig(e2.id, 'happy', 120, { real: true, dye: e2.dye, weapon: false })]), h('p', { text: nameF(e2.id, true) + 'の{札|ふだ}を{掲示板|けいじばん}に{貼|は}ったよ。' + (CFG().GUEST_DAYS || 7) + '{日|にち}のあいだ「{里|さと}の{客|きゃく}」としてホームを{歩|ある}くよ。' }), h('p.muted', { text: rankF(e2.rank) + (e2.okugi ? '・{奥義|おうぎ}' : '') })], { title: '{読|よ}めた！', onClose: function () { U().render(); } });
       U().chime();
     }
     var camB = U().btn('カメラで{読|よ}む', function () {
@@ -1091,7 +1130,8 @@
   }
   function dyeChips(dyes) {
     var h = U().h;
-    return h('div.dye-row.small', (dyes || []).map(function (d) { var dy = dyeOf(d) || {}; return h('span.dye-b', [h('i', { style: { background: dy.color || 'linear-gradient(135deg,#eee,#bbb)' } }), h('span', { text: dy.name || d })]); }));
+    // 押せない色見本の一覧（ボタンの形にしない）
+    return h('div.dye-list', [h('div.dye-list-t', { text: 'つかえる{色|いろ}' }), h('ul.dye-chips', (dyes || []).map(function (d) { var dy = dyeOf(d) || {}; return h('li.dye-chip', [h('i', { style: { background: dy.color || 'linear-gradient(135deg,#eee,#bbb)' } }), h('span', { text: dy.name || d })]); }))]);
   }
 
   /* ================= 3.9 ふりかえり ================= */
@@ -1130,9 +1170,14 @@
       var max = Math.max(s.goal, 1000, Math.max.apply(null, wr.days.map(function (d) { return d.shugyo; })));
       var WD = ['{日|にち}', '{月|げつ}', '{火|か}', '{水|すい}', '{木|もく}', '{金|きん}', '{土|ど}'];
       var goalPct = (s.goal / max * 100).toFixed(1);
-      var chart = h('div.week', { style: { '--goal': goalPct + '%' } }, wr.days.map(function (d) {
-        return h('div.wk-col', [h('div.wk-bar', [h('i', { cls: d.goal ? 'goal' : '', style: { height: (d.shugyo / max * 100).toFixed(1) + '%' } })]), h('small', { text: WD[d.weekday] }), h('small.muted', { html: d.shugyo ? (d.shugyo >= 10000 ? (d.shugyo / 1000).toFixed(1) + 'k' : n(d.shugyo)) : '' })]);
+      // 棒の上に目標の線（点線）。数は 16,500 → 1.6万 の形（「k」は使わない）
+      var bars = h('div.wk-bars', { style: { '--goal': goalPct + '%' }, attrs: { 'aria-hidden': 'true' } }, wr.days.map(function (d) {
+        return h('div.wk-bar', [h('i', { cls: d.goal ? 'goal' : '', style: { height: (d.shugyo / max * 100).toFixed(1) + '%' } })]);
       }));
+      var labels = h('div.wk-labels', wr.days.map(function (d) {
+        return h('div.wk-col', [h('small.wk-wd', { text: WD[d.weekday] }), h('small.muted', { html: d.shugyo ? (d.shugyo >= 10000 ? (Math.floor(d.shugyo / 1000) / 10).toFixed(1) + U().furi('{万|まん}') : n(d.shugyo)) : '' })]);
+      }));
+      var chart = h('div.week', [bars, labels, h('p.muted.wk-note', { text: '{金色|きんいろ}の{点線|てんせん}は{目標|もくひょう}（' + n(s.goal) + '{歩|ほ}）' })]);
       var nav2 = dateNav(mon, function (d) { U().go('review', { tab: 'week', monday: d }); }, 7, Rr.mondayOf(s.createdAt), Rr.mondayOf(t));
       body = section(null, [nav2, chart,
         h('p.big-p', { html: U().furi('{目標|もくひょう}に{届|とど}いた{日|ひ}：') + '<b data-goal-days="' + wr.goalDays + '">' + wr.goalDays + '</b>' + U().furi('{日|にち}') }),
@@ -1165,7 +1210,7 @@
     items.push(btn('{遊|あそ}び{方|かた}', function () { helpModal(); }, 'menu-b', { attrs: { type: 'button', 'data-menu': 'help' } }));
     items.push(btn('おうちの{方|かた}へ', function () { parentText(); }, 'menu-b', { attrs: { type: 'button', 'data-menu': 'parent' } }));
     if (s) {
-      var hold = U().holdButton('{保護者|ほごしゃ}{設定|せってい}（3{秒|びょう}{長押|なが}おし）', function () { U().gate(function (ok) { if (ok) { A().parentOK = true; U().go('parent'); } }); }, 'menu-b');
+      var hold = U().holdButton('{保護者|ほごしゃ}{設定|せってい}（3{秒|びょう}{長押|ながお}し）', function () { U().gate(function (ok) { if (ok) { A().parentOK = true; U().go('parent'); } }); }, 'menu-b');
       hold.setAttribute('data-menu', 'parent-settings');
       items.push(hold);
     }
@@ -1201,6 +1246,9 @@
       P.credit ? h('p', { text: P.credit }) : null,
       h('p', { text: 'キャラクターの{絵|え}と{紹介文|しょうかいぶん}のもとは CryptoNinja（CC0）。{図鑑|ずかん}の「{公式|こうしき}イラスト」は CC0 で{公開|こうかい}されている{絵|え}です。' }),
       h('p', { text: '{使|つか}っている{部品|ぶひん}：qrcode-generator（MIT）、jsQR（Apache-2.0）。くわしくは vendor/LICENSES.md。' }),
+      // アプリ版の部品（MPL-2.0 の @capgo/capacitor-pedometer、改変なし）。ソースの場所は文字で出すだけ（リンクにしない）
+      U().isNative() && P.partsApp ? h('p', { text: P.partsApp }) : null,
+      U().isNative() ? h('p', { text: P.creditApp || 'iPhone の{歩数|ほすう}を{読|よ}む{部品|ぶひん}：@capgo/capacitor-pedometer（MPL-2.0、{改変|かいへん}なし。ソースコードは https://github.com/Cap-go/capacitor-pedometer ）。' }) : null,
       h('p', { text: '{広告|こうこく}・{課金|かきん}・ランキング・チャットはありません。インターネットには{何|なに}も{送|おく}りません。' }),
       h('p.muted', { html: 'shinobi-ashi v1' })
     ], { title: 'このアプリについて', cls: 'long' });
@@ -1313,7 +1361,32 @@
     ])], 'viewfile');
   }
 
+  /* ================= 記録が読めなかったとき ================= */
+  function broken() {
+    var h = U().h;
+    return screenWrap('{記録|きろく}が{読|よ}めませんでした', [section(null, [
+      h('div.center', [fig('anne', 'surprised', 110)]),
+      h('p', { text: 'この{端末|たんまつ}に{保存|ほぞん}した{記録|きろく}が、こわれているか、{新|あたら}しい{版|はん}のアプリで{作|つく}られたため、{読|よ}めませんでした。' }),
+      h('p.muted', { text: '{書|か}き{出|だ}しファイルがあれば、そこから{記録|きろく}をもどせます。ないときは「はじめから」で{始|はじ}め{直|なお}せます。' }),
+      h('div.ob-foot.col', [
+        fileButton('{書|か}き{出|だ}しファイルを{開|ひら}く', '.json,application/json,text/plain', function (f) {
+          readFileText(f).then(function (text) {
+            if (!U().has('Share', 'importFile')) { U().toast('{準備中|じゅんびちゅう}'); return; }
+            var r = SA.Share.importFile(text);
+            if (!r.ok) { U().toast(SA.Share.message ? SA.Share.message(r.reason) : '{読|よ}めませんでした', 'ng'); return; }
+            var ns = r.state;
+            if (A().info && A().info.route) ns.route = A().info.route;
+            A().broken = null; A().state = ns; A().screen = 'home';
+            U().save().then(function () { U().toast('{読|よ}み{込|こ}んだよ'); U().render(); return U().onOpen('boot'); });
+          });
+        }, { id: 'broken-import', cls: 'primary big' }),
+        U().btn('はじめから（{確認|かくにん}2{回|かい}）', function () { U().resetAll(); }, 'red', { attrs: { type: 'button', 'data-act': 'broken-reset' } })
+      ])
+    ])], 'broken');
+  }
+
   SA.Screens = {
+    broken: broken, resetOnboard: resetOnboard,
     onboard: onboard, home: home, shugyo: shugyo, jutsu: jutsu, road: road, zukan: zukan, sato: sato, review: review,
     menu: menu, parent: parent, viewfile: viewfile,
     showEvents: showEvents, zukanDetail: zukanDetail, playJutsu: playJutsu, eventTitle: eventTitle,

@@ -5,7 +5,8 @@
 //   - ふりがな書式 {漢字|かな} の崩れ（{ } | の対応、入れ子、親字が漢字だけか、読みがひらがなだけか）
 //   - ルビのない漢字（決まった例外を除き 0 字であること）
 //   - 本数: bond 8体×12、greet 39、sekki 24（rules.js の二十四節気と同じ名前）、special 6、idle 31体×2〜3、
-//           stations 51（data.js の STATIONS と同じ順）、atoza 3〜4、jin、zukan 39、parent、help、stamps 12
+//           stations 51（data.js の STATIONS と同じ順）、atoza 3〜4、jin、zukan 39、parent、help、stamps 12、
+//           official（chars.js の公式データのふりがな版。ふりがなを外すと chars.js と同じ字であること）
 //   - 名前・クランの読み（甲賀=こうか など）、差し込み {name} などの置き場所
 //   - 書かないこと: 怖い・痛い言葉、ひみつの術の技名と銃、比べる言葉、夜道・早朝のすすめ、公認・コラボ、
 //     宿場の小話の年号・料金・営業時間
@@ -44,10 +45,11 @@ const READ_OK = /^[ぁ-ゖー]+$/;  // 読み: ひらがな（と長音）
 // 差し込みを許す場所
 const PLACEHOLDERS = {
   'special.': ['name', 'rank', 'days', 'dye'],
+  'parent.gateAsk3': ['num', 'order'],
   'parent.gateAsk': ['nums']
 };
 // ルビなしの漢字を許す場所（関門の問題文は、ふりがななしが仕掛け）
-const NO_RUBY_OK = [/^parent\.gateAsk$/, /^parent\.gateNums\.\d+$/];
+const NO_RUBY_OK = [/^parent\.gateAsk3?$/, /^parent\.gateNums\.\d+$/];
 
 function allowedPH(p) {
   for (const k in PLACEHOLDERS) if (p === k || p.startsWith(k)) return PLACEHOLDERS[k];
@@ -107,7 +109,7 @@ const plainOf = p => BY[p] ? BY[p].plain : '';
 
 /* ---------- 1. 形と本数 ---------- */
 section('形と本数');
-const TOP = ['bond', 'greet', 'sekki', 'special', 'idle', 'stations', 'atoza', 'jin', 'zukan', 'parent', 'help', 'stamps'];
+const TOP = ['bond', 'greet', 'sekki', 'special', 'idle', 'stations', 'atoza', 'jin', 'zukan', 'parent', 'help', 'stamps', 'official'];
 keysEq(T, TOP, 'SA.TEXT の項目');
 keysEq(T.bond, FIRST8, 'bond は最初の8体');
 for (const id of FIRST8) ok(Array.isArray(T.bond[id]) && T.bond[id].length === D.BOND_LINES_AT.length, 'bond.' + id + ' は ' + D.BOND_LINES_AT.length + '本（' + (T.bond[id] || []).length + '）');
@@ -196,7 +198,8 @@ const MUST = {
   '瀬織': 'せおり', '久遠': 'くおん', '孫市': 'まごいち', '石舟斎': 'せきしゅうさい',
   '甲賀': 'こうか', '雑賀': 'さいか', '風魔': 'ふうま', '伊賀': 'いが', '天界': 'てんかい',
   '修行': 'しゅぎょう', '相棒': 'あいぼう', '宿場': 'しゅくば', '免許皆伝': 'めんきょかいでん', '奥義': 'おうぎ', '巻物': 'まきもの',
-  '忍術': 'にんじゅつ', '歩数': 'ほすう', '修行値': 'しゅぎょうち', '修行枠': 'しゅぎょうわく', '端末': 'たんまつ', '家族': 'かぞく'
+  '忍術': 'にんじゅつ', '歩数': 'ほすう', '修行値': 'しゅぎょうち', '修行枠': 'しゅぎょうわく', '端末': 'たんまつ', '家族': 'かぞく',
+  '大典太': 'おおでんた', '人身御供': 'ひとみごくう', '飯綱': 'いづな', '於菟': 'おと', '瀬織津姫': 'せおりつひめ', '気吹戸主': 'いぶきどぬし'
 };
 // 名前の字がほかの意味で使われることがある（結ぶ・断る・令和 など）ので、名前の確かめは「1字の親字がそれだけで立っているとき」に限る
 const AMBIG_ONE = { '結': ['むす'], '断': [], '令': [], '柴': [], '刃': [] };
@@ -240,7 +243,10 @@ const BAN_ALL = [
   ['1位', '比べる'], ['順位', '比べる'], ['ランキング', '（parent の「ありません」以外）'], ['課金', '（parent の「ありません」以外）'], ['連続', '（parent の「表示せず」以外）']
 ];
 const PARENT_OK = ['ガチャ', 'ランキング', '課金', '連続'];
+// official.* は chars.js の公式データの写し（ゲームの文章ではない）。下の「公式データ」の節で、字が chars.js と同じかを確かめる
+const isOfficial = p => /^official\./.test(p);
 for (const { p } of STR) {
+  if (isOfficial(p)) continue;
   const r = BY[p];
   const text = r.plain + ' ' + r.kana;
   for (const [w, why] of BAN_ALL) {
@@ -270,7 +276,7 @@ for (const { p } of STR) {
 // ひみつの術の4体の技名（chars.js の jutsu）が文章に出ない
 for (const id of D.SECRET_JUTSU) {
   const j = CH.BY_ID[id].jutsu;
-  ok(!STR.some(({ p }) => BY[p].plain.includes(j)), 'ひみつの術「' + j + '」（' + id + '）を書かない');
+  ok(!STR.some(({ p }) => !isOfficial(p) && BY[p].plain.includes(j)), 'ひみつの術「' + j + '」（' + id + '）を書かない（公式データの写しを除く）');
 }
 // 公式紹介文にない関係を作らない: 「父」「母」「兄」「姉」「弟」「妹」「孫」「娘」「双子」は bio と合う組だけ
 const KIN = /父|母|兄|姉|弟|妹|孫|娘|双子/;
@@ -304,13 +310,36 @@ ok(new RegExp('直近' + D.CONFIG.RECENT_DAYS + '日分の歩数').test(pp('expo
 ok(/医療・診断/.test(pp('medical')) && /ではありません/.test(pp('medical')), '医療・診断の目的ではない');
 ok(pp('unofficial') === 'CryptoNinja（CC0・Ninja DAO）のキャラクターを使った個人制作の非公式ファンゲームです。', '非公式の表記が決まりの文と同じ');
 ok(/関門/.test(pp('gate')) && /3秒/.test(pp('gate')) && /1分/.test(pp('gate')), '関門の説明（3秒長押し・1分待つ）');
+// 関門の説明は子どもも関門なしで読める。解き方（問題の例・漢数字の読み・「〜の順に押す」）を書かない
+ok(!/順に押|[〇一二三四五六七八九]、[〇一二三四五六七八九]|数字のボタン/.test(pp('gate')) && !/[〇一二三四五六七八九]/.test(pp('gate')), '関門の説明に解き方（問題の例・漢数字）を書かない');
+ok(/{[〇一二三四五六七八九]\|/.test(P.gate) === false, '関門の説明に漢数字の読みを書かない');
+// 使っている部品（MPL-2.0 §3.2: 実行形式で配るときは、ソースの入手先とライセンスを知らせる）
+ok(typeof P.parts === 'string' && /QR/.test(pp('parts')) && /LICENSES\.md/.test(pp('parts')), 'parent.parts（ブラウザ版の部品）');
+ok(typeof P.partsApp === 'string' && /Capacitor/.test(pp('partsApp')) && /@capgo\/capacitor-pedometer/.test(pp('partsApp')) && /LICENSES\.md/.test(pp('partsApp')), 'parent.partsApp（アプリ版の部品: Capacitor・pedometer・LICENSES.md）');
+ok(typeof P.creditApp === 'string' && /@capgo\/capacitor-pedometer/.test(pp('creditApp')) && /MPL-2\.0/.test(pp('creditApp')) && /https:\/\/github\.com\/Cap-go\/capacitor-pedometer/.test(pp('creditApp')) && /Capacitor（MIT/.test(pp('creditApp')), 'parent.creditApp（MPL-2.0・ソースの入手先・Capacitor の MIT）');
 ok(/はじめから/.test(pp('erase')) && /消/.test(pp('erase')), 'データの消し方');
 ok(/インターネットには送りません/.test(pp('permission')), '歩数の許可の前の説明');
 ok(!/法律|法令|違法|準拠|COPPA|GDPR|個人情報保護法/.test(STR.filter(x => x.p.startsWith('parent.')).map(x => BY[x.p].plain).join()), '法律の断定をしない');
 ok(/\{nums\}/.test(P.gateAsk) && !/\{[^a-z}]*\|/.test(P.gateAsk), '関門の問題文はふりがななし（{nums} の差し込みだけ）');
+ok(/\{num\}/.test(P.gateAsk3) && /\{order\}/.test(P.gateAsk3) && !/\{[^a-z}]*\|/.test(P.gateAsk3), '関門の3けたの問題文はふりがななし（{num} {order} の差し込みだけ）');
 ok(Array.isArray(P.gateNums) && P.gateNums.length === 10, '関門の漢数字10個');
 
-/* ---------- 8. その他の目安 ---------- */
+/* ---------- 8. 公式データ（official） ---------- */
+section('公式データのふりがな版');
+const O = T.official || {};
+keysEq(O, ['names', 'words', 'bio'], 'official の項目');
+keysEq(O.names, IDS, 'official.names は39体');
+for (const c of CH.CHARS) ok(plainOf('official.names.' + c.id) === c.name, 'official.names.' + c.id + ' のふりがなを外すと「' + c.name + '」');
+const BIO_IDS = CH.CHARS.filter(c => c.bio).map(c => c.id);
+keysEq(O.bio, BIO_IDS, 'official.bio は公式紹介文がある体だけ');
+for (const id of BIO_IDS) ok(plainOf('official.bio.' + id) === CH.BY_ID[id].bio, 'official.bio.' + id + ' のふりがなを外すと chars.js の bio と同じ');
+for (const w in (O.words || {})) ok(plainOf('official.words.' + w) === w, 'official.words「' + w + '」のふりがなを外すと同じ字');
+const WANT = new Set();
+for (const c of CH.CHARS) for (const w of [c.jutsu, c.weapon]) if (w && KANJI.test(w)) WANT.add(w);
+for (const w of WANT) ok(O.words && typeof O.words[w] === 'string', 'official.words に「' + w + '」がある');
+// 読みは名前表（MUST）と同じ（上の「名前・クランの読み」でまとめて確かめている）
+
+/* ---------- 9. その他の目安 ---------- */
 section('長さの目安');
 for (const id of IDS) {
   const z = plainOf('zukan.' + id); const n = z.split(/[。！？]/).filter(x => x.trim()).length;

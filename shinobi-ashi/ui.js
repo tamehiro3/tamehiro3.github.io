@@ -220,7 +220,9 @@
     var body = h('div.modal-body');
     add(body, content);
     box.appendChild(body);
-    var m = { el: box, body: body, closed: false };
+    // スクロールの外に固定する行（出来事のカードの「つぎへ」など）
+    if (opt.foot) box.appendChild(add(h('div.modal-nav'), opt.foot));
+    var m = { el: box, body: body, closed: false, noClose: !!opt.noClose };
     m.close = function () {
       if (m.closed) return;
       m.closed = true;
@@ -243,6 +245,15 @@
     return m;
   }
   function closeAllModals() { modalStack.slice().forEach(function (m) { m.close(); }); }
+  // Esc で、いちばん上の重ねた画面を閉じる（閉じるボタンのない画面は閉じない）
+  if (doc) doc.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape' && e.key !== 'Esc') return;
+    if (App.walking || !modalStack.length) return;
+    var top = modalStack[modalStack.length - 1];
+    if (top.noClose) return;
+    e.preventDefault();
+    top.close();
+  });
   function confirmBox(text, yes, no, cb) {
     var m = modal([h('p', { text: text }), h('div.row', [
       btn(no || 'やめる', function () { m.close(); cb(false); }, 'ghost'),
@@ -272,8 +283,42 @@
 
   /* ================= 関門（保護者だけ） ================= */
   var KANJI_NUM = ['〇', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
+  var GATE_LOCK_MS = 60000;
   var gateMiss = 0;
   function gateLockedUntil() { return App.gateLock || 0; }
+  /** 3回まちがえたときの待ち時間を、読み直しても残るように保存する */
+  function setGateLock(t) {
+    App.gateLock = t;
+    if (has('Store', 'setPref')) try { Promise.resolve(SA.Store.setPref('gateLock', t)).catch(function () { }); } catch (e) { }
+  }
+  function loadGateLock() {
+    if (!has('Store', 'getPref')) return Promise.resolve(gateLockedUntil());
+    return Promise.resolve(SA.Store.getPref('gateLock')).then(function (v) {
+      var t = Number(v) || 0;
+      // 端末の時計を戻されても、待ちが1分より長くはならないようにする
+      if (t > Date.now() + GATE_LOCK_MS) t = Date.now() + GATE_LOCK_MS;
+      if (t > gateLockedUntil()) App.gateLock = t;
+      return gateLockedUntil();
+    }, function () { return gateLockedUntil(); });
+  }
+  /** 100〜999 の数（どのけたも1〜9）を漢字で書く。例: 732 → 七百三十二、115 → 百十五 */
+  function kanjiNum3(x) {
+    var K = (T().parent && T().parent.gateNums) || KANJI_NUM;
+    var hd = Math.floor(x / 100), td = Math.floor(x / 10) % 10, od = x % 10;
+    return (hd > 1 ? K[hd] : '') + '百' + (td > 1 ? K[td] : '') + (td ? '十' : '') + (od ? K[od] : '');
+  }
+  /** 問題を作る。3けたの漢字の数と、押すけたの順（6通り）。答えは3つの数字 */
+  function gateQuestion() {
+    var pool = [1, 2, 3, 4, 5, 6, 7, 8, 9], dg = [];
+    for (var i = 0; i < 3; i++) dg.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
+    var num = dg[0] * 100 + dg[1] * 10 + dg[2];
+    var place = { '百の位': dg[0], '十の位': dg[1], '一の位': dg[2] };
+    var names = ['百の位', '十の位', '一の位'], order = [];
+    while (names.length) order.push(names.splice(Math.floor(Math.random() * names.length), 1)[0]);
+    // ふりがなを付けない文（関門の仕掛け）。数字の漢字のほかは、小学4年より上で習う漢字（位・順）で書く
+    var tmpl = (T().parent && T().parent.gateAsk3) || '「{num}」の数字を、{order}の順に押してください';
+    return { text: plain(fill(tmpl, { num: kanjiNum3(num), order: order.join('・') })), answer: order.map(function (p) { return place[p]; }) };
+  }
   /** 3秒の長押しボタンを作る。押し切ったら onDone */
   function holdButton(label, onDone, cls) {
     var b = h('button', { cls: 'btn hold ' + (cls || ''), attrs: { type: 'button', 'data-hold': '1' } });
@@ -288,7 +333,7 @@
       timer = setTimeout(function () { timer = 0; cancelAnimationFrame(raf); fillEl.style.width = '0%'; onDone(); }, 3000);
       raf = requestAnimationFrame(tick);
     }
-    function up() { if (!timer) return; clearTimeout(timer); timer = 0; cancelAnimationFrame(raf); fillEl.style.width = '0%'; if (Date.now() - start < 2900) toast('3{秒|びょう}{長押|なが}おししてね'); }
+    function up() { if (!timer) return; clearTimeout(timer); timer = 0; cancelAnimationFrame(raf); fillEl.style.width = '0%'; if (Date.now() - start < 2900) toast('3{秒|びょう}{長押|ながお}ししてね'); }
     b.addEventListener('pointerdown', down);
     b.addEventListener('pointerup', up);
     b.addEventListener('pointerleave', up);
@@ -300,10 +345,9 @@
   }
   /** 関門を出す。通ったら cb(true)、やめたら cb(false)。問題文にはふりがなを付けない（おとなが読む） */
   function gate(cb) {
-    var lock = gateLockedUntil();
     var body = h('div.gate');
-    var m = modal(body, { title: '{保護者|ほごしゃ}の{方|かた}へ', onClose: function () { if (!passed) cb(false); } });
     var passed = false;
+    var m = modal(body, { title: '{保護者|ほごしゃ}の{方|かた}へ', onClose: function () { if (!passed) cb(false); } });
     function wait() {
       body.innerHTML = '';
       var p = h('p.gate-wait', { attrs: { id: 'gate-wait' } });
@@ -312,19 +356,15 @@
         if (m.closed) return;
         var left = Math.ceil((gateLockedUntil() - Date.now()) / 1000);
         if (left <= 0) { gateMiss = 0; ask(); return; }
-        p.innerHTML = furi((T().parent && T().parent.gateWait) || '{少|すこ}し{待|ま}ってから、もう{一度|いちど}どうぞ。') + '<br><b>' + left + '</b>';
+        p.innerHTML = furi((T().parent && T().parent.gateWaitLock) || '3{回|かい}まちがえたので、1{分|ぷん}{待|ま}ってね。') + '<br>' + furi('あと') + ' <b>' + left + '</b> ' + furi('{秒|びょう}');
         setTimeout(loop, 500);
       })();
     }
     function ask() {
       body.innerHTML = '';
-      var nums = [], pool = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-      for (var i = 0; i < 3; i++) nums.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
-      var tmpl = (T().parent && T().parent.gateAsk) || '{nums}の順に押してください';
-      var numsK = nums.map(function (x) { return ((T().parent && T().parent.gateNums) || KANJI_NUM)[x]; }).join('、');
-      // ふりがなを付けない文（関門の仕掛け）。{漢字|かな} の書式は使わず、そのまま出す
+      var qa = gateQuestion(), nums = qa.answer;
       var q = h('p.gate-q', { attrs: { id: 'gate-q', lang: 'ja' } });
-      q.textContent = plain(fill(tmpl, { nums: numsK }));
+      q.textContent = qa.text;
       body.appendChild(q);
       var shown = h('div.gate-in', { attrs: { 'aria-live': 'polite' } });
       body.appendChild(shown);
@@ -337,7 +377,7 @@
           if (got.length < 3) return;
           if (got.join() === nums.join()) { passed = true; gateMiss = 0; m.close(); cb(true); return; }
           gateMiss++;
-          if (gateMiss >= 3) { App.gateLock = Date.now() + 60000; toast((T().parent && T().parent.gateWrong) || 'ちがうみたい', 'ng'); wait(); return; }
+          if (gateMiss >= 3) { setGateLock(Date.now() + GATE_LOCK_MS); toast((T().parent && T().parent.gateLockToast) || '3{回|かい}まちがえたので、1{分|ぷん}{待|ま}ってね', 'ng'); wait(); return; }
           toast((T().parent && T().parent.gateWrong) || 'ちがうみたい。もう{一度|いちど}どうぞ。', 'ng');
           ask();
         } } }));
@@ -345,7 +385,7 @@
       body.appendChild(pad);
       body.appendChild(h('p.muted', { text: 'お{子|こ}さまが{設定|せってい}を{変|か}えないための{確|たし}かめです。' }));
     }
-    if (lock > Date.now()) wait(); else ask();
+    loadGateLock().then(function (lock) { if (m.closed) return; if (lock > Date.now()) wait(); else ask(); });
     return m;
   }
 
@@ -361,6 +401,18 @@
     }
     var lay = doc.getElementById('layer');
     if (lay) { if (App.walking) lay.setAttribute('inert', ''); else lay.removeAttribute('inert'); }
+    // たしかめているあいだは「取り込む」ボタンに「たしかめ中…」と出す（固まったように見えないように）
+    var sb = doc.querySelector('[data-act="sync"]');
+    if (sb) {
+      var bl = sb.querySelector('.bl');
+      if (App.checking) {
+        if (bl && !sb.hasAttribute('data-label')) { sb.setAttribute('data-label', bl.innerHTML); bl.innerHTML = furi('たしかめ{中|ちゅう}…'); }
+        sb.classList.add('checking-b');
+      } else {
+        if (bl && sb.hasAttribute('data-label')) { bl.innerHTML = sb.getAttribute('data-label'); sb.removeAttribute('data-label'); }
+        sb.classList.remove('checking-b');
+      }
+    }
   }
   var walkPoll = 0;
   /** 3秒たしかめる。歩いていたら全部のボタンを押せなくする。true＝歩いている */
@@ -401,6 +453,7 @@
     // はじめての取り込み: iPhone は過去7日を読める（Android(b) と試遊は今日から）
     if (reason === 'first' && App.info && App.info.route === 'ios') from = SA.Rules.addDays(t, -6);
     setSyncLabel(true);
+    var before = syncMark(App.state);
     return Promise.resolve(SA.Steps.read(from, t)).then(function (days) { return days || []; }, function () { return []; }).then(function (days) {
       var r;
       try { r = SA.Rules.ingest(App.state, days, { today: t, now: Date.now() }); } catch (e) { console.warn('ingest', e); r = { state: App.state, events: [] }; }
@@ -416,10 +469,19 @@
           if (wk) evs.push(wk);
           render();
           if (evs.length && SA.Screens && SA.Screens.showEvents) SA.Screens.showEvents(evs);
+          // 「取り込む」を押しても何も増えなかったときは、そう知らせる
+          else if (reason === 'button' && syncMark(App.state) === before) toast((T().special && T().special.noNew) || 'まだ{新|あたら}しい{歩数|ほすう}はないよ');
           return evs;
         });
       });
     }).catch(function (e) { console.warn('sync', e); App.syncing = false; setSyncLabel(false); render(); return []; });
+  }
+  /** 取り込みで増えたかどうかを見るための印（今日までの実歩数と来訪累計） */
+  function syncMark(s) {
+    if (!s) return '';
+    var r = s.recent || {}, sum = 0;
+    Object.keys(r).forEach(function (k) { sum += Number(r[k]) || 0; });
+    return sum + ':' + (s.visitTotal || 0) + ':' + Object.keys(s.daily || {}).length;
   }
   function setSyncLabel(on) {
     var b = doc.querySelector('[data-act="sync"]');
@@ -441,9 +503,12 @@
   function renderSim() {
     var box = doc.getElementById('sim');
     if (!box) return;
-    if (!isSim() || isNative() || !App.state || App.view) { box.hidden = true; box.innerHTML = ''; return; }
+    var appEl = doc.getElementById('app');
+    if (!isSim() || isNative() || !App.state || App.view) { box.hidden = true; box.innerHTML = ''; if (appEl) appEl.classList.remove('has-sim'); return; }
     box.hidden = false;
     box.innerHTML = '';
+    if (appEl) appEl.classList.add('has-sim');
+    placeSim();
     var sim = SA.Steps.sim;
     var st = sim.status ? sim.status() : { today: today(), steps: 0, walking: false };
     var handle = h('button.sim-handle', { attrs: { type: 'button', 'aria-expanded': simOpen ? 'true' : 'false', 'data-act': 'sim-toggle' }, on: { click: function () { simOpen = !simOpen; renderSim(); } } },
@@ -478,18 +543,29 @@
     [500, 1000, 3000, 10000].forEach(function (k) {
       arow.appendChild(btn('+' + n(k) + '{歩|ほ}', function () {
         sim.addSteps(k, { hour: simOpt.hour, spread: simOpt.spread });
+        simClose();   // ホームの輪や棒がふえるところを見られるように、引き出しを閉じる
         sync('sim');
       }, 'primary', { attrs: { type: 'button', 'data-add': String(k) } }));
     });
     p.appendChild(arow);
     var drow = h('div.row');
-    drow.appendChild(btn('{次|つぎ}の{日|ひ}へ', function () { sim.nextDay(); sync('sim'); }, '', { attrs: { type: 'button', 'data-act': 'sim-next' } }));
-    drow.appendChild(btn('7{日|にち}すすめる', function () { sim.skipDays(7); sync('sim'); }, '', { attrs: { type: 'button', 'data-act': 'sim-skip7' } }));
+    drow.appendChild(btn('{次|つぎ}の{日|ひ}へ', function () { sim.nextDay(); simClose(); sync('sim'); }, '', { attrs: { type: 'button', 'data-act': 'sim-next' } }));
+    drow.appendChild(btn('7{日|にち}すすめる', function () { sim.skipDays(7); simClose(); sync('sim'); }, '', { attrs: { type: 'button', 'data-act': 'sim-skip7' } }));
     p.appendChild(drow);
     p.appendChild(wl);
     p.appendChild(btn('はじめから', function () { resetAll(); }, 'ghost red-t', { attrs: { type: 'button', 'data-act': 'sim-reset' } }));
     box.appendChild(p);
   }
+
+  function simClose() { if (simOpen) { simOpen = false; renderSim(); } }
+  /** 引き出しの取っ手を、下のメニューのすぐ上に置く（メニューの高さは端末で変わる） */
+  function placeSim() {
+    var box = doc.getElementById('sim'), nav = doc.getElementById('nav');
+    if (!box) return;
+    var hgt = nav && !nav.hidden ? Math.max(0, Math.round(root.innerHeight - nav.getBoundingClientRect().top)) : 0;
+    box.style.bottom = hgt + 'px';
+  }
+  if (root.addEventListener) root.addEventListener('resize', function () { if (doc.getElementById('sim') && !doc.getElementById('sim').hidden) placeSim(); });
 
   /* ================= はじめから ================= */
   function resetAll(skipConfirm) {
@@ -498,9 +574,9 @@
       return Promise.resolve(p).then(function () {
         try { if (SA.Steps && SA.Steps.sim && SA.Steps.sim.reset) SA.Steps.sim.reset(); } catch (e) { }
         try { if (has('Notify', 'cancelAll')) SA.Notify.cancelAll(); } catch (e) { }
-        App.state = null; App.view = false; App.viewState = null; App.walking = false; simOpen = false;
+        App.state = null; App.view = false; App.viewState = null; App.walking = false; App.broken = null; simOpen = false;
         closeAllModals();
-        startOnboarding();
+        startOnboarding(0);
       });
     }
     if (skipConfirm) return doit();
@@ -512,6 +588,8 @@
 
   /* ================= 起動 ================= */
   function startOnboarding(step) {
+    // はじめての画面を外から始めるときは、前回選んだ相棒・おとな／こどもを残さない（こどもが既定）
+    if (SA.Screens && SA.Screens.resetOnboard) SA.Screens.resetOnboard();
     App.screen = 'onboard'; App.params = { step: step || 0 };
     render();
   }
@@ -541,12 +619,20 @@
     var pref = has('Store', 'getPref') ? Promise.all([SA.Store.getPref('viewMode'), SA.Store.getPref('furigana')]).catch(function () { return [null, null]; }) : Promise.resolve([null, null]);
     return Promise.all([detect, load, pref]).then(function (a) {
       App.info = a[0] || { route: 'none', canBuckets: false, historyDays: 0 };
-      var s = a[1];
-      if (s && has('Rules', 'validate')) {
-        var v = SA.Rules.validate(s);
-        if (!v.ok && has('Rules', 'migrate')) { var m = SA.Rules.migrate(s); if (m && SA.Rules.validate(m).ok) s = m; else console.warn('validate', v.errors); }
-      }
       if (a[2] && a[2][1] === false) App.furiPref = false;
+      var raw = a[1];
+      if (!raw) return { s: null, a: a };
+      var s = usableState(raw);
+      if (s) return { s: s, a: a };
+      // 読めなかったら、ひとつ前の保存（:bak）を試す
+      return readBackup().then(function (b) {
+        var sb = usableState(b);
+        if (sb) { App.restoredFromBak = true; return { s: sb, a: a }; }
+        return { s: null, a: a, broken: true };
+      });
+    }).then(function (x) {
+      var s = x.s, a = x.a;
+      if (x.broken) { showBroken(); return; }
       if (!s) {
         if (a[2] && a[2][0]) { enterView(); return; }   // 「ながめる」を選んだ人（メニューから試遊に移れる）
         if (!has('Rules', 'newState')) { App.screen = 'onboard'; render(); return; }
@@ -559,8 +645,40 @@
       if (App.info.route === 'none') { enterView(App.state); App.viewState = App.state; App.state = null; return; }
       App.screen = 'home';
       render();
+      if (App.restoredFromBak) { App.restoredFromBak = false; toast((T().special && T().special.restoredBak) || 'ひとつ{前|まえ}の{記録|きろく}にもどしました'); save(); }
       return onOpen('boot');
-    });
+    }).catch(function (e) { console.warn('boot', e); showBroken(); });
+  }
+  /** 検査を通る state だけを返す（migrate で直せるなら直す）。どうしてもだめなら null */
+  function usableState(x) {
+    if (!x || typeof x !== 'object' || Array.isArray(x)) return null;
+    if (!has('Rules', 'validate')) return x;
+    try { if (SA.Rules.validate(x).ok) return x; } catch (e) { console.warn('validate', e); }
+    if (has('Rules', 'migrate')) {
+      try {
+        var m = SA.Rules.migrate(x);
+        if (m && SA.Rules.validate(m).ok) return m;
+        if (m) console.warn('validate', SA.Rules.validate(m).errors);
+      } catch (e) { console.warn('migrate', e); }
+    }
+    return null;
+  }
+  /** ひとつ前の保存を読む（SA.Store.loadBackup があればそれ、ブラウザなら localStorage の :bak） */
+  function readBackup() {
+    try {
+      if (has('Store', 'loadBackup')) return Promise.resolve(SA.Store.loadBackup()).catch(function () { return null; });
+      if (SA.Store && SA.Store.backend === 'local' && root.localStorage) {
+        var t = root.localStorage.getItem((SA.Store.KEY || 'shinobi-ashi:v1') + ':bak');
+        return Promise.resolve(t ? JSON.parse(t) : null);
+      }
+    } catch (e) { }
+    return Promise.resolve(null);
+  }
+  /** 記録が読めなかったときの画面（書き出しファイルを開く・はじめから） */
+  function showBroken() {
+    App.state = null; App.view = false; App.viewState = null; App.broken = true;
+    App.screen = 'broken'; App.params = {};
+    render();
   }
   // 前景に戻ったら取り込む
   if (doc) doc.addEventListener('visibilitychange', function () {
@@ -583,7 +701,10 @@
     var more = [P.gate, P.permission, P.revoke, P.exportNote, P.erase, P.medical].filter(Boolean);
     if (more.length) box.appendChild(sec('{設定|せってい}と{記録|きろく}', more.map(function (t) { return h('p', { text: t }); })));
     if (help.length) box.appendChild(sec('{遊|あそ}び{方|かた}', help.map(function (x) { return h('details.qa', [h('summary', { text: x.q }), h('p', { text: x.a })]); })));
-    if (P.credit) box.appendChild(sec('このアプリについて', [h('p', { text: P.credit }), h('p', { text: '{使|つか}っている{部品|ぶひん}：QR コードを{作|つく}る{部品|ぶひん}と{読|よ}む{部品|ぶひん}（vendor/LICENSES.md にライセンスを{書|か}いています）。' })]));
+    if (P.credit) box.appendChild(sec('このアプリについて', [h('p', { text: P.credit }),
+      h('p', { text: P.parts || '{使|つか}っている{部品|ぶひん}：QR コードを{作|つく}る{部品|ぶひん}と{読|よ}む{部品|ぶひん}（vendor/LICENSES.md にライセンスを{書|か}いています）。' }),
+      // アプリ版で使う部品（MPL-2.0 の @capgo/capacitor-pedometer）。URL は文字で出すだけ（リンクにしない）
+      P.creditApp ? h('p', { text: P.creditApp }) : null]));
     if (!P.short) box.appendChild(h('p', { text: '{文章|ぶんしょう}は{準備中|じゅんびちゅう}です。' }));
   }
 

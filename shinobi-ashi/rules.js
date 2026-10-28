@@ -21,8 +21,10 @@
   var MAX_STATIONS = (D.STATIONS.length - 1) * 2;              // 100（一巡目50＋二巡目50）
   var MULT100 = Math.round(CFG.AFFINITY_MULT * 100);            // 120
   var DIAG_COLUMNS = ['date', 'shugyo', 'rejected', 'capped', 'goal', 'home', 'family', 'opens', 'walkBlocks'];
+  var ROUTES = ['ios', 'androidB', 'androidC', 'sim', 'none'];
 
   function clone(o) { return JSON.parse(JSON.stringify(o)); }
+  function isObj(o) { return !!o && typeof o === 'object' && !Array.isArray(o); }   // 配列でないオブジェクト
   function has(arr, x) { return arr.indexOf(x) >= 0; }
   function isInt(n) { return typeof n === 'number' && isFinite(n) && Math.floor(n) === n; }
   function nonNeg(n) { return isInt(n) && n >= 0; }
@@ -152,22 +154,25 @@
 
   /* ================= 状態 ================= */
   function charRec(today) { return { joined: today, shugyo: 0, rank: 0, okugi: 0, bond: 0, dye: 'none', lastBondDate: null }; }
+  // 主相棒になれるのは REPS の4体（設計図 5.1）
+  function isMainId(id) { return typeof id === 'string' && has(REP_IDS, id); }
   function newState(opt) {
     opt = opt || {};
     var mainId = opt.mainId;
-    if (!CH.BY_ID[mainId] || mainId === 'jin') throw new Error('mainId が正しくありません: ' + mainId);
+    if (!isMainId(mainId)) throw new Error('mainId が正しくありません: ' + mainId);
     var mode = opt.mode === 'otona' ? 'otona' : 'kodomo';
     var today = isDate(opt.today) ? opt.today : '2026-01-01';
     var chars = {}; chars[mainId] = charRec(today);
     return {
       app: CFG.APP_ID, v: CFG.DATA_VERSION,
-      createdAt: today, mode: mode, goal: CFG.GOAL[mode].def, mainId: mainId, route: opt.route || 'none',
+      createdAt: today, mode: mode, goal: CFG.GOAL[mode].def, mainId: mainId, route: has(ROUTES, opt.route) ? opt.route : 'none',
       furigana: true,
       slots: [mainId, null, null], alloc: [100, 0, 0],
       chars: chars,
       visits: 0, foundIds: [],
       jin: { shadow: false, revealed: false },
       visitTotal: 0, roadTotal: 0, hideTotal: 0, searches: 0,
+      hideBase: 0,   // かくれる探しが始まった（14万）時点の hideTotal。探す回数はここからの累計で数える
       scrolls: 0, scrollsOpened: 0,
       stationsReached: 0, round: 1, diary: [],
       dyes: ['none', 'ai'], lastDyeDate: null,
@@ -203,9 +208,11 @@
     }
     return out;
   }
+  // 14万（hideOpen）からの隠れ里の累計
+  function hideSince(s) { return Math.max(0, s.hideTotal - (s.hideBase || 0)); }
   function searchesLeft(s) {
     if (s.visitTotal < CFG.HIDE_SEARCH_FROM) return 0;
-    return Math.max(0, Math.floor(s.hideTotal / CFG.HIDE_SEARCH_STEPS) - s.searches);
+    return Math.max(0, Math.floor(hideSince(s) / CFG.HIDE_SEARCH_STEPS) - s.searches);
   }
   function stationOf(n) {   // n 番目に着いた宿場（1〜100）→ { idx, round }
     if (n <= 0) return { idx: 0, round: 1 };
@@ -269,8 +276,9 @@
       case 'holiday': return isOffDay(x.date);
       case 'weekday': return !isOffDay(x.date);
       case 'restAfter': return x.prevShugyo < CFG.REST_BELOW;
-      case 'home': return !!x.home;
-      case 'road': return !x.home;
+      // 我が家と道は、同じ日にはどちらか片方だけ（取り込みのあとで付け替えても、先に合った側だけ）
+      case 'home': return !!x.home && !affTaken(x.aff, 'road');
+      case 'road': return !x.home && !affTaken(x.aff, 'home');
       case 'family': return !!x.family;
       case 'goal': return x.shugyo >= x.goal;
       case 'with': return (spec.ids || []).some(function (o) { return o !== id && has(x.present, o) && x.visited(o); });
@@ -283,6 +291,9 @@
       }
     }
     return false;
+  }
+  function affTaken(aff, type) {
+    return Object.keys(aff || {}).some(function (k) { return aff[k] && D.AFFINITY[k] && D.AFFINITY[k].type === type; });
   }
   function credited(a, aff) { return aff ? Math.floor(a * MULT100 / 100) : a; }
 
@@ -322,26 +333,23 @@
     var prev = s.daily[addDays(date, -1)];
     var x = {
       date: date, mode: s.mode, bi: bi, home: rec.home, family: rec.family, goal: s.goal,
-      shugyo: rec.shugyo, prevShugyo: prev ? prev.shugyo : 0, present: presentIds(s, rec),
+      shugyo: rec.shugyo, prevShugyo: prev ? prev.shugyo : 0, present: presentIds(s, rec), aff: rec.aff,
       visited: function (o) { return visited(s, o); }, rankOf: function (o) { return s.chars[o] ? s.chars[o].rank : 0; }
     };
-    s.slots.forEach(function (id) {
+    // 歩いていない日（修行値0）と、割り当て0%でその日まだ何も配られていない体は判定しない
+    // （あとで歩いたり割り当てが増えたりしたら、その取り込みで判定する。0.2倍はさかのぼって足す）
+    if (rec.shugyo > 0) s.slots.forEach(function (id, i) {
       if (!id || rec.aff[id]) return;
+      if (!((s.alloc[i] || 0) > 0) && !((rec.alloc[id] || 0) > 0)) return;
       if (judgeAffinity(D.AFFINITY[id], id, x) === true) { rec.aff[id] = true; events.push({ type: 'affinity', id: id, date: date }); }
     });
 
     if (sc > 0) { s.scrolls += sc; rec.scrolls += sc; events.push({ type: 'scroll', n: sc }); }
 
     // 修行枠へ配る（端数は切り捨て、余りは主相棒へ）
-    if (delta > 0) {
-      var given = 0;
-      s.slots.forEach(function (id, i) {
-        if (!id) return;
-        var share = Math.floor(delta * (s.alloc[i] || 0) / 100);
-        if (share > 0) { rec.alloc[id] = (rec.alloc[id] || 0) + share; given += share; }
-      });
-      if (delta - given > 0) rec.alloc[s.mainId] = (rec.alloc[s.mainId] || 0) + (delta - given);
-    }
+    // その日・同じ割り当ての間に増えた分の累計（allocRun.sum）で割って、配り済みとの差を配る。
+    // 何回に分けて読んでも、一度に読んだときと同じ配分になる。割り当てが変わったら新しい run を始める（配り済みは動かさない）
+    if (delta > 0) distribute(s, rec, delta);
     // 修行値を体に積む（相性が合った体は、その日の配分の合計の 1.2 倍になるよう差分を足す）
     Object.keys(rec.alloc).forEach(function (id) {
       var c = s.chars[id];
@@ -363,8 +371,35 @@
     });
 
     settle(s, date, events, rec);
-    if (oldVisit < CFG.HIDE_SEARCH_FROM && s.visitTotal >= CFG.HIDE_SEARCH_FROM) events.push({ type: 'hideOpen' });
+    if (oldVisit < CFG.HIDE_SEARCH_FROM && s.visitTotal >= CFG.HIDE_SEARCH_FROM) {
+      // 探す回数は14万からの隠れ里の累計で数える（14万をまたいだ取り込みのうち、14万より後の我が家の分は数える）
+      s.hideBase = Math.max(0, s.hideTotal - (rec.home ? s.visitTotal - CFG.HIDE_SEARCH_FROM : 0));
+      events.push({ type: 'hideOpen' });
+    }
     settleStations(s, date, events, rec);
+  }
+
+  function distribute(s, rec, delta) {
+    var run = rec.allocRun;
+    if (!isObj(run) || JSON.stringify(run.slots) !== JSON.stringify(s.slots) || JSON.stringify(run.alloc) !== JSON.stringify(s.alloc) || !isObj(run.given) || !nonNeg(run.sum)) {
+      run = rec.allocRun = { slots: s.slots.slice(), alloc: s.alloc.slice(), sum: 0, given: {} };
+    }
+    run.sum += delta;
+    var room = delta;
+    function give(id, n) {
+      if (n <= 0) return;
+      run.given[id] = (run.given[id] || 0) + n;
+      rec.alloc[id] = (rec.alloc[id] || 0) + n;
+      room -= n;
+    }
+    // 主相棒でない体: floor(累計 × 割合) まで（今回の増えた分を超えては配らない）
+    s.slots.forEach(function (id, i) {
+      if (!id || id === s.mainId) return;
+      var target = Math.floor(run.sum * (s.alloc[i] || 0) / 100);
+      give(id, Math.min(room, Math.max(0, target - (run.given[id] || 0))));
+    });
+    // 残り（主相棒の割合の分と端数）は主相棒へ
+    give(s.mainId, room);
   }
 
   /* 来訪・刃・金の染め（累計と回数の差を見て、足りない分の出来事を起こす） */
@@ -434,16 +469,22 @@
     settle(s, today, events, s.daily[today] || null);
     settleStations(s, today, events, s.daily[today] || null);
 
-    // 実歩数は7日分だけ（8日目に消す）
-    Object.keys(s.recent).forEach(function (k) { if (!isDate(k) || diffDays(k, today) >= CFG.RECENT_DAYS || k > today) delete s.recent[k]; });
+    // 実歩数は7日分だけ（8日目に消す）。端末の時計が戻ったとき（today < lastSyncDate）に先の日を消さないよう、
+    // 基準は today と lastSyncDate の遅いほう
+    var keepBase = s.lastSyncDate && isDate(s.lastSyncDate) && s.lastSyncDate > today ? s.lastSyncDate : today;
+    Object.keys(s.recent).forEach(function (k) { if (!isDate(k) || diffDays(k, keepBase) >= CFG.RECENT_DAYS) delete s.recent[k]; });
     if (!s.lastSyncDate || today >= s.lastSyncDate) s.lastSyncDate = today;
     s.lastSync = ctx && typeof ctx.now === 'number' ? ctx.now : s.lastSync;
     return { state: s, events: events };
   }
 
   /* ================= 選択・設定 ================= */
-  function setChoice(state, date, opt) {
+  // 「今日は」の選択。date が today のときだけ受け付ける（ほかの日は state をそのまま返す）。
+  // today を渡さない古い呼び方では、最後に取り込んだ日より前の日だけ断る（UI は today を渡すこと）
+  function setChoice(state, date, opt, today) {
     if (!isDate(date)) return state;
+    if (isDate(today)) { if (date !== today) return state; }
+    else if (state.lastSyncDate && isDate(state.lastSyncDate) && date < state.lastSyncDate) return state;
     var s = clone(state), rec = dayRec(s, date);
     var home = !!(opt && opt.home);
     if (rec.home !== home) {
@@ -557,8 +598,9 @@
     return { state: s, entry: out };
   }
   // 掲示板の表示用（14日読み直していない札は stale＝「かくれる」）
+  function okCharIndex(ci) { return isInt(ci) && ci >= 0 && ci < CHAR_IDS.length; }
   function boardOf(state, today) {
-    return state.board.map(function (b) {
+    return (state.board || []).filter(function (b) { return b && okCharIndex(b.charIndex); }).map(function (b) {
       var o = clone(b); o.id = CHAR_IDS[b.charIndex];
       o.daysSince = isDate(today) ? diffDays(b.readAt, today) : 0;
       o.stale = o.daysSince >= CFG.BOARD_STALE_DAYS;
@@ -566,7 +608,7 @@
     });
   }
   function guestsOf(state, today) {
-    return state.guests.filter(function (g) { return isDate(today) && g.until >= today; })
+    return (state.guests || []).filter(function (g) { return g && okCharIndex(g.charIndex) && isDate(today) && g.until >= today; })
       .map(function (g) { return { charIndex: g.charIndex, id: CHAR_IDS[g.charIndex], dye: g.dye, until: g.until }; });
   }
   function canDye(state, today) {
@@ -589,12 +631,13 @@
   /* ================= まとめ・ふりかえり・診断 ================= */
   function affList(s, rec) { return Object.keys(rec.aff || {}).filter(function (k) { return rec.aff[k]; }); }
   function summary(state, today) {
+    if (!isDate(today) || !state || typeof state !== 'object') return null;
     var s = state, rec = s.daily[today] || {};
     var shugyo = rec.shugyo || 0;
     var bi = null;
     var x = {
       date: today, mode: s.mode, bi: bi, home: !!rec.home, family: !!rec.family, goal: s.goal, shugyo: shugyo,
-      prevShugyo: (s.daily[addDays(today, -1)] || {}).shugyo || 0,
+      prevShugyo: (s.daily[addDays(today, -1)] || {}).shugyo || 0, aff: rec.aff || {},
       present: s.slots.filter(Boolean), visited: function (o) { return visited(s, o); }, rankOf: function (o) { return s.chars[o] ? s.chars[o].rank : 0; }
     };
     var slots = s.slots.map(function (id, i) {
@@ -632,7 +675,7 @@
       jin: { shadow: s.jin.shadow, revealed: s.jin.revealed, toReveal: s.jin.shadow && !s.jin.revealed ? Math.max(0, CFG.JIN_REVEAL_AT - s.visitTotal) : 0 },
       roadTotal: s.roadTotal, station: { reached: s.stationsReached, idx: cur.idx, round: cur.round }, nextStation: nextStation,
       hide: { open: s.visitTotal >= CFG.HIDE_SEARCH_FROM, toOpen: Math.max(0, CFG.HIDE_SEARCH_FROM - s.visitTotal), hideTotal: s.hideTotal,
-        searchesLeft: searchesLeft(s), toNextSearch: CFG.HIDE_SEARCH_STEPS - (s.hideTotal % CFG.HIDE_SEARCH_STEPS), candidates: s.visitTotal >= CFG.HIDE_SEARCH_FROM ? hideCandidates(s) : [] },
+        searchesLeft: searchesLeft(s), toNextSearch: CFG.HIDE_SEARCH_STEPS - (hideSince(s) % CFG.HIDE_SEARCH_STEPS), candidates: s.visitTotal >= CFG.HIDE_SEARCH_FROM ? hideCandidates(s) : [] },
       slots: slots,
       main: rankInfo((s.chars[s.mainId] || { shugyo: 0 }).shugyo),
       holiday: holidayName(today), offDay: isDate(today) ? isOffDay(today) : false, weekday: isDate(today) ? weekday(today) : null,
@@ -642,7 +685,7 @@
     };
   }
   function dayReview(state, date) {
-    var rec = state.daily[date] || {};
+    var rec = (isDate(date) && state.daily[date]) || {};
     return {
       date: date,
       steps: state.recent[date] !== undefined ? state.recent[date] : null,   // 7日を過ぎた日は持っていない
@@ -654,6 +697,7 @@
     };
   }
   function weekReview(state, mondayDate) {
+    if (!isDate(mondayDate)) return { monday: null, days: [], goalDays: 0, total: 0, perChar: [] };
     var mon = mondayOf(mondayDate), days = [], goalDays = 0, total = 0, per = {};
     for (var i = 0; i < 7; i++) {
       var d = addDays(mon, i), rec = state.daily[d] || {};
@@ -676,73 +720,183 @@
   }
 
   /* ================= 検査・版の移行 ================= */
+  var DAY_OBJ = ['aff', 'alloc', 'gain', 'bond'], DAY_ARR = ['visits', 'stations'];
+  var DAY_NUM = ['shugyo', 'rejected', 'opens', 'walkBlocks', 'scrolls'], DAY_BOOL = ['capped', 'goal', 'home', 'family'];
+  var STATE_NUM = ['visitTotal', 'roadTotal', 'hideTotal', 'searches', 'scrolls', 'scrollsOpened', 'visits', 'stationsReached'];
+  function inRange(n, lo, hi) { return isInt(n) && n >= lo && n <= hi; }
+  function numMap(o) { return isObj(o) && Object.keys(o).every(function (k) { return nonNeg(o[k]); }); }
+  // daily[d] の1件。ingest が落ちない形か（欠けている項目は dayRec が補うので、あるものだけ型を見る）
+  function dayOk(r) {
+    if (!isObj(r)) return false;
+    if (DAY_NUM.some(function (k) { return k in r && !nonNeg(r[k]); })) return false;
+    if (DAY_OBJ.some(function (k) { return k in r && !isObj(r[k]); })) return false;
+    if (DAY_ARR.some(function (k) { return k in r && !Array.isArray(r[k]); })) return false;
+    if (('alloc' in r && !numMap(r.alloc)) || ('gain' in r && !numMap(r.gain))) return false;
+    if ('allocRun' in r && !runOk(r.allocRun)) return false;
+    return true;
+  }
+  function runOk(u) {
+    return isObj(u) && Array.isArray(u.slots) && u.slots.length === 3 && Array.isArray(u.alloc) && u.alloc.length === 3 &&
+      u.alloc.every(function (a) { return inRange(a, 0, 100); }) && nonNeg(u.sum) && numMap(u.given);
+  }
+  function boardOk(b) {
+    return isObj(b) && okCharIndex(b.charIndex) && isDate(b.readAt) && isDate(b.date) &&
+      inRange(b.rank, 0, 5) && inRange(b.okugi, 0, 2) && nonNeg(b.shugyo) && inRange(b.bond, 0, 255) &&
+      inRange(b.station, 0, D.STATIONS.length - 1) && (b.round === 1 || b.round === 2) && has(DYE_IDS, b.dye);
+  }
+  function guestOk(g) { return isObj(g) && okCharIndex(g.charIndex) && isDate(g.until) && has(DYE_IDS, g.dye); }
+  function diaryOk(e) {
+    return isObj(e) && isDate(e.date) && inRange(e.idx, 0, D.STATIONS.length - 1) &&
+      (e.round === undefined || e.round === 1 || e.round === 2) && (e.stamp === null || e.stamp === undefined || nonNeg(e.stamp));
+  }
+  function goalOk(mode, n) { var g = CFG.GOAL[mode] || CFG.GOAL.kodomo; return isInt(n) && n >= g.min && n <= g.max && (n - g.min) % CFG.GOAL.step === 0; }
+
   function validate(s) {
     var e = [];
     function bad(m) { e.push(m); }
-    if (!s || typeof s !== 'object') return { ok: false, errors: ['notObject'] };
+    if (!isObj(s)) return { ok: false, errors: ['notObject'] };
     if (s.app !== CFG.APP_ID) bad('app');
     if (s.v !== CFG.DATA_VERSION) bad('v');
     if (s.mode !== 'kodomo' && s.mode !== 'otona') bad('mode');
-    var g = CFG.GOAL[s.mode] || CFG.GOAL.kodomo;
-    if (!isInt(s.goal) || s.goal < g.min || s.goal > g.max || (s.goal - g.min) % CFG.GOAL.step) bad('goal');
+    if (!goalOk(s.mode, s.goal)) bad('goal');
     if (!isDate(s.createdAt)) bad('createdAt');
-    if (!CH.BY_ID[s.mainId] || s.mainId === 'jin') bad('mainId');
-    if (!s.chars || typeof s.chars !== 'object') { bad('chars'); return { ok: false, errors: e }; }
+    if (!isMainId(s.mainId)) bad('mainId');
+    if (!has(ROUTES, s.route)) bad('route');
+    if (!isObj(s.chars)) { bad('chars'); return { ok: false, errors: e }; }
     if (!s.chars[s.mainId]) bad('mainNotInChars');
     Object.keys(s.chars).forEach(function (id) {
       var c = s.chars[id];
       if (!CH.BY_ID[id]) { bad('charId:' + id); return; }
-      if (!c || !nonNeg(c.shugyo) || !isInt(c.rank) || c.rank < 0 || c.rank > 5 || !isInt(c.okugi) || c.okugi < 0 || c.okugi > 2 || !nonNeg(c.bond) || !has(DYE_IDS, c.dye)) bad('char:' + id);
+      if (!isObj(c) || !nonNeg(c.shugyo) || !inRange(c.rank, 0, 5) || !inRange(c.okugi, 0, 2) || !nonNeg(c.bond) || !has(DYE_IDS, c.dye) ||
+        (c.lastBondDate !== null && c.lastBondDate !== undefined && !isDate(c.lastBondDate))) bad('char:' + id);
     });
     if (!Array.isArray(s.slots) || !Array.isArray(s.alloc)) bad('slots');
     else if (checkSlots(s, s.slots, s.alloc)) bad('slots:' + checkSlots(s, s.slots, s.alloc));
-    ['visitTotal', 'roadTotal', 'hideTotal', 'searches', 'scrolls', 'scrollsOpened', 'visits', 'stationsReached'].forEach(function (k) { if (!nonNeg(s[k])) bad(k); });
+    STATE_NUM.forEach(function (k) { if (!nonNeg(s[k])) bad(k); });
+    if (s.hideBase !== undefined && !nonNeg(s.hideBase)) bad('hideBase');
     if (s.visits > D.VISIT_AT.length) bad('visits');
     if (s.scrollsOpened > s.scrolls) bad('scrollsOpened');
     if (s.stationsReached > MAX_STATIONS) bad('stationsReached');
     if (s.round !== 1 && s.round !== 2) bad('round');
     if (!Array.isArray(s.foundIds) || s.foundIds.some(function (id) { return !CH.BY_ID[id]; })) bad('foundIds');
-    if (!s.jin || typeof s.jin.shadow !== 'boolean' || typeof s.jin.revealed !== 'boolean') bad('jin');
+    if (!isObj(s.jin) || typeof s.jin.shadow !== 'boolean' || typeof s.jin.revealed !== 'boolean') bad('jin');
     if (!Array.isArray(s.dyes) || s.dyes.some(function (d) { return !has(DYE_IDS, d); })) bad('dyes');
     if (s.lastDyeDate !== null && !isDate(s.lastDyeDate)) bad('lastDyeDate');
-    if (!Array.isArray(s.diary)) bad('diary');
-    if (!s.daily || typeof s.daily !== 'object' || Object.keys(s.daily).some(function (k) { return !isDate(k) || !s.daily[k] || !nonNeg(s.daily[k].shugyo || 0); })) bad('daily');
-    if (!s.recent || typeof s.recent !== 'object' || Object.keys(s.recent).some(function (k) { return !isDate(k) || !nonNeg(s.recent[k]); })) bad('recent');
-    if (!Array.isArray(s.board) || s.board.length > CFG.BOARD_MAX || s.board.some(function (b) { return !b || !isInt(b.charIndex) || b.charIndex < 0 || b.charIndex >= CHAR_IDS.length || !isDate(b.readAt); })) bad('board');
-    if (!Array.isArray(s.guests) || s.guests.some(function (g) { return !g || !isInt(g.charIndex) || !isDate(g.until); })) bad('guests');
+    if (!Array.isArray(s.diary) || !s.diary.every(diaryOk)) bad('diary');
+    if (!isObj(s.daily) || Object.keys(s.daily).some(function (k) { return !isDate(k) || !dayOk(s.daily[k]); })) bad('daily');
+    if (!isObj(s.recent) || Object.keys(s.recent).some(function (k) { return !isDate(k) || !nonNeg(s.recent[k]); })) bad('recent');
+    if (!Array.isArray(s.board) || s.board.length > CFG.BOARD_MAX || !s.board.every(boardOk)) bad('board');
+    if (!Array.isArray(s.guests) || !s.guests.every(guestOk)) bad('guests');
     if (s.lastSyncDate !== null && !isDate(s.lastSyncDate)) bad('lastSyncDate');
-    if (!s.settings || typeof s.settings !== 'object') bad('settings');
+    if (s.lastSync !== null && !(typeof s.lastSync === 'number' && isFinite(s.lastSync))) bad('lastSync');
+    if (!isObj(s.settings) || !isObj(s.settings.notify)) bad('settings');
     return { ok: e.length === 0, errors: e };
   }
+
+  // 型を newState の形にそろえる（オブジェクト・配列・真偽・文字列）。数は後で個別に直す
+  function shapeLike(dst, base, deep) {
+    Object.keys(base).forEach(function (k) {
+      var b = base[k];
+      if (isObj(b)) { if (!isObj(dst[k])) dst[k] = clone(b); else if (deep) shapeLike(dst[k], b, true); }
+      else if (Array.isArray(b)) { if (!Array.isArray(dst[k])) dst[k] = clone(b); }
+      else if (typeof b === 'boolean') { if (typeof dst[k] !== 'boolean') dst[k] = b; }
+      else if (typeof b === 'string') { if (typeof dst[k] !== 'string') dst[k] = b; }
+      else if (b === null) { if (dst[k] === undefined) dst[k] = null; }
+      else if (!(k in dst)) dst[k] = b;
+    });
+  }
+  function fixGoal(mode, n) {
+    var g = CFG.GOAL[mode];
+    n = typeof n === 'string' && n.trim() !== '' ? Number(n) : n;
+    if (typeof n !== 'number' || !isFinite(n)) return g.def;
+    n = g.min + Math.round((n - g.min) / CFG.GOAL.step) * CFG.GOAL.step;
+    return Math.min(g.max, Math.max(g.min, n));
+  }
+  function fixDay(r) {
+    DAY_NUM.forEach(function (k) { if (k in r && !nonNeg(r[k])) r[k] = 0; });
+    DAY_BOOL.forEach(function (k) { if (k in r) r[k] = !!r[k]; });
+    DAY_OBJ.forEach(function (k) { if (k in r && !isObj(r[k])) r[k] = {}; });
+    DAY_ARR.forEach(function (k) { if (k in r && !Array.isArray(r[k])) r[k] = []; });
+    ['alloc', 'gain'].forEach(function (k) {
+      if (!isObj(r[k])) return;
+      Object.keys(r[k]).forEach(function (id) { if (!CH.BY_ID[id] || !nonNeg(r[k][id])) delete r[k][id]; });
+    });
+    if (isObj(r.aff)) Object.keys(r.aff).forEach(function (id) { if (!CH.BY_ID[id] || !r.aff[id]) delete r.aff[id]; else r.aff[id] = true; });
+    if (Array.isArray(r.visits)) r.visits = r.visits.filter(function (id) { return typeof id === 'string' && !!CH.BY_ID[id]; });
+    if (Array.isArray(r.stations)) r.stations = r.stations.filter(function (i) { return inRange(i, 0, D.STATIONS.length - 1); });
+    if ('src' in r && r.src !== null && typeof r.src !== 'string') r.src = null;
+    if ('allocRun' in r && !runOk(r.allocRun)) delete r.allocRun;
+  }
   function migrate(obj) {
+    try { return migrateInner(obj); } catch (err) { return null; }
+  }
+  function migrateInner(obj) {
     var o = obj;
     if (typeof o === 'string') { try { o = JSON.parse(o); } catch (err) { return null; } }
-    if (!o || typeof o !== 'object' || Array.isArray(o)) return null;
+    if (!isObj(o)) return null;
     if (o.app !== undefined && o.app !== CFG.APP_ID) return null;
     if (typeof o.v === 'number' && o.v > CFG.DATA_VERSION) return null;   // この版より新しいデータは読まない
     o = clone(o);
-    var mainId = CH.BY_ID[o.mainId] && o.mainId !== 'jin' ? o.mainId : (o.slots && CH.BY_ID[o.slots[0]] && o.slots[0] !== 'jin' ? o.slots[0] : REP_IDS[0]);
-    var base = newState({ mainId: mainId, mode: o.mode, today: isDate(o.createdAt) ? o.createdAt : undefined, route: o.route });
-    (function fill(dst, src) {
-      for (var k in src) {
-        if (!(k in dst) || dst[k] === undefined) dst[k] = clone(src[k]);
-        else if (src[k] && typeof src[k] === 'object' && !Array.isArray(src[k]) && dst[k] && typeof dst[k] === 'object' && !Array.isArray(dst[k]) && k !== 'chars' && k !== 'daily' && k !== 'recent') fill(dst[k], src[k]);
-      }
-    })(o, base);
-    o.app = CFG.APP_ID; o.v = CFG.DATA_VERSION; o.mainId = mainId;
-    if (o.mode !== 'kodomo' && o.mode !== 'otona') o.mode = 'kodomo';
-    if (!CFG.GOAL[o.mode] || !isInt(o.goal)) o.goal = CFG.GOAL[o.mode].def;
+    // オブジェクトであるべきもの
+    if (!isObj(o.chars)) o.chars = {};
+    if (!isObj(o.daily)) o.daily = {};
+    if (!isObj(o.recent)) o.recent = {};
+    // 日付のおかしい日・形のおかしい日は消す
+    Object.keys(o.daily).forEach(function (d) { if (!isDate(d) || !isObj(o.daily[d])) delete o.daily[d]; });
+    Object.keys(o.recent).forEach(function (d) {
+      var v = o.recent[d];
+      if (!isDate(d) || typeof v !== 'number' || !isFinite(v) || v < 0) delete o.recent[d]; else o.recent[d] = Math.floor(v);
+    });
+    Object.keys(o.chars).forEach(function (id) { if (!CH.BY_ID[id] || !isObj(o.chars[id])) delete o.chars[id]; });
+    // 作った日: おかしければ、いちばん古い記録の日か 2026-01-01
+    if (!isDate(o.createdAt)) {
+      var ds = Object.keys(o.daily).sort();
+      o.createdAt = ds.length ? ds[0] : '2026-01-01';
+    }
+    var mode = o.mode === 'otona' ? 'otona' : 'kodomo';
+    var mainId = isMainId(o.mainId) ? o.mainId : (Array.isArray(o.slots) && isMainId(o.slots[0]) ? o.slots[0] : REP_IDS[0]);
+    var base = newState({ mainId: mainId, mode: mode, today: o.createdAt, route: o.route });
+    shapeLike(o, base, false);
+    shapeLike(o.settings, base.settings, true);
+    o.app = CFG.APP_ID; o.v = CFG.DATA_VERSION; o.mainId = mainId; o.mode = mode;
+    if (!has(ROUTES, o.route)) o.route = 'none';
+    o.goal = fixGoal(mode, o.goal);
+    if (!/^\d{2}:\d{2}$/.test(o.settings.notify.evening)) o.settings.notify.evening = base.settings.notify.evening;
+    // 数
+    STATE_NUM.forEach(function (k) { if (!nonNeg(o[k])) o[k] = 0; });
+    if (!nonNeg(o.hideBase)) o.hideBase = 0;
+    if (o.scrollsOpened > o.scrolls) o.scrollsOpened = o.scrolls;
+    if (o.stationsReached > MAX_STATIONS) o.stationsReached = MAX_STATIONS;
+    if (o.visits > D.VISIT_AT.length) o.visits = D.VISIT_AT.length;
+    if (o.round !== 1 && o.round !== 2) o.round = stationOf(o.stationsReached).round;
+    if (typeof o.lastSync !== 'number' || !isFinite(o.lastSync)) o.lastSync = null;
+    if (!isDate(o.lastSyncDate)) o.lastSyncDate = null;
+    if (!isDate(o.lastDyeDate)) o.lastDyeDate = null;
+    o.jin.shadow = !!o.jin.shadow; o.jin.revealed = !!o.jin.revealed;
+    // 体
     if (!o.chars[mainId]) o.chars[mainId] = charRec(o.createdAt);
     Object.keys(o.chars).forEach(function (id) {
-      if (!CH.BY_ID[id]) { delete o.chars[id]; return; }
-      var def = charRec(o.createdAt), c = o.chars[id];
-      for (var k in def) if (!(k in c)) c[k] = def[k];
+      var c = o.chars[id];
+      if (!nonNeg(c.shugyo)) c.shugyo = 0;
+      // 位・奥義がおかしければ 0（次の取り込みで、累計に合わせて1段ずつ上がる）
+      if (!inRange(c.rank, 0, 5)) c.rank = 0;
+      if (!inRange(c.okugi, 0, 2)) c.okugi = 0;
+      if (!nonNeg(c.bond)) c.bond = 0;
       if (!has(DYE_IDS, c.dye)) c.dye = 'none';
+      if (!isDate(c.joined)) c.joined = o.createdAt;
+      if (!isDate(c.lastBondDate)) c.lastBondDate = null;
+      if ('shadow' in c) c.shadow = !!c.shadow;
     });
-    Object.keys(o.daily).forEach(function (d) { if (!isDate(d)) delete o.daily[d]; else dayRec(o, d); });
-    if (!Array.isArray(o.slots) || !Array.isArray(o.alloc) || checkSlots(o, o.slots, o.alloc)) { o.slots = [mainId, null, null]; o.alloc = [100, 0, 0]; }
-    if (!has(o.dyes, 'none')) o.dyes.unshift('none');
+    // 日
+    Object.keys(o.daily).forEach(function (d) { fixDay(o.daily[d]); dayRec(o, d); });
+    // 配列
+    o.foundIds = o.foundIds.filter(function (id, i) { return typeof id === 'string' && CH.BY_ID[id] && id !== 'jin' && o.foundIds.indexOf(id) === i; });
     o.dyes = o.dyes.filter(function (d, i) { return has(DYE_IDS, d) && o.dyes.indexOf(d) === i; });
+    D.DYES.slice().reverse().forEach(function (dy) { if (dy.unlock.start && !has(o.dyes, dy.id)) o.dyes.unshift(dy.id); });
+    o.diary = o.diary.filter(diaryOk);
+    o.board = o.board.filter(boardOk).slice(0, CFG.BOARD_MAX);
+    o.guests = o.guests.filter(guestOk);
+    if (checkSlots(o, o.slots, o.alloc)) { o.slots = [mainId, null, null]; o.alloc = [100, 0, 0]; }
     return o;
   }
 
@@ -758,7 +912,7 @@
     weekday: weekday, addDays: addDays, diffDays: diffDays, mondayOf: mondayOf, isDate: isDate,
     judgeAffinity: judgeAffinity, bucketInfo: bucketInfo,
     validate: validate, migrate: migrate, clone: clone,
-    CHAR_IDS: CHAR_IDS, MAX_STATIONS: MAX_STATIONS
+    CHAR_IDS: CHAR_IDS, MAX_STATIONS: MAX_STATIONS, ROUTES: ROUTES
   };
   SA.Rules = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

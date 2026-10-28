@@ -316,6 +316,21 @@ section('iPhone（ios）');
   ok(!started && listener === null, '測りおわったら止めて、聞き手を外す');
   P.startMeasurementUpdates = async () => { started = true; setTimeout(() => listener && listener({ numberOfSteps: 1, currentCadence: 0.4 }), 20); };
   eq(await Steps.walkingNow(200), false, 'walkingNow: 0.4 なら false');
+  // 通知が測る時間のうちに1回も来ない（CMPedometer の最初の通知は遅い）: 直前10秒の getMeasurement で決める
+  P.startMeasurementUpdates = async () => { started = true; };
+  eq(await Steps.walkingNow(100), false, 'walkingNow: 通知なし・直前10秒もゆっくり（1歩/秒ほど）なら false');
+  const realGet = P.getMeasurement;
+  let lookback = null;
+  P.getMeasurement = async ({ start, end }) => { if (end - start <= 15000) { lookback = end - start; return { numberOfSteps: 17, startDate: start, endDate: end }; } return realGet({ start, end }); };
+  eq(await Steps.walkingNow(100), true, 'walkingNow: 通知なしでも直前10秒に17歩（1.7歩/秒）なら true');
+  eq(lookback, 10000, '代わりの読み取りは直前10秒');
+  ok(!started && listener === null, '代わりの読み取りのあとも止めて、聞き手を外す');
+  P.startMeasurementUpdates = async () => { throw new Error('not available'); };
+  eq(await Steps.walkingNow(100), true, 'walkingNow: 通知が使えない端末でも、直前10秒で決める');
+  P.getMeasurement = async () => { throw new Error('denied'); };
+  eq(await Steps.walkingNow(100), false, 'walkingNow: どちらも読めなければ false（操作できる）');
+  P.getMeasurement = realGet;
+  P.startMeasurementUpdates = async () => { started = true; setTimeout(() => listener && listener({ numberOfSteps: 1, currentCadence: 0.4 }), 20); };
   // 歩数が使えない iPhone
   setNative('ios', { CapacitorPedometer: Object.assign({}, P, { isAvailable: async () => ({ stepCounting: false }) }), Filesystem: makeFS(), Preferences: makePrefs() });
   eq((await Steps.detect()).route, 'none', 'stepCounting=false なら none');
@@ -476,6 +491,62 @@ section('通知（notify.js）');
   r = await Notify.schedule(Object.assign({}, base, { settings: { notify: { on: false } } }));
   eq([r.scheduled, calls], [[], ['cancel:7101,7102,7103']], 'on=false は消すだけ');
   eq(await Notify.cancelAll(), true, 'cancelAll');
+}
+
+/* ================= 戻るボタン（Android の MainActivity が SA.Cap.back() を呼ぶ） ================= */
+section('戻るボタン（SA.Cap.back）');
+{
+  const Cap = SA.Cap;
+  delete globalThis.document;
+  eq(Cap.back(), false, '画面がなければ false（アプリを閉じる）');
+  // 作り物の画面: #layer の中の .modal-back と、#nav のタブ
+  function makeDoc() {
+    const d = new EventTarget();
+    d.modals = []; d.layer = { hidden: true, querySelectorAll: () => d.modals };
+    d.getElementById = (id) => (id === 'layer' ? d.layer : null);
+    d.querySelector = (sel) => (sel === '#nav [data-nav]' ? { getAttribute: () => 'zukan' } : null);
+    d.open = (withClose) => {
+      const m = { closed: false };
+      const btn = withClose ? { disabled: false, click: () => { m.closed = true; d.modals = d.modals.filter((x) => x !== m); d.layer.hidden = !d.modals.length; } } : null;
+      m.querySelector = () => btn;
+      d.modals.push(m); d.layer.hidden = false;
+      return m;
+    };
+    return d;
+  }
+  const doc = makeDoc();
+  globalThis.document = doc;
+  const went = [];
+  const App = { state: {}, view: false, screen: 'home', walking: false };
+  SA.UI = { App, go: (id) => { went.push(id); App.screen = id; } };
+  eq(Cap.back(), false, 'ホームで重ねた画面がなければ false（アプリを閉じる）');
+  App.screen = 'zukan';
+  eq([Cap.back(), went, App.screen], [true, ['home'], 'home'], 'ホーム以外ならホームへ戻す');
+  const m1 = doc.open(true), m2 = doc.open(true);
+  eq([Cap.back(), m2.closed, m1.closed], [true, true, false], '重ねた画面はいちばん上だけ閉じる');
+  eq([Cap.back(), m1.closed, doc.layer.hidden], [true, true, true], 'もう一度で次の画面を閉じる');
+  const card = doc.open(false);
+  eq([Cap.back(), card.closed], [true, false], '閉じるボタンのない画面（出来事のカード）は閉じず、戻るを食べるだけ');
+  doc.modals = []; doc.layer.hidden = true;
+  App.screen = 'road'; App.walking = true; went.length = 0;
+  eq([Cap.back(), went], [false, []], '歩いているあいだは画面を動かさない');
+  App.walking = false; App.state = null; App.view = true; App.screen = 'road';
+  eq([Cap.back(), App.screen], [true, 'zukan'], 'ながめるモードはいちばん左のタブへ');
+  App.view = false; App.screen = 'onboard';
+  eq(Cap.back(), false, 'はじめての手順の途中（記録なし）は閉じる');
+  // 画面側が自分で片づける: 'backbutton' イベントを preventDefault
+  App.state = {}; App.screen = 'menu'; went.length = 0;
+  const onEv = (e) => e.preventDefault();
+  doc.addEventListener('backbutton', onEv);
+  eq([Cap.back(), went], [true, []], "document の 'backbutton' を preventDefault したら、それに任せる");
+  doc.removeEventListener('backbutton', onEv);
+  const off = Cap.onBack(() => true);
+  eq([Cap.back(), went], [true, []], 'SA.Cap.onBack の関数が true なら、それに任せる');
+  off();
+  const off2 = Cap.onBack(() => { throw new Error('x'); });
+  eq([Cap.back(), went], [true, ['home']], '登録した関数が落ちても、ふだんの片づけに進む');
+  off2();
+  delete SA.UI; delete globalThis.document;
 }
 
 console.log(`\n${pass} 件合格 / ${fail} 件不合格`);

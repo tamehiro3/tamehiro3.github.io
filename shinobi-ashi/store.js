@@ -80,6 +80,61 @@
   })();
   SA.Cap = Cap;
 
+  /* ================= 戻るボタン（Android） =================
+   * Android の戻るボタンは、MainActivity が `SA.Cap.back()` を呼ぶ（WebView の evaluateJavascript）。
+   * true を返したら「この中で片づけた」。false ならアプリを閉じる（ふつうの戻る）。
+   * 片づけ方の順:
+   *   1. document に cancelable な 'backbutton' イベントを流す。画面側が preventDefault したら片づけた扱い。
+   *   2. SA.Cap.onBack(fn) で登録した関数を、あとから登録したものから呼ぶ。true を返したら片づけた扱い。
+   *   3. どちらもなければ、画面の形から片づける: 重ねた画面（#layer の .modal-back）があれば、いちばん上の
+   *      「とじる」（[data-act=close]）を押す。閉じるボタンのない重ねた画面（出来事のカードや確かめの箱）は
+   *      閉じずに、戻るを食べるだけ（うっかりアプリが閉じないように）。重ねた画面がなく、ホーム（ながめるモードは
+   *      いちばん左のタブ）以外にいれば、そこへ戻す。
+   * ブラウザでは呼ばれない（ブラウザの戻るは画面側の history の扱い）。 */
+  if (!Cap.onBack) {
+    var backFns = [];
+    Cap.onBack = function (fn) {
+      if (typeof fn !== 'function') return function () { };
+      backFns.push(fn);
+      return function () { backFns = backFns.filter(function (f) { return f !== fn; }); };
+    };
+    Cap.back = function () {
+      var doc = root.document;
+      try {
+        if (doc && typeof root.CustomEvent === 'function') {
+          var ev = new root.CustomEvent('backbutton', { cancelable: true });
+          doc.dispatchEvent(ev);
+          if (ev.defaultPrevented) return true;
+        }
+      } catch (e) { }
+      for (var i = backFns.length - 1; i >= 0; i--) {
+        try { if (backFns[i]() === true) return true; } catch (e) { }
+      }
+      return defaultBack(doc);
+    };
+  }
+  function defaultBack(doc) {
+    try {
+      var UI = SA.UI, App = UI && UI.App;
+      if (!doc) return false;
+      var layer = doc.getElementById('layer');
+      var backs = layer && !layer.hidden ? layer.querySelectorAll('.modal-back') : [];
+      if (backs.length) {
+        if (App && App.walking) return true;                    // 歩いているあいだは何もしない（閉じもしない）
+        var top = backs[backs.length - 1];
+        var close = top.querySelector('.modal > .modal-foot [data-act="close"]') || top.querySelector('[data-act="close"]');
+        if (close && !close.disabled) close.click();
+        return true;
+      }
+      if (UI && typeof UI.go === 'function' && App && (App.state || App.view)) {
+        var homeId = App.view ? null : 'home';
+        if (!homeId) { var b = doc.querySelector('#nav [data-nav]'); homeId = b ? b.getAttribute('data-nav') : null; }
+        if (homeId && App.screen && App.screen !== homeId && !App.walking) { UI.go(homeId); return true; }
+      }
+    } catch (e) { }
+    return false;
+  }
+
   /* ================= 下ごしらえ ================= */
   function lsUsable() {
     try {

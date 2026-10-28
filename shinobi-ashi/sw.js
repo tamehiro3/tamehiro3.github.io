@@ -1,8 +1,8 @@
 // Service Worker：一度読みこめばオフラインでも遊べるようにする（同じフォルダのファイルだけ）
 // 更新時は CACHE の番号と index.html の ?v=N を両方上げる
 // インターネットの外のホストへは何もしない（同じ場所のファイル以外は扱わない）
-const CACHE = 'shinobi-ashi-v1';
-const V = '?v=1';
+const CACHE = 'shinobi-ashi-v2';
+const V = '?v=2';
 const CORE = [
   './', './index.html', './about.html', './manifest.webmanifest',
   './style.css' + V,

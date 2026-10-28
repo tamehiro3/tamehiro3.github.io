@@ -29,7 +29,7 @@
   var BROKEN = KEY + ':broken';
   var DIR = 'LIBRARY_NO_CLOUD';   // Directory.LibraryNoCloud（iOS: Library/NoCloud、Android: アプリの files/）
   var ENC = 'utf8';               // Encoding.UTF8
-  var KEEP_ON_CLEAR = /^steps\./; // clear() でも消さない設定（歩数センサーの基準など。消すと二重に数えるおそれ）
+  var KEEP_ON_CLEAR = /^(steps\.|gate)/; // clear() でも消さない設定（steps.: 歩数センサーの基準。消すと二重に数えるおそれ。gate: 関門の gateLock・gateMiss・gateLevel。消すと1分待ちを抜けられる）
 
   /* ================= SA.Cap: Capacitor の有無とプラグイン ================= */
   // import は使えない（ビルドなし）。アプリでは www/capacitor.js（@capacitor/core の素の JS 版）が
@@ -425,7 +425,7 @@
       return serial(function () { return be().write(text); })
         .then(function (ok) { return !!ok; }, function () { return false; });
     },
-    /** 進行データを消す。opts.prefs が false でなければ設定も消す（steps. で始まる歩数の基準は残す。opts.all で全部） */
+    /** 進行データを消す。opts.prefs が false でなければ設定も消す（steps. で始まる歩数の基準と gate で始まる関門の待ち・まちがい回数は残す。opts.all で全部） */
     clear: function (opts) {
       opts = opts || {};
       return serial(function () {

@@ -263,7 +263,7 @@
             h('div.rep-x', [h('b.rep-n', { text: nameF(r.id, true) }), h('span.clan-tag', { text: clanF(r.clan) + 'の{里|さと}', style: { '--c': ((D().CLANS || {})[r.clan] || {}).color || '#666' } }), h('p', { text: r.pitch })])
           ]);
         })),
-        h('div.ob-foot', [prevB(1), btn('この{相棒|あいぼう}にする', function () { if (ob.mainId) next(3); }, 'primary big', { attrs: { type: 'button', 'data-act': 'next' }, disabled: !ob.mainId })])
+        h('div.ob-foot.sticky', [prevB(1), btn('この{相棒|あいぼう}にする', function () { if (ob.mainId) next(3); }, 'primary big', { attrs: { type: 'button', 'data-act': 'next' }, disabled: !ob.mainId })])
       ];
     } else if (step === 3) {
       var G = CFG().GOAL || { kodomo: { def: 10000 }, otona: { def: 8000 } };
@@ -425,6 +425,10 @@
       btn('{巻物|まきもの} <b>' + sm.scrolls + '</b>', function () { U().go('jutsu'); }, 'scroll-b' + (sm.scrolls > 0 ? ' has' : ''), { attrs: { type: 'button', 'data-act': 'scrolls' }, html: furiInline('{巻物|まきもの}') + ' <b data-scrolls="' + sm.scrolls + '">' + sm.scrolls + '</b>' })
     ]);
     var today2 = h('div.today-box', [ringBox, stat]);
+    // 輪は端末の歩数、修行値は採用した歩数。入らなかった分があれば、そのわけを小さく出す
+    var rejNote = sm.rejected > 0 ? h('p.muted.rej-note', { attrs: { 'data-rejected': String(sm.rejected) }, text:
+      (s.mode !== 'otona' ? '{夜|よる}おそく（0〜5{時|じ}）の{歩数|ほすう}や、{速|はや}すぎる{歩数|ほすう}は{修行|しゅぎょう}に{入|はい}らないよ。' : '{速|はや}すぎる{歩数|ほすう}は{修行|しゅぎょう}に{入|はい}らないよ。') +
+      '（{入|い}れなかった{歩数|ほすう} ' + n(sm.rejected) + '）' }) : null;
     // 吹き出しが「今日はここまで…」を言うので、緑の枠は短い見出しだけ
     var capMsg = sm.capped ? h('div.cap-msg', { text: '✓ {今日|きょう}の{修行値|しゅぎょうち}は{上限|じょうげん}に{届|とど}いたよ' }) : null;
     // 試遊で、まだ1歩も足していないときの手がかり（はじめのうちだけ）。背の低い画面でも見えるように、手がかりと「取り込む」を輪より上に出す
@@ -458,7 +462,7 @@
     }
     var info = A().info || {};
     var note = info.route === 'androidC' ? h('p.muted', { text: '（この{端末|たんまつ}では、{開|ひら}かなかった{日|ひ}の{分|ぶん}は、{開|ひら}いた{日|ひ}の{修行|しゅぎょう}に{入|はい}る）' }) : null;
-    return screenWrap(null, [hero, section(null, simHint ? [simHint, syncB, today2, capMsg, choice, fam] : [today2, capMsg, syncB, choice, fam]), section(null, bars), note], 'home');
+    return screenWrap(null, [hero, section(null, simHint ? [simHint, syncB, today2, rejNote, capMsg, choice, fam] : [today2, rejNote, capMsg, syncB, choice, fam]), section(null, bars), note], 'home');
   }
   function furiInline(t) { return U().furi(t); }
   function setChoice(home) {
@@ -467,6 +471,7 @@
     if (r && !r.error) { U().setState(r); U().save(); }
     U().render();
   }
+  var GUEST_LAP = 16;   // 里の客が帯を1回わたる秒数
   function guestStrip(sm) {
     var h = U().h;
     var g = (sm && sm.guests) || [];
@@ -476,7 +481,8 @@
       var el = null;
       if (SA.Fig && SA.Fig.el) { try { el = SA.Fig.el(x.id, { state: 'walk', view: 'walkR', dye: x.dye || 'none' }, 44); } catch (e) { el = null; } }
       if (!el) return;
-      var w = h('div.guest', { style: { 'animation-delay': (-i * 4.5) + 's' } }, [el]);
+      // 歩く位置は時計から決める（描き直しても外から歩き直さない）。体どうしは 1周の 1/5 ずつずらす
+      var w = h('div.guest', { style: { 'animation-delay': (-((Date.now() / 1000 + i * GUEST_LAP / 5) % GUEST_LAP)).toFixed(2) + 's', 'animation-duration': GUEST_LAP + 's' } }, [el]);
       strip.appendChild(w);
     });
     return strip;
@@ -681,8 +687,11 @@
     });
     if (aff.length) out.unshift({ type: 'affinity', ids: aff });
     if (sc) out.push({ type: 'scroll', n: sc });
-    return out;
+    // 喜ぶ出来事を先に、「今日はここまで」は最後（巻物の直前）。同じ順位の中は起きた順のまま（安定ソート）
+    return out.map(function (e, i) { return { e: e, i: i, k: EV_ORDER[e.type] != null ? EV_ORDER[e.type] : 6 }; })
+      .sort(function (a, b) { return a.k - b.k || a.i - b.i; }).map(function (x) { return x.e; });
   }
+  var EV_ORDER = { affinity: 0, visit: 1, jinShadow: 1, jinReveal: 1, rank: 2, okugi: 2, station: 3, stationEvent: 3, goal: 4, bond: 5, dyeUnlock: 6, hideOpen: 6, rest: 7, week: 7, cap: 8, scroll: 9 };
   function eventTitle(e) {
     switch (e.type) {
       case 'visit': return nameF(e.id) + 'がやってきた！';
@@ -908,7 +917,7 @@
     var diary = s && s.diary && s.diary.length ? section('{旅|たび}の{日記|にっき}', [h('ul.diary', s.diary.slice().reverse().slice(0, 60).map(function (d) {
       var di = s.diary.indexOf(d);
       var stamp = d.stamp != null && T().stamps ? T().stamps[d.stamp] : null;
-      var li = h('li', [h('span.d-date', { html: U().esc(d.date.slice(5).replace('-', '/')) }), h('b', { text: stationF(d.idx) + ((d.round || 1) === 2 ? '（{帰|かえ}り）' : '') }),
+      var li = h('li', [h('span.d-date', { html: mdF(d.date) }), h('b', { text: stationF(d.idx) + ((d.round || 1) === 2 ? '（{帰|かえ}り）' : '') }),
         stamp ? h('span.d-stamp', { text: stamp }) : (A().state ? U().btn('スタンプ', function () { var m = U().modal([stampPicker(di)], { title: stationF(d.idx), onClose: function () { U().render(); } }); }, 'small ghost', { attrs: { type: 'button', 'data-act': 'diary-stamp' } }) : null)]);
       return li;
     }))]) : null;
@@ -971,6 +980,9 @@
         var vs = [['front', 'まえ'], ['quarter', 'ななめ'], ['side', 'よこ'], ['back', 'うしろ']];
         tabBox.appendChild(h('div.views4', vs.map(function (v) { return h('figure', [fig(id, 'normal', 90, { view: v[0] }), h('figcaption', { text: v[1] })]); })));
         if (!weaponShown(id, rec.rank)) tabBox.appendChild(h('p.muted', { text: '{武器|ぶき}は{中忍|ちゅうにん}になると{見|み}られるよ。' }));
+      } else if (id === 'magoichi' && !CFG().SHOW_GUN) {
+        // 公式イラストは銃を持った姿なので、SHOW_GUN が false のあいだは出さない（武器欄の「ひみつ」と同じ。ながめるモードも同じ）
+        tabBox.appendChild(h('p.muted.center', { attrs: { 'data-art': 'hidden' }, text: 'この{公式|こうしき}イラストは、いまは{見|み}せていません。' }));
       } else {
         tabBox.appendChild(h('figure.official', [h('img', { attrs: { src: 'img/art/' + id + '.jpg', alt: c.name + ' 公式イラスト', loading: 'lazy', decoding: 'async' } }), h('figcaption', { text: '{公式|こうしき}イラスト（CryptoNinja・CC0）' })]));
       }
@@ -1016,7 +1028,11 @@
     var sm = U().summary() || {};
     var hide = sm.hide || { open: false, toOpen: 0, candidates: [], searchesLeft: 0, toNextSearch: 0 };
     var hideSec;
-    if (!hide.open) {
+    var noCand = hide.open && !(hide.candidates || []).length;
+    if (noCand) {
+      // 候補がいない（38体が来た／刃だけが残る／見つけた体が来るのを待っている）。探す・絵の帯・「あと〇歩」は出さない
+      hideSec = section('{隠|かく}れ{里|ざと}', [h('div.center', [fig(s.mainId, 'normal', 100)]), h('p', { attrs: { 'data-hide': 'none' }, text: hideQuietText() })]);
+    } else if (!hide.open) {
       hideSec = section('{隠|かく}れ{里|ざと}', [h('div.center', [fig(s.mainId, 'normal', 100)]), h('p', { text: 'まだ{静|しず}か。{最初|さいしょ}の8{人|にん}がそろうと、だれかがかくれにくるよ。' }), h('p.muted', { text: 'あと ' + n(hide.toOpen) + '{歩|ほ}' })]);
     } else {
       hideSec = section('{隠|かく}れ{里|ざと}', [
@@ -1046,11 +1062,20 @@
     var dyeSec = dyeSection(sm);
     return screenWrap('{里|さと}', [hideSec, boardSec, dyeSec], 'sato');
   }
+  /** 隠れ里に候補がいないときの一文。まだ来ていない体（刃のほか）が残っていれば「来るのを待とう」 */
+  function hideQuietText() {
+    var sp = T().special || {}, s = A().state, left = [];
+    try { if (s && R() && R().queue) left = R().queue(s).filter(function (id) { return id !== 'jin'; }); } catch (e) { left = []; }
+    if (left.length) return sp.allSpotted || 'かくれていた{忍|しのび}は、みんな{見|み}つけたよ。{里|さと}に{来|く}るのを{待|ま}っていよう。';
+    return sp.allFound || 'みんな{里|さと}に{来|き}てくれたよ。{隠|かく}れ{里|ざと}はしずかになった。';
+  }
   function doSearch() {
     var r = U().apply('search');
     if (!r) return;
     var sp = T().special || {};
-    if (r.found) {
+    if (!r.found && r.reason === 'noCandidate') {
+      U().modal([U().h('p', { text: hideQuietText() })], { title: '{隠|かく}れ{里|ざと}', onClose: function () { U().render(); } });
+    } else if (r.found) {
       U().setState(r.state); U().save();
       U().modal([h2fig(r.found), U().h('p', { text: U().fill(sp.found || '{隠|かく}れ{里|ざと}で{name}を{見|み}つけた！', { name: nameF(r.found, true) }) })], { title: '{見|み}つけた！', onClose: function () { U().render(); } });
       U().chime();
@@ -1084,6 +1109,14 @@
     }));
     U().modal([pickRow, view, h('p.muted', { text: '{家族|かぞく}の{端末|たんまつ}で「{読|よ}む」を{押|お}して、この QR を{読|よ}んでもらってね。QR に{入|はい}るのは{相棒|あいぼう}の{番号|ばんごう}・{位|くらい}・{修行値|しゅぎょうち}・{染|そ}め{色|いろ}・{絆|きずな}・{宿場|しゅくば}だけ。{名前|なまえ}や{歩数|ほすう}は{入|はい}らないよ。' })], { title: '{相棒|あいぼう}を{見|み}せる', cls: 'qr-modal' });
     draw();
+    centerOn(pickRow);
+  }
+  /** 横に並んだ札（.qp）の中で、選ばれている札（.on）を並びのまん中に出す（並びだけを横に動かす。画面は動かさない） */
+  function centerOn(row) {
+    var on = row && row.querySelector('.qp.on');
+    if (!on) return;
+    var a = on.getBoundingClientRect(), b = row.getBoundingClientRect();
+    row.scrollLeft += (a.left - b.left) - (b.width - a.width) / 2;
   }
   function readQR() {
     var h = U().h;
@@ -1141,7 +1174,7 @@
       if (!r.ok) { U().toast(r.reason === 'already' ? '{今日|きょう}はもう{染|そ}めたよ' : '{染|そ}められなかったよ', 'ng'); return; }
       U().setState(r.state); U().save(); U().toast(nameF(selC) + 'を「' + dyeF(selD) + '」に{染|そ}めたよ'); U().chime(); U().render();
     }, 'primary', { attrs: { type: 'button', 'data-act': 'dye' } });
-    setTimeout(draw, 0);
+    setTimeout(function () { draw(); centerOn(cRow); }, 0);
     return section('{市|いち}の{染|そ}め（{今日|きょう}は{日曜日|にちようび}）', [cRow, prev, dRow, h('div.center', [doB])]);
   }
   function dyeChips(dyes) {
@@ -1416,7 +1449,7 @@
     broken: broken, resetOnboard: resetOnboard,
     onboard: onboard, home: home, shugyo: shugyo, jutsu: jutsu, road: road, zukan: zukan, sato: sato, review: review,
     menu: menu, parent: parent, viewfile: viewfile,
-    showEvents: showEvents, zukanDetail: zukanDetail, playJutsu: playJutsu, eventTitle: eventTitle,
+    showEvents: showEvents, mergeEvents: mergeEvents, zukanDetail: zukanDetail, playJutsu: playJutsu, eventTitle: eventTitle,
     nameF: nameF, jutsuF: jutsuF, bioF: bioF, word: word, stationF: stationF
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = SA.Screens;

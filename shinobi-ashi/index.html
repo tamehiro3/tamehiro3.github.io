@@ -2,6 +2,8 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
+  <!-- 同じ場所のファイルだけを読み、外へは通信しない（app/scripts/copy-web.mjs がアプリ版に入れるものと同じ） -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob: mediastream:; font-src 'self'; connect-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'; frame-src 'none'">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>忍び足 | 家族で歩く三十九の里</title>
   <meta name="description" content="毎日の歩数で忍者の相棒を育てる、家族向けの歩数ゲーム。無料・広告なし・課金なし。歩数はインターネットに送りません。CryptoNinja（CC0・Ninja DAO）のキャラクターを使った個人制作の非公式ファンゲームです。">
@@ -13,7 +15,7 @@
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="忍び足">
-  <link rel="stylesheet" href="style.css?v=2">
+  <link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
   <div id="app">
@@ -44,20 +46,20 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <script src="vendor/qrcode.js?v=2"></script>
-  <script src="vendor/jsQR.js?v=2"></script>
-  <script src="art.js?v=2"></script>
-  <script src="chars.js?v=2"></script>
-  <script src="data.js?v=2"></script>
-  <script src="content.js?v=2"></script>
-  <script src="rules.js?v=2"></script>
-  <script src="figure.js?v=2"></script>
-  <script src="fx.js?v=2"></script>
-  <script src="store.js?v=2"></script>
-  <script src="steps.js?v=2"></script>
-  <script src="notify.js?v=2"></script>
-  <script src="share.js?v=2"></script>
-  <script src="screens.js?v=2"></script>
-  <script src="ui.js?v=2"></script>
+  <script src="vendor/qrcode.js?v=3"></script>
+  <script src="vendor/jsQR.js?v=3"></script>
+  <script src="art.js?v=3"></script>
+  <script src="chars.js?v=3"></script>
+  <script src="data.js?v=3"></script>
+  <script src="content.js?v=3"></script>
+  <script src="rules.js?v=3"></script>
+  <script src="figure.js?v=3"></script>
+  <script src="fx.js?v=3"></script>
+  <script src="store.js?v=3"></script>
+  <script src="steps.js?v=3"></script>
+  <script src="notify.js?v=3"></script>
+  <script src="share.js?v=3"></script>
+  <script src="screens.js?v=3"></script>
+  <script src="ui.js?v=3"></script>
 </body>
 </html>

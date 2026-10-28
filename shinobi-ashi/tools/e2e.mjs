@@ -351,6 +351,25 @@ async function runFlow(browser, base, W, H) {
   ok(img, `[${tag}] 公式イラストが読める`);
   await snap('zukan-art'); await check('公式イラスト');
   await click('[data-act="close"]');
+  // 孫市の公式イラスト（銃を持った姿）は、SHOW_GUN が false のあいだ出さない
+  if (!(await page.evaluate(() => !!SA.DATA.CONFIG.SHOW_GUN))) {
+    await page.evaluate(() => SA.Screens.zukanDetail('magoichi')); await sleep(250);
+    await page.locator('.modal').last().locator('[data-tab="art"]').click(); await sleep(400);
+    ok((await page.locator('img[src*="img/art/magoichi"]').count()) === 0 && (await has('[data-art="hidden"]')), `[${tag}] 孫市の公式イラストのタブに img/art/magoichi.jpg が出ない（SHOW_GUN=false）`);
+    await check('孫市の公式イラスト（伏せる）');
+    await click('.modal [data-act="close"]');
+  }
+  // ブラウザの「戻る」: 重ねた画面がないときは、ページを離れずにホームへもどる
+  {
+    const u0 = page.url();
+    await page.goBack(); await sleep(300);
+    ok(page.url() === u0 && await page.evaluate(() => SA.UI.App.screen === 'home' && !!SA.UI.App.state), `[${tag}] 図鑑で「戻る」を押すと、ページを離れずにホームへ`, await page.evaluate(() => SA.UI.App.screen).catch(() => page.url()));
+  }
+  // 出来事のカードの順: 喜ぶ出来事が先、「今日はここまで」は巻物の前
+  {
+    const order = await page.evaluate(() => SA.Screens.mergeEvents([{ type: 'cap' }, { type: 'goal' }, { type: 'rank', id: 'sakuya', rank: 2 }, { type: 'visit', id: 'kohaku', n: 1 }, { type: 'scroll', n: 2 }, { type: 'affinity', id: 'sakuya' }]).map(e => e.type).join(','));
+    ok(order === 'affinity,visit,rank,goal,cap,scroll', `[${tag}] 出来事のカードの順`, order);
+  }
 
   // ===== 7) 里の掲示板: 自分の QR を出して、画像にして読み戻す =====
   await click('[data-nav="sato"]', 300); await snap('sato'); await check('里');

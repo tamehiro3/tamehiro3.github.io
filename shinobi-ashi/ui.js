@@ -49,7 +49,13 @@
       out += s.slice(last, x.at) + '<ruby' + st + '>' + base + '<rt>' + rt + '</rt></ruby>';
       last = x.end;
     });
-    return out + s.slice(last);
+    return nobreak(out + s.slice(last));
+  }
+  // ルビ（inline-block）のまわりでは行頭・行末の禁則が効かないので、ルビのすぐあとの閉じの約物（。、」）！？… など）と、
+  // すぐ前の開きかっこ（「（ など）を、ルビと一緒に改行しない1つの span に包む
+  var NB_RE = /([「『（【〔［｛〈《]*)(<ruby[^>]*>[^<]*<rt>[^<]*<\/rt><\/ruby>)([。、，．」』）】〕］｝〉》！？!?…‥ー〜・：；]*)/g;
+  function nobreak(html) {
+    return html.replace(NB_RE, function (m, open, rb, close) { return open || close ? '<span class="nb">' + open + rb + close + '</span>' : m; });
   }
   // 文の端ではみ出してよい幅・いちばん大きくはみ出す幅（親字の em）・ルビの字の大きさの見積もり（14px の文字で 9px）
   var FURI_EDGE = 0.6, FURI_MAX = 1.5, FURI_Q = 0.65;
@@ -204,6 +210,8 @@
   /** 画面へ移る（params はその画面へ渡す） */
   function go(id, params) {
     clearToast();
+    simOpen = false;   // ためし歩きの引き出しは、画面を移るときに閉じる（新しい画面を隠さないように）
+    if (App.screen === 'parent' && id !== 'parent') App.parentOK = false;   // 保護者設定を出たら、もう一度関門から
     App.screen = id; App.params = params || {};
     render();
     var main = doc.getElementById('screen');
@@ -227,6 +235,7 @@
     renderBanner();
     renderSim();
     updateBlock();
+    histSync();
   }
   function renderBanner() {
     var b = doc.getElementById('banner');
@@ -342,17 +351,31 @@
     if (b && !b.disabled) b.click();
     return true;
   }
-  // ブラウザ: 重ねた画面が開いているあいだ、履歴を1つ積んでおく。「戻る」（popstate）でいちばん上を閉じる。
-  // 画面のボタンで閉じたときは、積んだ1つを自分で戻す（すぐ次の重ねた画面が開くとき＝出来事のカードの「つぎへ」は残す）
+  // ブラウザ: 履歴を2段まで積む。ホーム（ながめるモードでは図鑑）以外の画面にいるあいだ1段（saScreen）、
+  // 重ねた画面・忍術の間が開いているあいだもう1段（saLayer）。「戻る」（popstate）で、いちばん上の重ねた画面を閉じる。
+  // 重ねた画面がなければ、ホームへもどる（Android の戻るボタン SA.Cap.back と同じふるまい）。ホームでの「戻る」はページを離れる。
+  // 画面のボタンで閉じた・ホームへ移ったときは、積んだ段を自分で戻す（すぐ次の重ねた画面が開くとき＝出来事のカードの「つぎへ」は残す）
   var hist = { ignore: 0, timer: 0 };
   function histOn() { return !!(root.history && root.history.pushState && doc && !isNative()); }
-  function histOurs() { try { return !!(root.history.state && root.history.state.saLayer); } catch (e) { return false; } }
+  /** いま積んである段（0: なし、1: 画面、2: 重ねた画面） */
+  function histLevel() { try { var st = root.history.state; return st && st.saLayer ? 2 : st && st.saScreen ? 1 : 0; } catch (e) { return 0; } }
+  function baseScreen() { return App.view ? 'zukan' : 'home'; }
+  /** ホームから離れた画面にいるか（はじめて・記録が読めない画面は数えない） */
+  function screenDeep() { return !!((App.state || App.view) && App.screen !== baseScreen() && App.screen !== 'onboard' && App.screen !== 'broken'); }
+  function histWant() { return overlayOpen() ? 2 : screenDeep() ? 1 : 0; }
+  function histPush(st) { try { root.history.pushState(st, ''); } catch (e) { } }
   function histSync() {
     if (!histOn()) return;
     clearTimeout(hist.timer);
-    if (overlayOpen()) { if (!histOurs()) try { root.history.pushState({ saLayer: 1 }, ''); } catch (e) { } return; }
+    var want = histWant(), cur = histLevel();
+    if (want > cur) {
+      if (cur < 1 && want === 2 && screenDeep()) histPush({ saScreen: 1 });
+      histPush(want === 2 ? { saLayer: 1 } : { saScreen: 1 });
+      return;
+    }
+    if (want === cur) return;
     hist.timer = setTimeout(function () {
-      if (overlayOpen() || !histOurs()) return;
+      if (histWant() >= histLevel()) return;
       hist.ignore++;
       try { root.history.back(); } catch (e) { hist.ignore--; }
     }, 0);
@@ -360,6 +383,7 @@
   if (root.addEventListener && doc) root.addEventListener('popstate', function () {
     if (hist.ignore > 0) { hist.ignore--; histSync(); return; }
     if (overlayOpen()) handleBack();
+    else if (!App.walking && screenDeep()) { go(baseScreen()); return; }   // go → render が histSync を呼ぶ
     histSync();
   });
   // Android: @capacitor/app の backButton から store.js が SA.Cap.back() を呼ぶと、まず 'backbutton' が流れてくる。片づけたら preventDefault。

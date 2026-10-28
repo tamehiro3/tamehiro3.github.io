@@ -29,17 +29,17 @@ python3 -m http.server 8765
 # → http://127.0.0.1:8765/shinobi-ashi/
 ```
 
-ブラウザでは `data.js` の `CONFIG.WEB_TRIAL` が `true` のとき「ためし歩き（試遊版だけ）」の引き出しが出ます（+500〜+10,000歩、時間帯、歩き方、次の日へ、7日すすめる、歩いている（テスト）、はじめから）。
+ブラウザでは `data.js` の `CONFIG.WEB_TRIAL` が `true` のとき「ためし歩き（試遊版だけ）」の引き出しが出ます（+500〜+10,000歩、時間帯、歩き方、次の日へ、7日すすめる、14日とばす（修行お休みを試す）、歩いている（テスト）、はじめから）。
 `false` にすると、ブラウザは「ながめるモード」（図鑑・忍びの道・書き出しファイルを開く）だけになります。
 
 ## ファイル
 
-読み込み順（`index.html`）: `vendor/qrcode.js` → `vendor/jsQR.js` → `art.js` → `chars.js` → `data.js` → `content.js` → `rules.js` → `figure.js` → `fx.js` → `store.js` → `steps.js` → `notify.js` → `share.js` → `screens.js` → `ui.js`（どれも `?v=1` 付き）
+読み込み順（`index.html`）: `vendor/qrcode.js` → `vendor/jsQR.js` → `art.js` → `chars.js` → `data.js` → `content.js` → `rules.js` → `figure.js` → `fx.js` → `store.js` → `steps.js` → `notify.js` → `share.js` → `screens.js` → `ui.js`（どれも `?v=2` 付き）
 
 | ファイル | 役割 |
 |---|---|
 | `index.html` / `style.css` | 画面の骨組みと見た目（和紙の色、幅 360〜430px の縦長、PC では中央 480px の列） |
-| `ui.js`（`SA.UI`） | ふりがな（`furi`）、部品、モーダル、画面の切り替え、起動と取り込みの流れ、歩行中判定、関門、ためし歩きの引き出し、`about.html` の本文 |
+| `ui.js`（`SA.UI`） | ふりがな（`furi`。ルビは親字の上に重ねて置き、親字の間や前後を空けない。となり合うルビ（`{目標|もくひょう}{歩数|ほすう}`）は1つにまとめる）、部品、モーダル、画面の切り替え、起動と取り込みの流れ、歩行中判定、関門、ためし歩きの引き出し、`about.html` の本文 |
 | `screens.js`（`SA.Screens`） | 各画面: はじめて（手順0〜6）・ホーム・修行枠・忍術の間・出来事のカード・忍びの道・図鑑・里（隠れ里・家族の掲示板・市の染め）・ふりかえり・メニュー・保護者設定・ながめるモード |
 | `about.html` | 遊び方・おうちの方へ（広告コードなし） |
 | `sw.js` / `manifest.webmanifest` / `icons/` | ホーム画面に追加・オフライン。`version.txt` は版の確かめ用 |
@@ -47,7 +47,7 @@ python3 -m http.server 8765
 | `rules.js`（`SA.Rules`） | ルール（取り込みの冪等・不採用・上限・配分・相性16種・位・来訪・宿場と二巡目・巻物・絆・かくれる探し・掲示板・染め・祝日・満月・二十四節気・ふりかえり・診断・validate/migrate）。DOM・時計・乱数・通信を使わない |
 | `content.js`（`SA.TEXT`） | 文章（絆の一言96本・あいさつ39・節気24・宿場の小話51・図鑑文39・おうちの方へ・遊び方・スタンプ12） |
 | `steps.js`（`SA.Steps`） | 歩数の取り出し口（iOS・Android(b) Recording API・Android(c) 歩数センサーの差分・ためし歩き・なし） |
-| `store.js`（`SA.Store`・`SA.Cap`） | 保存（ブラウザ: localStorage、アプリ: LibraryNoCloud の progress.json と Preferences） |
+| `store.js`（`SA.Store`・`SA.Cap`） | 保存（ブラウザ: localStorage、アプリ: LibraryNoCloud の progress.json と Preferences）。壊れて控えも読めないときは `load()` が壊れた印（`SA.Store.isCorrupt`）を返し、画面は「記録が読めませんでした」を出す。Android の戻るボタン（`SA.Cap.wireBack`・`SA.Cap.back`） |
 | `notify.js`（`SA.Notify`） | ローカル通知3種（アプリだけ。21〜7時は出さない） |
 | `share.js`（`SA.Share`） | 見せ合い QR（`SA1-`＋29文字、CRC32）、カメラと画像からの読み取り、書き出し・読み込み、診断ファイル |
 | `vendor/qrcode.js` / `vendor/jsQR.js` | QR を作る・読むライブラリ（書き換えなし。`vendor/LICENSES.md`） |
@@ -72,21 +72,24 @@ node shinobi-ashi/tools/test_rules.mjs                 # 合格 445 / 不合格 
 node shinobi-ashi/tools/test_share.mjs                 # 合格 1059 / 不合格 0（--no-browser で Node の部だけ: 1042）
 node shinobi-ashi/tools/test_figure.mjs                # 4095 合格 / 0 不合格（約2秒）
 node shinobi-ashi/tools/test_figure.mjs --browser --fx # 4113 合格 / 0 不合格（約70秒。全32種の演出を再生）
-node shinobi-ashi/tools/check_content.mjs              # 合格 987 / 不合格 0（--list で読みが2通りある親字の一覧）
-node shinobi-ashi/app/scripts/test-platform.mjs        # 189 件合格 / 0 件不合格（Capacitor は作り物に差し替え）
-node shinobi-ashi/tools/e2e.mjs [--out <dir>]          # 合格 578 / 不合格 0（約2分。2つの画面の大きさ）
+node shinobi-ashi/tools/check_content.mjs              # 合格 1011 / 不合格 0（--list で読みが2通りある親字の一覧）
+node shinobi-ashi/app/scripts/test-platform.mjs        # 211 件合格 / 0 件不合格（Capacitor は作り物に差し替え）
+node shinobi-ashi/tools/e2e.mjs [--out <dir>]          # 合格 686 / 不合格 0（約2分半。2つの画面の大きさ）
 ```
 
 `e2e.mjs` は、リポジトリ直下で `python3 -m http.server` を空いているポートに立て、`http://127.0.0.1:<port>/shinobi-ashi/` を開きます（終わったら止めます）。通しの中身:
 
 はじめて（手順0〜6・主相棒・こども）→ ためし歩きで +10,000 を8日（とちゅうで「7日すすめる」）→ 出来事のカード（来訪・位・宿場・巻物・目標・絆・染め色・相性・まとめて見る）→ 巻物を開いて忍術の間 → 修行枠に来訪した体を入れて割り当てを変える → 歩いている（テスト）→ 忍びの道 → 図鑑の詳細（6つの顔・4つの向き・公式イラスト）→ 里の掲示板で自分の QR を出し、その QR を画像にして「画像から読む」で読み戻す → 保護者設定（関門を正しく解く）→ 書き出し → はじめから → 読み込みで戻る → ふりかえり（一日・週）→ ふりがな「なし」→ about.html → WEB_TRIAL=false のながめるモード（`data.js` を書きかえて配る。書き出しファイルを開く）
 
-数えるもの: 外部ホストへの要求（0）、コンソールのエラーと pageerror（0）、ルビのない漢字（関門の問題文 `#gate-q` は除く）、`{` `|` `}` の残り、横あふれ、「公認」「コラボ」、ふりかえりの「連続」。スクリーンショットは `--out`（既定は OS の一時フォルダの `shinobi-ashi-e2e/`）に、画面の大きさごとに61枚ずつ置きます。
+ほかに、ブラウザの「戻る」で重ねた画面が閉じてページは移らないこと、消す確かめ（消す方が赤、緑の主ボタンなし、「やめる」が選ばれている）、ためし歩きの「14日とばす」で修行お休みのカードが出ること、宿場の小話に「着いた日」が出ることも確かめます。
+
+数えるもの: 外部ホストへの要求（0）、コンソールのエラーと pageerror（0）、ルビのない漢字（関門の問題文 `#gate-q` は除く）、ルビどうしの重なりと親字の間の空き（どの画面も0）、`{` `|` `}` の残り、横あふれ、「公認」「コラボ」、ふりかえりの「連続」。スクリーンショットは `--out`（既定は OS の一時フォルダの `shinobi-ashi-e2e/`）に、画面の大きさごとに62枚ずつ置きます。
 いまの結果: 390×844 も 360×640 も、外部への要求 0・コンソールのエラー 0・pageerror 0。
 
 ## アプリ化
 
-`app/` に Capacitor 8 の土台があります（Android: 自作プラグイン `ShinobiSteps`、iOS: `@capgo/capacitor-pedometer`）。組み立て・実機での確かめ方・この環境で作れなかったもの（APK/IPA）は `app/README.md` を見てください。
+`app/` に Capacitor 8 の土台があります（Android: 自作プラグイン `ShinobiSteps`、iOS: `@capgo/capacitor-pedometer`）。
+Android の戻るボタンは `@capacitor/app` 8.1.2（MIT。Android だけに入れる）の `backButton` を `store.js` の `SA.Cap.wireBack()` がつなぎ、`SA.Cap.back()` で重ねた画面を1枚ずつ閉じます（片づけるものがなくホームにいればアプリを閉じる）。`MainActivity` の `OnBackPressedCallback` はやめました。組み立て・実機での確かめ方・この環境で作れなかったもの（APK/IPA）は `app/README.md` を見てください。
 
 ```sh
 cd shinobi-ashi/app
@@ -98,7 +101,7 @@ npm run sync      # shinobi-ashi の中身を www に写し（sw.js・tools・do
 
 ## 更新するとき
 
-- 中身を変えたら `index.html`（と `about.html`）の `?v=1` と、`sw.js` の `CACHE`（`shinobi-ashi-v1`）・`V`（`?v=1`）を同じ番号に上げる。上げないと、ホーム画面に追加した人に古い版が残る
+- 中身を変えたら `index.html`（と `about.html`）の `?v=N`（いまは `?v=2`）と、`sw.js` の `CACHE`（`shinobi-ashi-v2`）・`V`（`?v=2`）を同じ番号に上げる。上げないと、ホーム画面に追加した人に古い版が残る
 - ファイルを足したら `sw.js` の `CORE` にも足す（`tools/`・`docs/`・`app/` は入れない）
 - `data.js` の数値を変えたら、理由を `docs/CHANGES.md` に1行書く。文章の数値（上限・巻物など）は content.js が `CONFIG` から差し込むので追随する（こどもの時間帯の文だけは手で直す）
 - アイコンは `node shinobi-ashi/tools/build_icons.mjs` で作り直す。図柄は月・足袋の足あと・巻物で、キャラクターと CryptoNinja の語は入れていない
@@ -109,6 +112,7 @@ npm run sync      # shinobi-ashi の中身を www に写し（sw.js・tools・do
 
 - QR のライブラリ: `vendor/LICENSES.md`（qrcode-generator 2.0.4 は MIT、jsQR 1.4.0 は Apache-2.0。QR コードは株式会社デンソーウェーブの登録商標）
 - iOS の歩数: `@capgo/capacitor-pedometer` は MPL-2.0（`app/README.md`）
+- アプリ版のほかの部品（Capacitor と `@capacitor/*` は MIT、AndroidX・Apache Cordova は Apache-2.0、Google Play 開発者サービスは Google の規約）: `vendor/LICENSES.md`。ブラウザ版で使う部品は QR の2つだけ
 - キャラクター: CryptoNinja（CC0・Ninja DAO）。このゲームは非公式のファンゲームです
 
 ## 設計図との差（docs/SPEC.md 6 の要約）
@@ -135,6 +139,7 @@ npm run sync      # shinobi-ashi の中身を www に写し（sw.js・tools・do
 
 - iOS の7日・Android(b) の10日の境界、再起動、バックアップからの復元、機内モード
 - 3秒の歩行中判定、前景に戻ったときの取り込み、通知の許可の流れ
+- Android の戻るボタン（`@capacitor/app`）で重ねた画面が1回に1枚だけ閉じ、ホームでアプリが閉じるか（この環境では作り物の Capacitor でだけ確かめた）
 - カメラでの QR 読み取り（ブラウザでは偽のカメラと画像ファイルで確かめた）
 - INTERNET 権限を外した WebView で画面が出るか、CSP が画面を止めないか（Chromium で www を開いたときは CSP の違反0）
 - 満月の13日（2026年）を公表元（国立天文台の暦要項など）と照らす。宿場の小話を作者が一度読む

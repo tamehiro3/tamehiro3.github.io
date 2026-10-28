@@ -45,12 +45,10 @@ const READ_OK = /^[ぁ-ゖー]+$/;  // 読み: ひらがな（と長音）
 
 // 差し込みを許す場所
 const PLACEHOLDERS = {
-  'special.': ['name', 'rank', 'days', 'dye'],
-  'parent.gateAsk3': ['num', 'order'],
-  'parent.gateAsk': ['nums']
+  'special.': ['name', 'rank', 'days', 'dye']
 };
-// ルビなしの漢字を許す場所（関門の問題文は、ふりがななしが仕掛け）
-const NO_RUBY_OK = [/^parent\.gateAsk3?$/, /^parent\.gateNums\.\d+$/];
+// ルビなしの漢字を許す場所（関門の問題文は ui.js の GATE_FORMS にあり、content.js にはない）
+const NO_RUBY_OK = [];
 
 function allowedPH(p) {
   for (const k in PLACEHOLDERS) if (p === k || p.startsWith(k)) return PLACEHOLDERS[k];
@@ -311,6 +309,8 @@ ok(new RegExp('直近' + D.CONFIG.RECENT_DAYS + '日分の歩数').test(pp('expo
 ok(/医療・診断/.test(pp('medical')) && /ではありません/.test(pp('medical')), '医療・診断の目的ではない');
 ok(pp('unofficial') === 'CryptoNinja（CC0・Ninja DAO）のキャラクターを使った個人制作の非公式ファンゲームです。', '非公式の表記が決まりの文と同じ');
 ok(/関門/.test(pp('gate')) && /3秒/.test(pp('gate')) && /1分/.test(pp('gate')), '関門の説明（3秒長押し・1分待つ）');
+// ui.js の GATE_LOCKS（1分→5分→15分）と合わせる。「3回まちがえると1分」と言い切らない
+ok(/5分/.test(pp('gate')) && /15分/.test(pp('gate')) && !/まちがえると1分待ちます/.test(pp('gate')), '関門の説明: 待ち時間は 1分→5分→15分 とのびる');
 // 関門の説明は子どもも関門なしで読める。解き方（問題の例・漢数字の読み・「〜の順に押す」）を書かない
 ok(!/順に押|[〇一二三四五六七八九]、[〇一二三四五六七八九]|数字のボタン/.test(pp('gate')) && !/[〇一二三四五六七八九]/.test(pp('gate')), '関門の説明に解き方（問題の例・漢数字）を書かない');
 ok(/{[〇一二三四五六七八九]\|/.test(P.gate) === false, '関門の説明に漢数字の読みを書かない');
@@ -343,9 +343,16 @@ ok(/^アプリ版/.test(pp('creditApp')), 'parent.creditApp はアプリ版だ�
 ok(/はじめから/.test(pp('erase')) && /消/.test(pp('erase')), 'データの消し方');
 ok(/インターネットには送りません/.test(pp('permission')), '歩数の許可の前の説明');
 ok(!/法律|法令|違法|準拠|COPPA|GDPR|個人情報保護法/.test(STR.filter(x => x.p.startsWith('parent.')).map(x => BY[x.p].plain).join()), '法律の断定をしない');
-ok(/\{nums\}/.test(P.gateAsk) && !/\{[^a-z}]*\|/.test(P.gateAsk), '関門の問題文はふりがななし（{nums} の差し込みだけ）');
-ok(/\{num\}/.test(P.gateAsk3) && /\{order\}/.test(P.gateAsk3) && !/\{[^a-z}]*\|/.test(P.gateAsk3), '関門の3けたの問題文はふりがななし（{num} {order} の差し込みだけ）');
-ok(Array.isArray(P.gateNums) && P.gateNums.length === 10, '関門の漢数字10個');
+// 古い問題形式（漢数字）の文は使っていないので置かない（問題文は ui.js の GATE_FORMS）
+ok(!('gateAsk' in P) && !('gateAsk3' in P) && !('gateNums' in P), '使っていない関門の古い問題文（gateAsk・gateAsk3・gateNums）がない');
+// おとなモードには夜・朝5時からの相性がある（data.js）。暗い時間の外出をすすめない話は、こどもモードに限って書く
+{
+  const det = (P.detail || []).map((_, i) => pp('detail.' + i));
+  const dark = det.filter(t => /暗い時間/.test(t));
+  ok(dark.length > 0 && dark.every(t => /こどもモード/.test(t) && /おとなモード/.test(t)), 'おうちの方へ: 暗い時間の話はこども・おとなのモードで分けて書く');
+}
+// 歩きすぎをすすめない（SPEC 2.7）。「いっぱい歩こう」のような言い方をしない
+ok(!STR.some(x => /いっぱい歩|たくさん歩こう/.test(BY[x.p].plain)), '「いっぱい歩こう」のように、たくさん歩くことをすすめない');
 
 /* ---------- 8. 公式データ（official） ---------- */
 section('公式データのふりがな版');

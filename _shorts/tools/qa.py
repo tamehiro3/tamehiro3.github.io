@@ -403,6 +403,14 @@ def check_frames(ep, script, tl, final_mp4, rep, qa_dir):
         hit = [k for k, m in edges.items() if m > 40]
         if hit and v["type"] != "chat":
             issues.append(f"{ln['i']:02d}: 図解（{v['type']}）がパネルの{'・'.join(hit)}端にはみ出している可能性")
+    # スタジオ表示の見出しの帯（幅900）。文字幅が帯の内側（左右10ずつの余白）を超えると、両端が切れる
+    if script.get("style") == "studio":
+        import studio as S
+        f = S.serif(62)
+        for i, ln in enumerate(script["lines"], 1):
+            h = ln.get("heading")
+            if h and i > 1 and f.getlength(h) > 880:
+                issues.append(f"{i:02d}: 見出し「{h}」が帯からはみ出して両端が切れる（文字幅 {int(f.getlength(h))}／880。短くする）")
     return issues
 
 

@@ -123,6 +123,21 @@ YOMI_WORDS = {"%": "パーセント", "％": "パーセント", "AI": "エーア
 _D = "レイ イチ ニ サン ヨン ゴ ロク ナナ ハチ キュウ".split()
 
 
+_DAY = {1: "ツイタチ", 2: "フツカ", 3: "ミッカ", 4: "ヨッカ", 5: "イツカ", 6: "ムイカ", 7: "ナノカ", 8: "ヨウカ",
+        9: "ココノカ", 10: "トオカ", 14: "ジュウヨッカ", 20: "ハツカ", 24: "ニジュウヨッカ"}
+
+
+def _date_kana(s):
+    """文字起こしは「1月と2月」「11月4日」「3カ月」と数字で書く。そのまま読むと「イチツキ」「ヨンビ」「サンカツキ」に
+    なって台本の読み（いちがつ・よっか・さんかげつ）と合わず、短い文が「聞き取れない」と誤って出る（ep38の04）"""
+    s = re.sub(r"(\d{1,2})月(\d{1,2})日", lambda m: _int_kana(int(m.group(1))) + "ガツ"
+               + _DAY.get(int(m.group(2)), _int_kana(int(m.group(2))) + "ニチ"), s)
+    s = re.sub(r"(\d{1,2})[カヵヶかケ]月", lambda m: _int_kana(int(m.group(1))) + "カゲツ", s)
+    s = re.sub(r"(\d{1,2})月", lambda m: _int_kana(int(m.group(1))) + "ガツ", s)
+    s = re.sub(r"(\d+)日", lambda m: _int_kana(int(m.group(1))) + "ニチ", s)
+    return s
+
+
 def _num_kana(m):
     t = m.group(0).replace(",", "")
     if "." in t:
@@ -154,6 +169,7 @@ def yomi(s):
     s = unicodedata.normalize("NFKC", plain(s).replace("／", ""))
     for k, v in YOMI_WORDS.items():
         s = s.replace(k, v)
+    s = _date_kana(s)
     s = re.sub(r"\d[\d,]*(?:\.\d+)?", _num_kana, s)
     try:
         if _JT is None:

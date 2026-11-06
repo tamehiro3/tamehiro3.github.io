@@ -485,6 +485,10 @@ def check_script(script, tl, rep):
             issues.append(f"{i:02d}: {n}文字（20文字前後に）")
         if ln.get("tts") and ln["tts"].count("／") != ln["text"].count("／"):
             issues.append(f"{i:02d}: 表示と読み（tts）で／の数がちがう（テロップの切り替えが声とずれる。同じ位置に／を入れる）")
+        # 「一月」「二月」は本番の声が「ひとつき」「ふたつき」と読むことがある（ep38で「一月と二月」が聞き取れなかった）
+        m = re.search(r"(?<!十)[一二三四五六七八九]月", ln.get("tts") or "")
+        if m:
+            issues.append(f"{i:02d}: 読み（tts）の「{m.group()}」は「ひとつき」などと読まれることがある（月の名前は「いちがつ」のようにひらがなで書く）")
         for w in AI_WORDS:
             if w in t:
                 issues.append(f"{i:02d}: AIっぽい言い回し「{w}」")

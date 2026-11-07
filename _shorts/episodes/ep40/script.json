@@ -1,0 +1,195 @@
+{
+ "id": "ep40",
+ "theme": "米中間選挙と株式投資。米国の報道機関の予測（当確）では、11/3の中間選挙で民主党が上下両院で多数（州の正式な確定はこれから）。米国時間11/4にダウは約3%高（中間選挙の翌日として1982年以来の上げ、AP系の報道）、11/5にナスダックは約5.5%安（AI投資の先行きへの不安が見出しの中心）。同じ選挙結果が上げにも下げにも理由として使われた。日本時間11/6、日経平均は終値で6万円を割った（NHK）。『中間選挙のあと1年は株が上がる』は過去の傾向で、平均は出どころで約12〜21%と違い（数え始めの日・配当・何年から数えるかで変わる）、戦後の中間選挙は20回ほど。2018年は1年で約12%上がったが、途中で約15%下げた。新NISAで人気の全世界株の投資信託も約6割が米国株（2026年7月末、運用会社の月次レポートの数字の報道）。どの党がいい・悪いは言わない。売買のすすめ・株価の予想はしない",
+ "style": "studio",
+ "series": "AI初心者の時短ワザ",
+ "voice": {
+  "engine": "openjtalk",
+  "speed": 1.15,
+  "pitch": 2.5,
+  "intonation": 1.5,
+  "fal_model": "fal-ai/minimax/speech-02-hd",
+  "fal_speed": 1.0,
+  "emotion": "happy"
+ },
+ "sources": [
+  "https://news.wttw.com/2026/11/04/dow-has-best-post-midterm-elections-day-44-years-democrats-take-control-congress",
+  "https://www.washingtonpost.com/business/2026/11/05/us-stocks-slide-wiping-out-post-midterm-gains/",
+  "https://news.web.nhk/newsweb/na/nd-20261106de71341",
+  "https://www.morganstanley.com/insights/articles/2026-midterm-elections-market-impact-investor-outlook",
+  "https://www.usbank.com/investing/financial-perspectives/market-news/stock-market-performance-after-midterm-elections.html"
+ ],
+ "lines": [
+  {
+   "text": "中間選挙のあとは株が上がる、て／【ほんま】？",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "📈",
+    "text": "中間選挙のあと株は\n【上がる】？",
+    "size": 92
+   }
+  },
+  {
+   "text": "報道の予測では、民主党が／【上下両院】で多数やて",
+   "tts": "報道の予測では、民主党が、／上下両院で多数やて",
+   "heading": "11/3 米中間選挙（当確）",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "🏛️",
+    "text": "民主党が\n【上下両院で多数】",
+    "size": 88
+   }
+  },
+  {
+   "text": "結果が出た日、米国のダウは／約【3%】上がった",
+   "tts": "結果が出た日、米国のダウは、／約さんパーセント上がった",
+   "heading": "米国時間4日",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "📈",
+    "text": "ダウ\n【約3%上げ】",
+    "size": 96
+   }
+  },
+  {
+   "text": "ところが次の日、ナスダックは／約【5.5%】下げてん",
+   "tts": "ところが次の日、ナスダックは、／約ごてんごパーセント下げてん",
+   "heading": "米国時間5日",
+   "shot": "wide",
+   "pose": "pose08",
+   "visual": {
+    "type": "big",
+    "emoji": "📉",
+    "text": "ナスダック\n【約5.5%下げ】",
+    "size": 96
+   }
+  },
+  {
+   "text": "同じ選挙の結果が、上げにも／下げにも【理由】にされたんよ",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "big",
+    "emoji": "🔄",
+    "text": "同じ結果で\n【上げも下げも説明】",
+    "size": 84
+   }
+  },
+  {
+   "text": "日本の6日は、日経平均が／終値で【6万円】を割った",
+   "tts": "日本のむいかは、日経平均が、／終値で、ろくまんえんを割った",
+   "heading": "日本時間6日（NHK）",
+   "shot": "wide",
+   "pose": "pose06",
+   "visual": {
+    "type": "big",
+    "emoji": "🗾",
+    "text": "日経平均\n【6万円割れ】",
+    "size": 96
+   }
+  },
+  {
+   "text": "「選挙のあと1年は上がる」は、／【過去の傾向】の話や",
+   "tts": "選挙のあと、いちねんは上がる、は、／過去の傾向の話や",
+   "heading": "米国の金融会社などの集計",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "📊",
+    "text": "選挙のあと1年\n【過去の傾向】",
+    "size": 88
+   }
+  },
+  {
+   "text": "平均は【12〜21%】でバラバラ、／回数も20回ほど",
+   "tts": "平均は、じゅうにからにじゅういちパーセントでバラバラ、／回数も、にじゅっかいほど",
+   "shot": "wide",
+   "pose": "pose09",
+   "visual": {
+    "type": "big",
+    "emoji": "🔢",
+    "text": "平均は12〜21%\n【回数は20回ほど】",
+    "size": 84
+   }
+  },
+  {
+   "text": "2018年は上がった回でも、／途中で約【15%】下げた",
+   "tts": "にせんじゅうはちねんは、上がった回でも、／途中で約じゅうごパーセント下げた",
+   "heading": "2018年の中間選挙のあと",
+   "shot": "close",
+   "pose": "pose05",
+   "visual": {
+    "type": "big",
+    "emoji": "🎢",
+    "text": "上がった年でも\n【途中で約15%下げ】",
+    "size": 84
+   }
+  },
+  {
+   "text": "過去がまた起きる【保証】は、／どこにもないで",
+   "shot": "wide",
+   "pose": "pose10",
+   "visual": {
+    "type": "big",
+    "emoji": "🙅",
+    "text": "過去は\n【保証やない】",
+    "size": 96
+   }
+  },
+  {
+   "text": "NISAの全世界株も、約【6割】は／アメリカの株や",
+   "tts": "ニーサの全世界株も、約ろくわりは、／アメリカの株や",
+   "heading": "全世界株の例（2026年7月末）",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "🌏",
+    "text": "全世界株の\n【約6割が米国株】",
+    "size": 88
+   }
+  },
+  {
+   "text": "選挙のたびに慌てんよう、／【自分のルール】を決めとこ",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "🧭",
+    "text": "慌てる前に\n【自分のルール】",
+    "size": 92
+   }
+  },
+  {
+   "text": "NISAしてる家族に、／【送ったって】な",
+   "tts": "ニーサしてる家族に、／送ったってな",
+   "shot": "close",
+   "pose": "pose02",
+   "visual": {
+    "type": "cta",
+    "emoji": "📩",
+    "text": "NISAしてる家族に\n【送ったって】な",
+    "size": 100,
+    "bounce": true
+   }
+  },
+  {
+   "text": "じゃあもう一回、／最初の質問に戻るね",
+   "shot": "wide",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "📈",
+    "text": "中間選挙のあと株は\n【上がる】？",
+    "size": 92
+   }
+  }
+ ]
+}

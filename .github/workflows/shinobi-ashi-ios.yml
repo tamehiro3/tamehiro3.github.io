@@ -1,0 +1,98 @@
+# 忍び足（shinobi-ashi）の iPhone 用アプリを、GitHub の Mac で組み立てる
+# - いつも: 署名なしで組み立てて、Swift と Capacitor のつながりが壊れていないかを確かめる
+# - TestFlight 用の4つの秘密（secrets）がそろっているときだけ: 署名して App Store Connect に送る
+#   （送ったものは TestFlight アプリで自分の iPhone に入れられる。手順は shinobi-ashi/app/README.md）
+name: 忍び足 iOS
+
+on:
+  push:
+    paths:
+      - "shinobi-ashi/**"
+      - ".github/workflows/shinobi-ashi-ios.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: shinobi-ashi-ios-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ios:
+    runs-on: macos-15
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: shinobi-ashi/app
+    env:
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: shinobi-ashi/app/package-lock.json
+
+      - name: いちばん新しい Xcode を選ぶ（ベータは使わない）
+        run: |
+          XC=$(ls -d /Applications/Xcode_*.app | grep -vi beta | sort -V | tail -1)
+          echo "使う Xcode: $XC"
+          sudo xcode-select -s "$XC"
+          xcodebuild -version
+          sw_vers
+
+      - name: 依存を入れて、ゲームの中身を iOS に写す
+        run: |
+          npm ci
+          npm run sync:ios
+
+      - name: 組み立て（署名なし）
+        run: |
+          LOG="$RUNNER_TEMP/build-check.log"
+          if ! xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release \
+              -destination 'generic/platform=iOS' -derivedDataPath "$RUNNER_TEMP/dd-check" \
+              CODE_SIGNING_ALLOWED=NO build > "$LOG" 2>&1; then
+            echo "---- error の行 ----"; grep -E "error:|fatal" "$LOG" | sort -u | head -60
+            echo "---- 最後の120行 ----"; tail -120 "$LOG"
+            exit 1
+          fi
+          test -d "$RUNNER_TEMP/dd-check/Build/Products/Release-iphoneos/App.app"
+          echo "warning の数: $(grep -c 'warning:' "$LOG" || true)"
+          grep -E "warning:" "$LOG" | grep -vE "/SourcePackages/|/node_modules/" | sort -u | head -30 || true
+          echo "署名なしの組み立てができた"
+
+      - name: TestFlight へ送る（4つの秘密がそろっているときだけ）
+        if: env.ASC_KEY_ID != '' && env.ASC_ISSUER_ID != '' && env.ASC_KEY_P8 != '' && env.APPLE_TEAM_ID != ''
+        run: |
+          set -euo pipefail
+          KEY="$RUNNER_TEMP/AuthKey.p8"
+          printf '%s\n' "$ASC_KEY_P8" > "$KEY"
+          BUILD_NUMBER=$(( ${{ github.run_number }} + 1 ))
+          AUTH=(-allowProvisioningUpdates -authenticationKeyPath "$KEY" -authenticationKeyID "$ASC_KEY_ID" -authenticationKeyIssuerID "$ASC_ISSUER_ID")
+          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release \
+            -destination 'generic/platform=iOS' -derivedDataPath "$RUNNER_TEMP/dd-archive" \
+            -archivePath "$RUNNER_TEMP/App.xcarchive" "${AUTH[@]}" \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" CODE_SIGN_STYLE=Automatic CURRENT_PROJECT_VERSION="$BUILD_NUMBER" \
+            archive
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>destination</key><string>upload</string>
+            <key>teamID</key><string>${APPLE_TEAM_ID}</string>
+            <key>signingStyle</key><string>automatic</string>
+            <key>manageAppVersionAndBuildNumber</key><false/>
+            <key>uploadSymbols</key><true/>
+          </dict></plist>
+          PLIST
+          xcodebuild -exportArchive -archivePath "$RUNNER_TEMP/App.xcarchive" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" -exportPath "$RUNNER_TEMP/export" "${AUTH[@]}"
+          rm -f "$KEY"
+          echo "TestFlight に送った（ビルド番号 $BUILD_NUMBER）。App Store Connect で処理が終わると TestFlight アプリに出る"

@@ -116,6 +116,17 @@ none(badM, 'すべての地図で、出口・人・宝箱・障害物が正し�
 const T = MP.TRAVEL;
 none(T.nodes.filter(n => !M[n.map] || !FD.tileInfo(FD.tileAt(FD.load(ST.fresh('t'), n.map), n.at[0], n.at[1])).w), '旅の地図の行き先と着く場所');
 none(T.edges.filter(e => !T.nodes.some(n => n.id === e[0]) || !T.nodes.some(n => n.id === e[1])), '旅の地図の道');
+// 町では、着いた場所から、人・宝箱・立て札・出口のどれにも行ける（飾り・宝箱・立て札でふさがっていない）
+const shut = [];
+for (const id in M) {
+  const m = M[id]; if (!m.town) continue;
+  const F = FD.load(ST.fresh('t'), id), node = T.nodes.find(n => n.map === id), at = node ? node.at : m.start;
+  m.objs.forEach(o => {
+    if (['npc', 'chest', 'sign', 'exit'].indexOf(o.k) < 0) return;
+    if (!FD.path(F, at[0], at[1], o.x, o.y, { adjacent: o.k !== 'exit', ignoreNpc: true })) shut.push(id + ':' + (o.id || o.k));
+  });
+}
+none(shut, '町では、着いた場所から人・宝箱・立て札・出口のどれにも行ける');
 ok(Object.keys(M).every(id => T.nodes.some(n => n.map === id) || Object.keys(M).some(o => M[o].objs.some(q => q.k === 'exit' && q.to === id)) || Object.values(EVT).some(cmds => cmds.some(c => c.warp === id))), 'どの地図にも入り口がある');
 
 // ---------------- 物語 ----------------

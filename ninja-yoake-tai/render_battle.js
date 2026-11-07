@@ -5,11 +5,11 @@
  */
 (function (root) {
   'use strict';
-  var DW = root.NYT_DRAW, YK = root.NYT_YOKAI, SPR = root.NYT_SPRITES;
+  var DW = root.NYT_DRAW, YK = root.NYT_YOKAI, SPR = root.NYT_SPRITES, PIX = root.NYT_PIX;
   function EN() { return root.NYT_ENEMIES.ENEMIES; }
   function TYPES() { return root.NYT_BASE.TYPES; }
   function STATUS() { return root.NYT_BASE.STATUS; }
-  var FONT = '"Hiragino Maru Gothic ProN","Zen Maru Gothic","BIZ UDPGothic","Yu Gothic",sans-serif';
+  var FONT = '"DotGothic16","BIZ UDPGothic","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif';
   var R = { cv: null, c: null, dpr: 1, vw: 0, vh: 0, bg: null, bgKey: '', t: 0, fx: [], pops: [], shakeT: 0, shakeA: 0, flashT: 0, flashDur: 0.3, flashCol: '255,255,255', vis: {}, pos: {}, rects: {}, area: null, motes: null };
 
   function init(cv) { R.cv = cv; R.c = cv.getContext('2d'); resize(); }
@@ -34,10 +34,12 @@
     beach: ['#c8a870', '#e8d0a0', '#f4e4c0'], darkmount: ['#3a4440', '#56605a', '#7a7a70'], fortress: ['#5a5048', '#7a6e60', '#a09080'],
     cave: ['#3a302c', '#54463e', '#6e5c50'], seacave: ['#2e3a44', '#46545e', '#5e6e78'], under: ['#2a2038', '#3e3050', '#5a4a72'], sky: ['#e8e0f2', '#fbf6ff', '#ffffff']
   };
-  function buildBg(bbg, lv, W, H, A) {
-    var cv = DW.mk(W, H), c = cv.getContext('2d'), s = R.dpr;
+  // 背景は粗い画面（1ドット = q 画素）に描いて、ぼかさずに広げる（ドット絵の見た目）
+  function buildBg(bbg, lv, W, H, A, q) {
+    q = Math.max(1, q || 1);
+    var lw = Math.ceil(W / q), lh = Math.ceil(H / q), low = DW.mk(lw, lh), c = low.getContext('2d'), s = R.dpr / q;
     c.scale(s, s);
-    var w = W / s, h = H / s, rnd = DW.rnd(bbg.length * 977 + 13);
+    var w = W / R.dpr, h = H / R.dpr, rnd = DW.rnd(bbg.length * 977 + 13);
     var indoor = bbg === 'cave' || bbg === 'seacave';
     var hz = A ? A.y + A.h * (bbg === 'beach' ? 0.4 : 0.36) : h * 0.46;   // 地平線（戦う場所の上のほう）
     // 空
@@ -80,6 +82,8 @@
     var vg = c.createRadialGradient(w / 2, h * 0.55, Math.min(w, h) * 0.35, w / 2, h * 0.55, Math.max(w, h) * 0.75);
     vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,.45)');
     c.fillStyle = vg; c.fillRect(0, 0, w, h);
+    var cv = DW.mk(W, H), cc = cv.getContext('2d');
+    cc.imageSmoothingEnabled = false; cc.drawImage(low, 0, 0, lw * q, lh * q);
     return cv;
   }
   function ridge(c, w, base, amp, step, col, rnd, sharp) {
@@ -235,8 +239,10 @@
   function frame(V) {
     var c = R.c, s = R.dpr, dt = V.dt || 0.016;
     R.t = V.t; R.area = V.area;
-    var A0 = V.area, key = V.bbg + ':' + V.dawn + ':' + R.cv.width + 'x' + R.cv.height + ':' + Math.round(A0.y) + ':' + Math.round(A0.h);
-    if (key !== R.bgKey) { R.bg = buildBg(V.bbg || 'village', clamp(V.dawn | 0, 0, 6), R.cv.width, R.cv.height, A0); R.bgKey = key; R.motes = null; }
+    var A0 = V.area;
+    R.px = Math.max(1, Math.round(partyH(A0) * R.dpr / SPR.SIZE.battle[1]));   // 1ドットを何画素で描くか（仲間の絵に合わせる）
+    var key = V.bbg + ':' + V.dawn + ':' + R.cv.width + 'x' + R.cv.height + ':' + Math.round(A0.y) + ':' + Math.round(A0.h) + ':' + R.px;
+    if (key !== R.bgKey) { R.bg = buildBg(V.bbg || 'village', clamp(V.dawn | 0, 0, 6), R.cv.width, R.cv.height, A0, R.px); R.bgKey = key; R.motes = null; }
     c.setTransform(1, 0, 0, 1, 0, 0);
     c.drawImage(R.bg, 0, 0);
     // ゆれ
@@ -304,13 +310,20 @@
     c.save(); c.globalAlpha = alpha;
     if (p.side === 'p' || p.cn) drawNinja(c, V, d, v, p, x, y);
     else {
-      c.translate(x, y + (d.side === 'e' && d.ko ? v.koT * 10 : 0));
-      var sz = (YK.SIZE[p.shape] || 44), sc = p.h / sz;
-      var broken = d.broken;
-      YK.draw(c, p.shape, p.col, { t: R.t + (+uid) * 0.37, s: sc, dir: 1, turn: 1, hit: v.hitT > 0, daze: broken, ko: d.ko, charge: d.charging, boss: d.boss });   // 右（仲間のほう）を向く
+      c.translate(Math.round(x * R.dpr) / R.dpr, Math.round((y + (d.side === 'e' && d.ko ? v.koT * 10 : 0)) * R.dpr) / R.dpr);
+      // ドット絵のコマ（右＝仲間のほうを向く）。大きさは仲間と同じドットの細かさで
+      var px = R.px || 2, sc = (p.h * R.dpr / px) / (YK.SIZE[p.shape] || 44), unit = px / R.dpr;
+      var fr = YK.pixFrames(p.shape, p.col, { s: sc, dir: 1, turn: 1, boss: d.boss, state: d.ko ? 'ko' : d.broken ? 'daze' : '' });
+      if (d.charging) { var ca = 0.35 + Math.sin(R.t * 12) * 0.15; DW.ell(c, 0, -p.h * 0.55, p.h * 0.62, p.h * 0.66, 'rgba(255,70,50,' + ca + ')'); }
+      if (fr) {
+        var img = fr.frames[Math.floor((R.t + (+uid) * 0.37) * 5) % fr.frames.length];
+        c.imageSmoothingEnabled = false;
+        c.drawImage(img, -fr.ax * unit, -fr.ay * unit, img.width * unit, img.height * unit);
+        if (v.hitT > 0) { c.globalAlpha *= Math.min(1, v.hitT * 5); c.drawImage(PIX.white(img), -fr.ax * unit, -fr.ay * unit, img.width * unit, img.height * unit); }
+      }
     }
     c.restore();
-    if (v.hitT > 0 && p.side === 'e' && !p.cn) { c.save(); c.globalCompositeOperation = 'lighter'; DW.circle(c, x, y - p.h * 0.45, p.h * 0.4, 'rgba(255,255,255,' + v.hitT * 1.2 + ')'); c.restore(); }
+
     // ねらいの矢印
     if (isTg || (isCur && d.side === 'p')) {
       var by = y - p.h - 12 + Math.sin(R.t * 6) * 4;
@@ -329,16 +342,19 @@
     var pose = v.pose || (d.ko ? 'surprised' : V.win && d.side === 'p' ? 'happy' : 'stand');
     var expr = v.pose ? null : (d.ko ? 'surprised' : d.side === 'e' || V.cur === d.uid ? 'serious' : null);
     var yaw = d.side === 'p' ? -62 : 62;   // 正の yaw は右向き。仲間（右）は左を、相手（左）は右を向いて向かい合う
-    var img = SPR.get(def, { yaw: yaw, pose: pose, h: p.h * R.dpr, expr: expr || undefined });
-    var w = p.h * SPR.ASPECT;
+    var img = SPR.pix(def, { yaw: yaw, pose: pose, size: 'battle', expr: expr || undefined });
     DW.ell(c, x, y, p.h * 0.2, p.h * 0.05, 'rgba(0,0,0,.3)');
     if (!img) return;
+    // ドット絵を整数倍で（ぼかさない）
+    var k = Math.max(1, Math.round(p.h * R.dpr / img.height)), w = img.width * k / R.dpr, h = img.height * k / R.dpr;
     c.save();
-    c.translate(x, y);
+    c.translate(Math.round(x * R.dpr) / R.dpr, Math.round(y * R.dpr) / R.dpr);
     if (d.ko) { c.rotate((d.side === 'p' ? 1 : -1) * Math.PI * 0.42); c.globalAlpha *= 0.7; c.translate(0, -p.h * 0.05); }
-    if (V.win && d.side === 'p' && !d.ko) c.translate(0, -Math.abs(Math.sin(R.t * 5 + d.slot)) * p.h * 0.08);
-    c.drawImage(img, -w / 2, -p.h * SPR.FOOT_Y, w, p.h);
-    if (v.hitT > 0) { var wi = white(img); c.globalAlpha *= Math.min(1, v.hitT * 4) * 0.8; c.drawImage(wi, -w / 2, -p.h * SPR.FOOT_Y, w, p.h); }
+    if (V.win && d.side === 'p' && !d.ko) c.translate(0, -Math.round(Math.abs(Math.sin(R.t * 5 + d.slot)) * p.h * 0.08));
+    c.imageSmoothingEnabled = false;
+    var ix = -Math.round(w / 2 * R.dpr) / R.dpr, iy = -Math.round(h * SPR.FOOT_Y * R.dpr) / R.dpr;
+    c.drawImage(img, ix, iy, w, h);
+    if (v.hitT > 0) { var wi = PIX.white(img); c.globalAlpha *= Math.min(1, v.hitT * 4) * 0.8; c.drawImage(wi, ix, iy, w, h); }
     c.restore();
     if (d.side === 'e' && d.charging) { var a = 0.3 + Math.sin(R.t * 12) * 0.15; DW.ell(c, x, y - p.h * 0.45, p.h * 0.42, p.h * 0.55, 'rgba(255,70,50,' + a * 0.6 + ')'); }
     if (d.side === 'e' && d.broken) { for (var i = 0; i < 3; i++) { var an = R.t * 3 + i * 2.1; DW.text(c, '★', x + Math.cos(an) * p.h * 0.22, y - p.h * 1.0 + Math.sin(an) * 5, 12, '#ffe27a'); } }
@@ -375,7 +391,7 @@
     }
     if (d.charging) { var cy = p.y - p.h - 14; DW.rrect(c, x - 26, cy - 9, 52, 18, 8, 'rgba(200,40,30,.92)', '#fff', 1.4); DW.text(c, 'ため', x, cy, 11, '#fff'); }
     if (V.showNames || (V.tgts && V.tgts.indexOf(+uid) >= 0) || V.hover === +uid) {
-      c.font = '800 12px ' + FONT; var tw = c.measureText(d.name).width + 14;
+      c.font = '13px ' + FONT; var tw = c.measureText(d.name).width + 14;
       DW.rrect(c, x - tw / 2, p.y - p.h - 34, tw, 18, 8, 'rgba(10,12,30,.85)'); DW.text(c, d.name, x, p.y - p.h - 25, 12, '#fff');
     }
   }
@@ -469,7 +485,7 @@
           var sc = k < 0.15 ? 2.2 - k / 0.15 * 1.2 : 1, al = k > 0.75 ? (1 - k) / 0.25 : 1;
           c.translate(f.x, f.y); c.scale(sc, sc); c.rotate(-0.12);
           c.globalAlpha = al;
-          c.font = '900 ' + (f.size || 34) + 'px ' + FONT; c.textAlign = 'center'; c.textBaseline = 'middle';
+          c.font = (f.size || 34) + 'px ' + FONT; c.textAlign = 'center'; c.textBaseline = 'middle';
           c.lineWidth = 7; c.strokeStyle = '#2a0a08'; c.strokeText(f.text, 0, 0);
           c.fillStyle = f.fill || '#ff5a3a'; c.fillText(f.text, 0, 0);
           break;
@@ -542,7 +558,7 @@
       if (q.age < 0) return;
       var k = q.age / q.dur, y = q.y - ease(Math.min(1, k * 2.5)) * 22, sc = k < 0.12 ? 1.4 - k / 0.12 * 0.4 : 1, al = k > 0.75 ? (1 - k) / 0.25 : 1;
       c.save(); c.translate(q.x, y); c.scale(sc, sc); c.globalAlpha = al;
-      c.font = '900 ' + q.st.size + 'px ' + FONT; c.textAlign = 'center'; c.textBaseline = 'middle';
+      c.font = q.st.size + 'px ' + FONT; c.textAlign = 'center'; c.textBaseline = 'middle';
       c.lineJoin = 'round'; c.lineWidth = Math.max(4, q.st.size * 0.22); c.strokeStyle = q.st.stroke; c.strokeText(q.text, 0, 0);
       c.fillStyle = q.st.fill; c.fillText(q.text, 0, 0);
       c.restore();

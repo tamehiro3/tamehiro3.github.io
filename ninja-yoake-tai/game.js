@@ -64,7 +64,7 @@
   function newGame(o) {
     var S = ST.fresh(o.name, o.look);
     S.diff = o.diff;
-    S.map = { id: 'koka', x: 15, y: 7, dir: 'up' };
+    S.map = { id: 'koka', x: 14, y: 8, dir: 'up' };
     startGame(S);
   }
   function startGame(S) {
@@ -98,9 +98,8 @@
     runQueue();
   }
   function warmSprites() {
-    var h = 46 * RF.R.s;
-    SPR.warm(G.P.def, h);
-    G.fol.forEach(function (f) { SPR.warm(f.def, h); });
+    SPR.warm(G.P.def);
+    G.fol.forEach(function (f) { SPR.warm(f.def); });
   }
   function makeFollowers() {
     var S = G.S, act = ST.active(S).filter(function (id) { return id !== 'hero'; }).slice(0, 3);

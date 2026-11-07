@@ -25,18 +25,17 @@
     var hh = full ? Math.round(size * 1.2) : size;   // 全身は縦長（幅:高さ = 5:6）
     cv.width = Math.round(size * dpr); cv.height = Math.round(hh * dpr);
     cv.style.width = size + 'px'; cv.style.height = hh + 'px';
+    cv.className = 'pix';
     var tries = 0;
     (function draw() {
-      var SP = root.NYT_SPRITES, h = (full ? hh : size * SP.FACE.h) * dpr;
-      var img = SP && SP.get(def, { yaw: (o && o.yaw) || 0, pose: (o && o.pose) || 'stand', h: h, expr: o && o.expr });
+      var SP = root.NYT_SPRITES;
+      var img = SP && (full ? SP.pix(def, { yaw: (o && o.yaw) || 0, pose: (o && o.pose) || 'stand', size: 'big', expr: o && o.expr }) : SP.face(def, { yaw: (o && o.yaw) || 0, expr: o && o.expr }));
       if (img) {
-        var c = cv.getContext('2d'); c.clearRect(0, 0, cv.width, cv.height);
-        var w = h * SP.ASPECT;
-        if (full) c.drawImage(img, (cv.width - w) / 2, cv.height * 0.99 - h * SP.FOOT_Y, w, h);
-        else c.drawImage(img, (cv.width - w) / 2, cv.height * 0.54 - h * SP.FACE.cy, w, h);   // 頭が枠のまん中に来るように
-        var st = SP.state.cache;   // まだ作っている途中なら、もう一度
-        if (++tries < 40 && SP.state.pending > 0) setTimeout(draw, 120);
-      } else if (++tries < 60) setTimeout(draw, 80);
+        var c = cv.getContext('2d'); c.clearRect(0, 0, cv.width, cv.height); c.imageSmoothingEnabled = false;
+        if (full) { var k = Math.max(1, Math.floor(cv.height / img.height)), w = img.width * k, h = img.height * k; c.drawImage(img, Math.round((cv.width - w) / 2), cv.height - h, w, h); }
+        else { var k2 = Math.max(1, Math.floor(cv.width / img.width)), s2 = img.width * k2; c.drawImage(img, Math.round((cv.width - s2) / 2), Math.round((cv.height - s2) / 2), s2, s2); }
+        if (++tries < 40 && SP.state.pending > 0) setTimeout(draw, 150);
+      } else if (++tries < 80) setTimeout(draw, 100);
     })();
     return cv;
   }
@@ -48,9 +47,14 @@
     if (!e && root.NYT_YOKAI.SIZE[eid]) e = { shape: eid, col: YOKAI_COL[eid] || 'purple' };
     if (!e) return cv;
     if (e.cn) { return spriteCanvas(root.NYT_SPRITES.cnDef(e.cn), size); }
-    var sz = root.NYT_YOKAI.SIZE[e.shape] || 44;
-    c.scale(dpr, dpr); c.translate(size / 2, size * 0.86);
-    root.NYT_YOKAI.draw(c, e.shape, e.col, { s: size * 0.78 / sz, t: 1, dir: 1, shadow: false });
+    // ドット絵（小さく作って、ぼかさずに広げる）
+    var sz = root.NYT_YOKAI.SIZE[e.shape] || 44, ht = size <= 48 ? 18 : 30, fr = root.NYT_YOKAI.pixFrames(e.shape, e.col, { s: ht / sz, n: 1 });
+    cv.className = 'pix';
+    if (fr) {
+      var img = fr.frames[0], k = Math.max(1, Math.floor(cv.height * 0.9 / ht));
+      c.imageSmoothingEnabled = false;
+      c.drawImage(img, Math.round(cv.width / 2 - fr.ax * k), Math.round(cv.height * 0.94 - fr.ay * k), img.width * k, img.height * k);
+    }
     return cv;
   }
   // 戦わない妖怪（式神など）の名前と色

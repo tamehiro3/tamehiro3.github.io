@@ -31,13 +31,15 @@ class M {
   }
   scatter(c, n, x, y, w, h, on = '.') { let k = 0, guard = 0; while (k < n && guard++ < n * 40) { const i = x + Math.floor(this.r() * w), j = y + Math.floor(this.r() * h); if (this.get(i, j) === on) { this.set(i, j, c); k++; } } return this; }
   replace(a, b, x = 0, y = 0, w = this.w, h = this.h) { for (let j = y; j < y + h; j++) for (let i = x; i < x + w; i++) if (this.get(i, j) === a) this.set(i, j, b); return this; }
+  // 文字の絵をそのまま置く（空白は今のまま）
+  paint(x, y, rows) { rows.forEach((r, j) => { for (let i = 0; i < r.length; i++) if (r[i] !== ' ') this.set(x + i, y + j, r[i]); }); return this; }
   o(obj) { this.objs.push(obj); return this; }
   deco(kind, x, y, w, h, extra) { return this.o(Object.assign({ k: 'deco', kind, x, y, w, h }, extra || {})); }
   // 物の下は歩ける地面にしておく（家などの見た目のため）
   ground(x, y, w, h, c) { return this.rect(x, y, w, h, c); }
   // 人・宝箱・妖怪・拾う物・立て札の下が、木や岩なら、となりの地面と同じにする
   clearUnder() {
-    const BLOCK = 'TYBrt';
+    const BLOCK = 'TYBrtK';
     this.objs.forEach(o => {
       if (['npc', 'chest', 'enemy', 'pickup', 'sign'].indexOf(o.k) < 0 || o.big) return;
       if (BLOCK.indexOf(this.get(o.x, o.y)) < 0) return;
@@ -52,61 +54,90 @@ const MAPS = {};
 function add(m) { MAPS[m.id] = m.out(); }
 
 /* ================= 甲賀の里（序章・第1章の町） ================= */
+// 北に社（鳥居と参道）、真ん中に小さな広場、西に岩爺の家・畑・道具屋、東に蔵・宿、南西に修行場、南東に池、南に里の門。
 {
-  const m = new M('koka', 30, 22, '.', { name: '甲賀の里', area: '甲賀', theme: 'village', bgm: 'town', bbg: 'village', town: 1, start: [14, 18, 'up'] });
-  m.frame('T', 2);
-  m.rect(0, 0, 30, 1, 'T');
-  // 森のかたまり
-  m.rect(2, 2, 2, 3, 'T'); m.rect(26, 2, 2, 2, 'T'); m.rect(2, 12, 1, 2, 'T'); m.rect(27, 12, 1, 3, 'T');
-  // 社の前（石畳）
-  m.rect(11, 2, 8, 4, '_');
+  const m = new M('koka', 30, 22, '.', { name: '甲賀の里', area: '甲賀', theme: 'village', bgm: 'town', bbg: 'village', town: 1, start: [14, 8, 'up'] });
+  m.paint(0, 0, [
+    //        1111111111222222222
+    //234567890123456789012345678 9
+    'TTTTTTTTTTKTTTTTTTTKTTTTTTTTTT', // 0
+    'TTt......tTK______KT.......tTT', // 1
+    'TT........t________t........TT', // 2  岩爺の家・社・蔵・家
+    'TT........t________t........TT', // 3
+    'TT.f......t________t........TT', // 4
+    'TT..,,.....________......,,.TT', // 5
+    'TTf.,,.......____........,,.TT', // 6
+    'TT..,,........__.........,,.TT', // 7  鳥居
+    'TTK.,,........__.........,,fTT', // 8  参道
+    'TT..,,......K.__.K.......,,.TT', // 9
+    'TTt.,,,,,,,,______,,,,,,,,,.TT', // 10 東西の道と広場
+    'TTTt,,,,,,,,______,,,,,,,,,tTT', // 11
+    'TT...,,....f______f.....f...TT', // 12
+    'TTFFF,,FFFFf______f.........TT', // 13 修行場の柵
+    'TTFgggggggF..f,,............TT', // 14
+    'TTFgggggggF.K.,,.f..........TT', // 15
+    'TTFgggggggF...,,............TT', // 16
+    'TTFgggggggF.t.,,..K.........TT', // 17
+    'TTFgggggggF...,,..........f.TT', // 18
+    'TTFFFFFFFFF...,,..........tTTT', // 19 里の門
+    'TTTTTTTTTTTTT.,,.TTTTTTTTTTTTT', // 20
+    'TTTTTTTTTTTTTT,,TTTTTTTTTTTTTT'  // 21 南の出口
+  ]);
+  // 池（小さな桟橋つき）
+  m.ell(23, 16.5, 3.6, 2.4, '~');
+  m.set(20, 16, ':'); m.set(21, 16, ':');
+  m.scatter('"', 6, 18, 14, 10, 6); m.scatter('f', 6, 2, 2, 8, 10);
+  // 社と参道
+  m.deco('shrine', 13, 1, 4, 3, { label: '社' });
+  m.deco('fox', 12, 3, 1, 1); m.deco('fox', 17, 3, 1, 1);
+  m.deco('lantern', 11, 4, 1, 1); m.deco('lantern', 18, 4, 1, 1);
+  m.deco('torii', 13, 7, 4, 1, { pass: [[1, 0], [2, 0]] });
+  m.deco('lantern', 13, 8, 1, 1); m.deco('lantern', 16, 8, 1, 1);
+  // 西：岩爺の家・畑・道具屋
+  m.deco('house', 3, 2, 4, 3, { v: 0, label: '岩爺の家' });
+  m.deco('laundry', 7, 2, 3, 1);
+  m.deco('firewood', 7, 3, 2, 1); m.deco('barrel', 9, 4, 1, 1);
+  m.deco('field', 7, 5, 3, 2);
+  m.deco('stall', 7, 8, 3, 2, { v: 'red', label: '道具' });
+  m.deco('crates', 10, 9, 1, 1); m.deco('pots', 6, 9, 1, 1);
+  // 東：蔵・家・宿
+  m.deco('kura', 20, 2, 3, 3, { label: '蔵' });
+  m.deco('house', 24, 2, 4, 3, { v: 1 });
+  m.deco('well', 23, 6, 1, 1);
+  m.deco('inn', 19, 7, 4, 3, { label: '宿' });
+  m.deco('barrel', 23, 8, 1, 1); m.deco('lantern', 23, 9, 1, 1);
+  m.deco('cart', 26, 7, 2, 1);
   // 広場
-  m.rect(10, 7, 10, 6, '_');
-  // 道
-  m.line([[14, 13], [14, 21]], ',', 2);
-  m.line([[3, 9], [9, 9]], ',', 2); m.line([[20, 9], [26, 9]], ',', 2);
-  m.line([[5, 6], [5, 8]], ',', 2); m.line([[23, 6], [23, 8]], ',', 2);
-  m.line([[14, 6], [14, 6]], '_', 2);
-  m.line([[9, 13], [9, 14]], ',', 1); m.line([[21, 13], [21, 15]], ',', 1);
-  m.line([[5, 11], [5, 14]], ',', 2);
-  // 池
-  m.ell(24, 17.5, 3.2, 2.2, '~');
-  m.scatter('f', 10, 3, 6, 6, 3); m.scatter('f', 8, 20, 6, 6, 3); m.scatter('"', 14, 10, 14, 16, 5); m.scatter('t', 5, 3, 13, 24, 2);
-  // 修行場（柵で囲む）
-  m.rect(3, 15, 7, 5, 'g'); m.box(2, 15, 9, 6, 'F'); m.set(5, 15, 'g'); m.set(6, 15, 'g');
-  // 南の出口
-  m.rect(14, 20, 2, 2, ',');
-  // 建物
-  m.deco('shrine', 13, 2, 4, 3, { label: '社' });
-  m.deco('torii', 13, 5, 4, 1, { pass: [[1, 0], [2, 0]] });
-  m.deco('house', 3, 3, 4, 3, { v: 0, label: '岩爺の家' });
-  m.deco('house', 22, 3, 4, 3, { v: 1 });
-  m.deco('stall', 7, 11, 3, 2, { v: 'red', label: '道具' });
-  m.deco('inn', 19, 11, 4, 3, { label: '宿' });
-  m.deco('house', 24, 10, 4, 3, { v: 2 });
-  m.deco('lantern', 10, 6, 1, 1); m.deco('lantern', 19, 6, 1, 1); m.deco('lantern', 10, 13, 1, 1); m.deco('lantern', 18, 13, 1, 1);
-  m.deco('well', 8, 7, 1, 1);
-  m.deco('dummy', 4, 17, 1, 1); m.deco('dummy', 8, 17, 1, 1);
-  m.deco('easel', 20, 17, 1, 1);
+  m.deco('board', 16, 12, 2, 1);
+  m.deco('bench', 12, 13, 2, 1);
+  m.deco('lantern', 11, 12, 1, 1); m.deco('lantern', 18, 12, 1, 1);
+  // 修行場
+  m.deco('dummy', 4, 15, 1, 1); m.deco('dummy', 8, 15, 1, 1);
+  m.deco('crates', 3, 18, 2, 1); m.deco('stump', 9, 18, 1, 1);
+  // 池のまわり
+  m.deco('easel', 20, 14, 1, 1);
+  m.deco('bench', 25, 13, 2, 1);
+  // 南の里の門
+  m.deco('mon', 13, 19, 4, 1, { pass: [[1, 0], [2, 0]], label: '甲賀の里' });
   // 人
-  m.o({ k: 'npc', id: 'ganzi', cn: 'ganzi', x: 15, y: 6, dir: 'down', ev: 'koka_ganzi', show: '!has:ganzi' });
-  m.o({ k: 'npc', id: 'sakuya', cn: 'sakuya', x: 13, y: 9, dir: 'down', ev: 'op_sakuya', show: '!has:sakuya&op_talked' });
-  m.o({ k: 'npc', id: 'oto', cn: 'oto', x: 17, y: 9, dir: 'left', ev: 'oto_talk', show: '!has:oto' });
-  m.o({ k: 'npc', id: 'nemu', cn: 'nemu', x: 21, y: 16, dir: 'left', ev: 'nemu_talk', show: '!has:nemu' });
-  m.o({ k: 'npc', id: 'konga', cn: 'konga', x: 6, y: 17, dir: 'up', ev: 'konga_talk', show: '!has:konga' });
-  m.o({ k: 'npc', id: 'shop', look: 'merchant', name: '道具屋', x: 8, y: 13, dir: 'down', ev: 'shop_koka' });
-  m.o({ k: 'npc', id: 'inn', look: 'innkeeper', name: '宿のおかみ', x: 20, y: 14, dir: 'down', ev: 'inn_koka' });
-  m.o({ k: 'npc', id: 'v1', look: 'v1', name: '里の人', x: 11, y: 11, dir: 'right', wander: 2, say: ['夜が明けなくなって、もう3日。にわとりも困っておるよ。', 'メニューの「仲間」で、仲間の能力が見られるよ。'] });
-  m.o({ k: 'npc', id: 'v2', look: 'kid1', name: '里の子', x: 12, y: 16, dir: 'down', wander: 3, say: ['妖怪には「弱点」があるんだって！ 弱点で当てると、構えがくずれるよ。', '構えが0になったら「崩し」！ そこに印をためた大技だよ！'] });
-  m.o({ k: 'npc', id: 'v3', look: 'v3', name: '里の人', x: 25, y: 8, dir: 'left', wander: 2, say: ['旅の地図は、里の南から出ると開けるよ。', '岩爺さまは、甲賀の里の長老さまじゃ。'] });
-  m.o({ k: 'npc', id: 'v4', look: 'elder', name: '里のおばあさん', x: 23, y: 15, dir: 'right', say: ['ネムちゃんは、いつも池のそばで絵を描いておるよ。', '暁の鐘は、天の社にあったそうな。'], show: '!ending' });
-  m.o({ k: 'chest', id: 'c1', x: 2, y: 6, get: 'kizugusuri', n: 2 });
-  m.o({ k: 'chest', id: 'c2', x: 27, y: 6, get: 'gold', n: 60 });
-  m.o({ k: 'chest', id: 'c3', x: 26, y: 15, get: 'kunai', n: 3 });
-  m.o({ k: 'sign', id: 's1', x: 13, y: 13, text: '甲賀の里　南：旅の道' });
+  m.o({ k: 'npc', id: 'ganzi', cn: 'ganzi', x: 14, y: 4, dir: 'down', ev: 'koka_ganzi', show: '!has:ganzi' });
+  m.o({ k: 'npc', id: 'sakuya', cn: 'sakuya', x: 16, y: 9, dir: 'left', ev: 'op_sakuya', show: '!has:sakuya&op_talked' });
+  m.o({ k: 'npc', id: 'oto', cn: 'oto', x: 17, y: 13, dir: 'left', ev: 'oto_talk', show: '!has:oto' });
+  m.o({ k: 'npc', id: 'nemu', cn: 'nemu', x: 21, y: 14, dir: 'left', ev: 'nemu_talk', show: '!has:nemu' });
+  m.o({ k: 'npc', id: 'konga', cn: 'konga', x: 6, y: 16, dir: 'up', ev: 'konga_talk', show: '!has:konga' });
+  m.o({ k: 'npc', id: 'shop', look: 'merchant', name: '道具屋', x: 8, y: 10, dir: 'down', ev: 'shop_koka' });
+  m.o({ k: 'npc', id: 'inn', look: 'innkeeper', name: '宿のおかみ', x: 21, y: 10, dir: 'down', ev: 'inn_koka' });
+  m.o({ k: 'npc', id: 'v1', look: 'v1', name: '里の人', x: 12, y: 11, dir: 'right', wander: 2, say: ['夜が明けなくなって、もう3日。にわとりも困っておるよ。', 'メニューの「仲間」で、仲間の能力が見られるよ。'] });
+  m.o({ k: 'npc', id: 'v2', look: 'kid1', name: '里の子', x: 12, y: 16, dir: 'down', wander: 2, say: ['妖怪には「弱点」があるんだって！ 弱点で当てると、構えがくずれるよ。', '構えが0になったら「崩し」！ そこに印をためた大技だよ！'] });
+  m.o({ k: 'npc', id: 'v3', look: 'v3', name: '里の人', x: 25, y: 9, dir: 'left', wander: 2, say: ['旅の地図は、里の南の門から出ると開けるよ。', '岩爺さまは、甲賀の里の長老さまじゃ。'] });
+  m.o({ k: 'npc', id: 'v4', look: 'elder', name: '里のおばあさん', x: 24, y: 13, dir: 'left', say: ['ネムちゃんは、いつも池のそばで絵を描いておるよ。', '暁の鐘は、天の社にあったそうな。'], show: '!ending' });
+  m.o({ k: 'chest', id: 'c1', x: 2, y: 2, get: 'kizugusuri', n: 2 });
+  m.o({ k: 'chest', id: 'c2', x: 27, y: 5, get: 'gold', n: 60 });
+  m.o({ k: 'chest', id: 'c3', x: 27, y: 17, get: 'kunai', n: 3 });
+  m.o({ k: 'sign', id: 's1', x: 16, y: 15, text: '甲賀の里　南：旅の道' });
   m.o({ k: 'exit', id: 'out', x: 14, y: 21, w: 2, h: 1, to: 'travel', show: 'op_done' });
   m.o({ k: 'step', id: 'nogo', x: 14, y: 20, w: 2, h: 1, ev: 'koka_nogo', show: '!op_done' });
-  m.o({ k: 'step', id: 'ending_walk', x: 10, y: 7, w: 10, h: 6, ev: 'ending_village', show: 'ending&!ending_seen' });
+  m.o({ k: 'step', id: 'ending_walk', x: 11, y: 9, w: 8, h: 5, ev: 'ending_village', show: 'ending&!ending_seen' });
   MAPS.koka = m.out();
   MAPS.koka.auto = [{ ev: 'op_start', show: '!op_started' }];
 }
@@ -197,40 +228,68 @@ function add(m) { MAPS[m.id] = m.out(); }
 }
 
 /* ================= 伊賀の里（第2章の町） ================= */
+// 山の忍の里。北に道場と稽古場、北西に令の家と竹林、山から谷川が流れ、橋の東に鍛冶場・宿・酉花の花畑。南西は家と畑。
 {
-  const m = new M('iga', 32, 22, '.', { name: '伊賀の里', area: '伊賀', theme: 'village', bgm: 'town', bbg: 'village', town: 1, start: [15, 19, 'up'], pine: 1 });
-  m.frame('Y', 2); m.rect(0, 0, 32, 1, 'Y');
-  m.rect(2, 2, 3, 2, 'Y'); m.rect(27, 2, 3, 3, 'Y');
-  m.rect(9, 7, 14, 6, '_');
-  m.line([[15, 13], [15, 21]], ',', 2);
-  m.line([[3, 10], [9, 10]], ',', 2); m.line([[23, 10], [29, 10]], ',', 2);
-  m.line([[6, 6], [6, 9]], ',', 1); m.line([[25, 6], [25, 9]], ',', 1); m.line([[15, 5], [15, 7]], ',', 2);
-  m.line([[6, 12], [6, 15]], ',', 1); m.line([[25, 12], [25, 15]], ',', 1);
-  m.rect(15, 20, 2, 2, ',');
-  // 酉花の花壇
-  m.rect(20, 16, 6, 3, 'f'); m.box(19, 15, 8, 5, 'F'); m.set(22, 15, ','); m.set(23, 15, ',');
-  m.scatter('"', 12, 9, 14, 6, 5); m.scatter('f', 6, 3, 7, 5, 3);
+  const m = new M('iga', 32, 22, '.', { name: '伊賀の里', area: '伊賀', theme: 'village', bgm: 'town', bbg: 'village', town: 1, start: [15, 19, 'up'] });
+  m.paint(0, 0, [
+    'YYYYYYYYYYYYYYYYYYYYY~~YYYYYYYYY', // 0
+    'YY.....BBBB..........~~......YYY', // 1
+    'YY.....BBB...........~~......YYY', // 2
+    'YY.....BB............~~......YYY', // 3
+    'YY.....B.............~~.......YY', // 4
+    'YY..,,......ggggggg..~~gggggg.YY', // 5
+    'YY..,,......ggggggg..~~gggggg.YY', // 6
+    'YY..,,.........,,....~~....,,.YY', // 7
+    'YY..,,........____...~~....,,.YY', // 8
+    'YY..,,........____...~~....,,.YY', // 9
+    'YY.,,,,,,,,,,,____,,,==,,,,,,,YY', // 10
+    'YY.,,,,,,,,,,,____,,,==,,,,,,,YY', // 11
+    'YY.............,,....~~.......YY', // 12
+    'YY.............,,....~~.FF,,FFYY', // 13
+    'YY.............,,....~~.FffffFYY', // 14
+    'YY.............,,....~~.FffffFYY', // 15
+    'YY..,,.....,,..,,....~~.FffffFYY', // 16
+    'YY..,,,,,,,,,,,,,....~~.FffffFYY', // 17
+    'YY.............,,....~~.FFFFFFYY', // 18
+    'YY.............,,....~~.......YY', // 19
+    'YYY............,,.YYY~~...YYYYYY', // 20
+    'YYYYYYYYYYYYYYY,,YYYY~~YYYYYYYYY'  // 21
+  ]);
+  m.scatter('"', 10, 23, 12, 7, 8); m.scatter('f', 6, 2, 5, 10, 3); m.scatter('"', 6, 2, 12, 13, 2);
+  m.set(2, 8, 'T'); m.set(19, 15, 'T'); m.set(13, 19, 'T'); m.set(29, 12, 'T');
+  // 北：道場と稽古場・令の家・鍛冶場
   m.deco('dojo', 12, 2, 7, 3, { label: '道場' });
-  m.deco('house', 4, 3, 4, 3, { v: 1, label: '令の家' });
-  m.deco('forge', 23, 3, 5, 3, { label: '鍛冶' });
-  m.deco('stall', 3, 12, 4, 2, { v: 'green', label: '団子' });
-  m.deco('stall', 9, 13, 3, 2, { v: 'blue', label: '道具' });
-  m.deco('inn', 26, 11, 4, 3, { label: '宿' });
-  m.deco('house', 2, 16, 4, 3, { v: 3 });
-  m.deco('lantern', 8, 7, 1, 1); m.deco('lantern', 23, 7, 1, 1); m.deco('well', 13, 15, 1, 1);
-  m.o({ k: 'npc', id: 'rei', cn: 'rei', x: 6, y: 7, dir: 'down', ev: 'rei_talk', show: '!has:rei' });
-  m.o({ k: 'npc', id: 'anne', cn: 'anne', x: 5, y: 14, dir: 'down', ev: 'anne_talk', show: '!has:anne' });
-  m.o({ k: 'npc', id: 'shion_v', cn: 'shion', x: 3, y: 14, dir: 'right', ev: 'shion_village', show: 'shion_back&!has:shion' });
-  m.o({ k: 'npc', id: 'torika', cn: 'torika', x: 22, y: 17, dir: 'down', ev: 'torika_talk', show: '!has:torika' });
-  m.o({ k: 'npc', id: 'kanaoni', cn: 'kanaoni', x: 25, y: 6, dir: 'down', ev: 'kanaoni_talk', show: '!has:kanaoni' });
+  m.deco('dummy', 12, 6, 1, 1); m.deco('dummy', 18, 6, 1, 1);
+  m.deco('lantern', 12, 7, 1, 1); m.deco('lantern', 19, 7, 1, 1);
+  m.deco('house', 3, 2, 4, 3, { v: 1, label: '令の家' });
+  m.deco('laundry', 7, 6, 3, 1);
+  m.deco('forge', 24, 2, 5, 3, { label: '鍛冶' });
+  m.deco('crates', 23, 6, 1, 1); m.deco('barrel', 28, 5, 1, 1); m.deco('firewood', 29, 4, 1, 1);
+  // 真ん中：店の並び・広場・橋・宿
+  m.deco('stall', 6, 8, 4, 2, { v: 'green', label: '団子' });
+  m.deco('stall', 10, 8, 3, 2, { v: 'blue', label: '道具' });
+  m.deco('inn', 23, 7, 4, 3, { label: '宿' });
+  m.deco('lantern', 20, 9, 1, 1); m.deco('lantern', 24, 12, 1, 1);
+  m.deco('bench', 19, 13, 2, 1);
+  // 南：家・畑・花畑
+  m.deco('field', 25, 14, 1, 4, { v: 'flower' }); m.deco('field', 28, 14, 1, 4, { v: 'flower' });
+  m.deco('house', 3, 13, 4, 3, { v: 3 });
+  m.deco('hut', 10, 14, 3, 2);
+  m.deco('well', 7, 13, 1, 1); m.deco('pots', 8, 15, 1, 1);
+  m.deco('field', 3, 18, 4, 2); m.deco('field', 8, 18, 4, 2); m.deco('dummy', 12, 18, 1, 1);
+  m.o({ k: 'npc', id: 'rei', cn: 'rei', x: 5, y: 6, dir: 'down', ev: 'rei_talk', show: '!has:rei' });
+  m.o({ k: 'npc', id: 'anne', cn: 'anne', x: 7, y: 10, dir: 'down', ev: 'anne_talk', show: '!has:anne' });
+  m.o({ k: 'npc', id: 'shion_v', cn: 'shion', x: 3, y: 11, dir: 'right', ev: 'shion_village', show: 'shion_back&!has:shion' });
+  m.o({ k: 'npc', id: 'torika', cn: 'torika', x: 26, y: 16, dir: 'down', ev: 'torika_talk', show: '!has:torika' });
+  m.o({ k: 'npc', id: 'kanaoni', cn: 'kanaoni', x: 26, y: 5, dir: 'down', ev: 'kanaoni_talk', show: '!has:kanaoni' });
   m.o({ k: 'npc', id: 'sekishusai', cn: 'sekishusai', x: 15, y: 5, dir: 'down', ev: 'ss_talk', show: '!has:sekishusai' });
-  m.o({ k: 'npc', id: 'shop', look: 'merchant2', name: '道具屋', x: 10, y: 15, dir: 'down', ev: 'shop_iga' });
-  m.o({ k: 'npc', id: 'inn', look: 'innkeeper', name: '宿の主人', x: 27, y: 14, dir: 'down', ev: 'inn_iga' });
-  m.o({ k: 'npc', id: 'v1', look: 'v2', name: '伊賀の人', x: 12, y: 10, dir: 'right', wander: 2, say: ['霧の山道は、見えない道が多いんだ。鷹の目でもないと迷うよ。', '令さまは、この里を守る忍だよ。'] });
-  m.o({ k: 'npc', id: 'v2', look: 'kid2', name: '伊賀の子', x: 19, y: 12, dir: 'down', wander: 3, say: ['金鬼さんの鍛冶場では、武器を強くしてもらえるんだって！', '武器の鍛錬には「玉鋼」がいるよ。妖怪が落とすこともあるって。'] });
-  m.o({ k: 'npc', id: 'v3', look: 'elder', name: '伊賀のおじいさん', x: 28, y: 17, dir: 'left', say: ['「やさしい」の難しさにすると、妖怪が弱くなるぞい。メニューの設定じゃ。'] });
-  m.o({ k: 'chest', id: 'c1', x: 3, y: 5, get: 'jokizu', n: 2 });
-  m.o({ k: 'chest', id: 'c2', x: 29, y: 6, get: 'tamahagane', n: 1 });
+  m.o({ k: 'npc', id: 'shop', look: 'merchant2', name: '道具屋', x: 11, y: 10, dir: 'down', ev: 'shop_iga' });
+  m.o({ k: 'npc', id: 'inn', look: 'innkeeper', name: '宿の主人', x: 24, y: 10, dir: 'down', ev: 'inn_iga' });
+  m.o({ k: 'npc', id: 'v1', look: 'v2', name: '伊賀の人', x: 14, y: 12, dir: 'right', wander: 2, say: ['霧の山道は、見えない道が多いんだ。鷹の目でもないと迷うよ。', '令さまは、この里を守る忍だよ。'] });
+  m.o({ k: 'npc', id: 'v2', look: 'kid2', name: '伊賀の子', x: 18, y: 12, dir: 'down', wander: 2, say: ['金鬼さんの鍛冶場では、武器を強くしてもらえるんだって！', '武器の鍛錬には「玉鋼」がいるよ。妖怪が落とすこともあるって。'] });
+  m.o({ k: 'npc', id: 'v3', look: 'elder', name: '伊賀のおじいさん', x: 27, y: 19, dir: 'left', say: ['「やさしい」の難しさにすると、妖怪が弱くなるぞい。メニューの設定じゃ。'] });
+  m.o({ k: 'chest', id: 'c1', x: 2, y: 5, get: 'jokizu', n: 2 });
+  m.o({ k: 'chest', id: 'c2', x: 29, y: 8, get: 'tamahagane', n: 1 });
   m.o({ k: 'sign', id: 's1', x: 14, y: 13, text: '伊賀の里　北：道場　東：鍛冶場' });
   m.o({ k: 'exit', id: 'out', x: 15, y: 21, w: 2, h: 1, to: 'travel' });
   MAPS.iga = m.out();
@@ -315,46 +374,83 @@ function add(m) { MAPS[m.id] = m.out(); }
 }
 
 /* ================= 雑賀の港（第3章の町） ================= */
+// にぎやかな港町。北に弁天の館と蔵の並び、石畳の大通りに魚屋・道具屋・伝令所・宿。南は網干しと灯明台の浜、桟橋と船。
 {
   const m = new M('saika', 34, 24, '.', { name: '雑賀の港', area: '雑賀', theme: 'port', bgm: 'town2', bbg: 'beach', town: 1, start: [2, 10, 'right'] });
-  m.frame('T', 1); m.rect(0, 0, 34, 2, 'T');
-  m.rect(0, 18, 34, 6, '~'); m.rect(1, 16, 32, 2, 's');
-  m.rect(4, 15, 26, 1, ',');
-  // 桟橋
-  m.rect(8, 17, 2, 5, ':'); m.rect(20, 17, 2, 6, ':'); m.rect(20, 21, 7, 2, ':');
-  m.rect(10, 6, 14, 7, '_');
-  m.line([[0, 10], [10, 10]], ',', 2); m.line([[24, 10], [31, 10]], ',', 2);
-  m.line([[16, 13], [16, 15]], ',', 2); m.line([[6, 11], [6, 15]], ',', 1); m.line([[28, 11], [28, 15]], ',', 1);
-  m.line([[16, 4], [16, 6]], ',', 2);
-  m.set(0, 10, ','); m.set(0, 11, ',');
-  m.scatter('f', 6, 2, 3, 6, 4); m.scatter('"', 8, 24, 3, 8, 5);
+  m.paint(0, 0, [
+    'TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT', // 0
+    'TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT', // 1
+    'T................................T', // 2
+    'T................................T', // 3
+    'T................................T', // 4
+    'T..,,...,,...._____..............T', // 5
+    'T..,,...,,...._____..............T', // 6
+    'T..,,...,,.....___...............T', // 7
+    'T..,,...,,.....___...............T', // 8
+    'T..,,...,,.....___...............T', // 9
+    ',,_______________________________T', // 10
+    ',,_______________________________T', // 11
+    'T................................T', // 12
+    'T................................T', // 13
+    'T................................T', // 14
+    'TssssssssssssssssssssssssssssssssT', // 15
+    'rssssssssssssssssssssssssssssssssr', // 16
+    'rssssssssssssssssssssssssssssssssr', // 17
+    '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~', // 18
+    '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~', // 19
+    '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~', // 20
+    '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~', // 21
+    '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~', // 22
+    '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'  // 23
+  ]);
+  // 桟橋（西の小さな桟橋と、船着き場）
+  m.rect(8, 16, 2, 7, ':'); m.rect(20, 16, 2, 7, ':'); m.rect(20, 21, 7, 2, ':');
+  m.set(3, 21, 'r'); m.set(31, 20, 'r'); m.set(32, 19, 'r'); m.set(12, 23, 'r');
+  m.scatter('f', 6, 1, 5, 12, 3); m.scatter('"', 6, 22, 12, 10, 3); m.scatter('f', 4, 19, 5, 3, 3);
+  m.set(29, 2, 'Y'); m.set(1, 13, 'T'); m.set(24, 13, 'T'); m.set(28, 6, 'Y');
+  // 北：家・弁天の館・蔵
+  m.deco('house', 2, 2, 4, 3, { v: 2 });
+  m.deco('house', 7, 2, 4, 3, { v: 0 });
+  m.deco('well', 6, 6, 1, 1);
   m.deco('bighouse', 13, 2, 7, 3, { label: '弁天の館' });
-  m.deco('stall', 3, 12, 3, 2, { v: 'blue', label: '魚' });
-  m.deco('stall', 10, 13, 3, 2, { v: 'red', label: '道具' });
-  m.deco('kura', 24, 3, 5, 3, { label: '蔵' });
-  m.deco('inn', 26, 11, 4, 3, { label: '宿' });
-  m.deco('house', 3, 3, 4, 3, { v: 2 });
-  m.deco('post', 21, 12, 2, 2, { label: '伝令' });
-  m.deco('crates', 13, 16, 2, 1); m.deco('crates', 25, 16, 1, 1);
+  m.deco('lantern', 13, 6, 1, 1); m.deco('lantern', 19, 6, 1, 1);
+  m.deco('kura', 21, 2, 3, 3, { label: '蔵' }); m.deco('kura', 25, 2, 3, 3, { label: '蔵' });
+  m.deco('crates', 29, 5, 2, 1); m.deco('barrel', 31, 6, 1, 1);
+  // 大通り：店・伝令所・宿
+  m.deco('stall', 5, 8, 3, 2, { v: 'blue', label: '魚' });
+  m.deco('stall', 10, 8, 3, 2, { v: 'red', label: '道具' });
+  m.deco('lantern', 14, 9, 1, 1); m.deco('lantern', 18, 9, 1, 1);
+  m.deco('post', 20, 8, 2, 2, { label: '伝令' });
+  m.deco('inn', 24, 7, 4, 3, { label: '宿' });
+  m.deco('barrel', 28, 9, 1, 1);
+  // 浜：網干し・小舟・荷・灯明台
+  m.deco('net', 2, 13, 3, 1); m.deco('net', 6, 13, 3, 1);
+  m.deco('crates', 12, 14, 2, 1); m.deco('barrel', 14, 14, 1, 1);
+  m.deco('bench', 16, 13, 2, 1);
+  m.deco('lantern', 19, 12, 1, 1);
+  m.deco('lighthouse', 30, 12, 2, 3);
+  m.deco('boat', 11, 16, 2, 1); m.deco('boat', 4, 17, 2, 1);
+  m.deco('boat', 13, 19, 2, 1, { block: 0 }); m.deco('boat', 16, 21, 2, 1, { block: 0 });
+  m.deco('crates', 23, 16, 2, 1);
   m.deco('ship', 22, 18, 7, 3, { show: 'ch3_clear' });
   m.o({ k: 'npc', id: 'benten', cn: 'benten', x: 16, y: 5, dir: 'down', ev: 'benten_talk', show: '!has:benten' });
-  m.o({ k: 'npc', id: 'nekomata', cn: 'nekomata', x: 4, y: 14, dir: 'right', ev: 'nekomata_talk', show: '!has:nekomata' });
-  m.o({ k: 'npc', id: 'nagisa', cn: 'nagisa', x: 26, y: 7, dir: 'down', ev: 'nagisa_talk', show: '!has:nagisa' });
-  m.o({ k: 'npc', id: 'ichiya', cn: 'ichiya', x: 23, y: 14, dir: 'down', ev: 'ichiya_talk', show: '!has:ichiya' });
+  m.o({ k: 'npc', id: 'nekomata', cn: 'nekomata', x: 4, y: 8, dir: 'right', ev: 'nekomata_talk', show: '!has:nekomata' });
+  m.o({ k: 'npc', id: 'nagisa', cn: 'nagisa', x: 24, y: 5, dir: 'down', ev: 'nagisa_talk', show: '!has:nagisa' });
+  m.o({ k: 'npc', id: 'ichiya', cn: 'ichiya', x: 22, y: 9, dir: 'left', ev: 'ichiya_talk', show: '!has:ichiya' });
   m.o({ k: 'npc', id: 'shiba', cn: 'shiba', x: 9, y: 20, dir: 'up', ev: 'shiba_talk', show: '!has:shiba' });
   m.o({ k: 'npc', id: 'quon', cn: 'quon', x: 31, y: 16, dir: 'left', ev: 'quon_1', show: '!quon_1&!has:quon' });
   m.o({ k: 'npc', id: 'magoichi', cn: 'magoichi', x: 21, y: 16, dir: 'down', ev: 'magoichi_talk', show: 'ch3_clear&!has:magoichi' });
-  m.o({ k: 'npc', id: 'shop', look: 'merchant', name: '道具屋', x: 11, y: 15, dir: 'down', ev: 'shop_saika' });
-  m.o({ k: 'npc', id: 'inn', look: 'innkeeper', name: '宿のおかみ', x: 27, y: 14, dir: 'down', ev: 'inn_saika' });
-  m.o({ k: 'npc', id: 'l1', look: 'fisher', name: '魚屋', x: 2, y: 14, dir: 'right', ev: 'letter_1' });
+  m.o({ k: 'npc', id: 'shop', look: 'merchant', name: '道具屋', x: 11, y: 10, dir: 'down', ev: 'shop_saika' });
+  m.o({ k: 'npc', id: 'inn', look: 'innkeeper', name: '宿のおかみ', x: 25, y: 10, dir: 'down', ev: 'inn_saika' });
+  m.o({ k: 'npc', id: 'l1', look: 'fisher', name: '魚屋', x: 6, y: 10, dir: 'down', ev: 'letter_1' });
   m.o({ k: 'npc', id: 'l2', look: 'sailor', name: '船乗り', x: 21, y: 22, dir: 'up', ev: 'letter_2' });
-  m.o({ k: 'npc', id: 'l3', look: 'elder', name: '灯台守のおばあさん', x: 31, y: 7, dir: 'left', ev: 'letter_3' });
-  m.o({ k: 'npc', id: 'v1', look: 'v4', name: '港の人', x: 13, y: 9, dir: 'right', wander: 2, say: ['海坊主が出るようになってから、船が出せないんだ。', '孫市さまの船も、沖で足止めされてるらしいよ。'] });
-  m.o({ k: 'npc', id: 'v2', look: 'kid1', name: '港の子', x: 19, y: 11, dir: 'down', wander: 3, say: ['潮風の浜に、ずっと寝てるお兄さんがいるよ。', '浜の霧は、風でも吹かないと晴れないんだって。'] });
-  m.o({ k: 'chest', id: 'c1', x: 2, y: 3, get: 'reisui', n: 1 });
+  m.o({ k: 'npc', id: 'l3', look: 'elder', name: '灯台守のおばあさん', x: 29, y: 13, dir: 'right', ev: 'letter_3' });
+  m.o({ k: 'npc', id: 'v1', look: 'v4', name: '港の人', x: 14, y: 12, dir: 'right', wander: 2, say: ['海坊主が出るようになってから、船が出せないんだ。', '孫市さまの船も、沖で足止めされてるらしいよ。'] });
+  m.o({ k: 'npc', id: 'v2', look: 'kid1', name: '港の子', x: 17, y: 15, dir: 'down', wander: 2, say: ['潮風の浜に、ずっと寝てるお兄さんがいるよ。', '浜の霧は、風でも吹かないと晴れないんだって。'] });
+  m.o({ k: 'chest', id: 'c1', x: 1, y: 3, get: 'reisui', n: 1 });
   m.o({ k: 'chest', id: 'c2', x: 31, y: 3, get: 'tamahagane', n: 2 });
-  m.o({ k: 'chest', id: 'c3', x: 9, y: 21, get: 'mizudama', n: 3 });
-  m.o({ k: 'sign', id: 's1', x: 15, y: 13, text: '雑賀の港　北：弁天の館　東：蔵・宿' });
+  m.o({ k: 'chest', id: 'c3', x: 8, y: 22, get: 'mizudama', n: 3 });
+  m.o({ k: 'sign', id: 's1', x: 15, y: 12, text: '雑賀の港　北：弁天の館　東：蔵・宿' });
   m.o({ k: 'exit', id: 'out', x: 0, y: 10, w: 1, h: 2, to: 'travel' });
   MAPS.saika = m.out();
   MAPS.saika.auto = [{ ev: 'saika_enter', show: '!saika_entered' }];
@@ -488,24 +584,36 @@ function add(m) { MAPS[m.id] = m.out(); }
 }
 
 /* ================= 天の社（終章） ================= */
+// 雲に浮かぶ島々を朱の橋でつなぐ。北の本島に暁の鐘、真ん中に中の島、西の島に根の国への階段、東の島に天女の店、南の島が入口。
 {
   const m = new M('ten', 30, 22, 'v', { name: '天の社', area: '天界', theme: 'sky', bgm: 'sky', bbg: 'sky', town: 1, start: [14, 19, 'up'] });
-  m.ell(14.5, 10.5, 13, 10, 'c');
-  m.rect(10, 2, 10, 6, '_'); m.line([[14, 8], [14, 20]], '_', 2); m.rect(14, 20, 2, 2, 'c');
-  m.scatter('f', 10, 3, 6, 24, 12, 'c');
+  m.ell(14.5, 4.2, 8.8, 4.4, 'c');          // 本島
+  m.ell(14.5, 12, 3.2, 1.6, 'c');           // 中の島
+  m.ell(5, 12, 4.3, 3.6, 'c');              // 西の島
+  m.ell(24, 12, 4.3, 3.6, 'c');             // 東の島
+  m.ell(14.5, 18.6, 5.4, 3.2, 'c');         // 南の島
+  m.rect(10, 1, 10, 7, '_');
+  m.rect(14, 9, 2, 2, '='); m.rect(14, 14, 2, 2, '='); m.rect(10, 12, 2, 1, '='); m.rect(18, 12, 2, 1, '=');
+  m.rect(14, 20, 2, 2, 'c');
+  m.scatter('f', 8, 1, 8, 28, 13, 'c');
+  m.set(7, 3, 'K'); m.set(22, 3, 'K'); m.set(8, 6, 'K'); m.set(21, 6, 'K'); m.set(4, 9, 'K'); m.set(26, 9, 'K'); m.set(11, 18, 'K'); m.set(18, 19, 'K');
   m.deco('bell', 12, 2, 6, 3, { label: '暁の鐘' });
   m.deco('torii', 12, 8, 6, 1, { pass: [[2, 0], [3, 0]], v: 'gold' });
   m.deco('lantern', 9, 4, 1, 1); m.deco('lantern', 20, 4, 1, 1);
-  m.deco('stair_down', 5, 15, 3, 2, { pass: [[1, 1]] });
-  m.o({ k: 'npc', id: 'sattva', cn: 'sattva', x: 15, y: 6, dir: 'down', ev: 'sattva_talk', show: '!has:sattva' });
-  m.o({ k: 'npc', id: 'jin', cn: 'jin', x: 20, y: 9, dir: 'left', ev: 'jin_talk', show: 'sattva_met&!has:jin' });
-  m.o({ k: 'npc', id: 'shop', look: 'maiden', name: '天女', x: 21, y: 14, dir: 'left', ev: 'shop_ten' });
-  m.o({ k: 'npc', id: 'inn', look: 'maiden2', name: '天女', x: 8, y: 11, dir: 'right', ev: 'inn_ten' });
-  m.o({ k: 'chest', id: 'c1', x: 24, y: 11, get: 'manno', n: 1 });
-  m.o({ k: 'chest', id: 'c2', x: 4, y: 9, get: 'shippu', n: 1 });
+  m.deco('lantern', 12, 11, 1, 1); m.deco('lantern', 17, 11, 1, 1);
+  m.deco('lantern', 12, 17, 1, 1); m.deco('lantern', 17, 17, 1, 1);
+  m.deco('stair_down', 4, 12, 3, 2, { pass: [[1, 1]] });
+  m.deco('lantern', 3, 11, 1, 1); m.deco('lantern', 7, 12, 1, 1);
+  m.deco('shrine_small', 23, 9, 2, 2, { label: '天女' });
+  m.o({ k: 'npc', id: 'sattva', cn: 'sattva', x: 15, y: 5, dir: 'down', ev: 'sattva_talk', show: '!has:sattva' });
+  m.o({ k: 'npc', id: 'jin', cn: 'jin', x: 18, y: 7, dir: 'left', ev: 'jin_talk', show: 'sattva_met&!has:jin' });
+  m.o({ k: 'npc', id: 'shop', look: 'maiden', name: '天女', x: 22, y: 12, dir: 'left', ev: 'shop_ten' });
+  m.o({ k: 'npc', id: 'inn', look: 'maiden2', name: '天女', x: 7, y: 10, dir: 'down', ev: 'inn_ten' });
+  m.o({ k: 'chest', id: 'c1', x: 26, y: 12, get: 'manno', n: 1 });
+  m.o({ k: 'chest', id: 'c2', x: 2, y: 11, get: 'shippu', n: 1 });
   m.o({ k: 'exit', id: 'out', x: 14, y: 21, w: 2, h: 1, to: 'travel' });
-  m.o({ k: 'exit', id: 'down', x: 6, y: 16, w: 1, h: 1, to: 'nenokuni', tx: 19, ty: 27, dir: 'up', show: 'ne_open' });
-  m.o({ k: 'sign', id: 's1', x: 9, y: 16, text: '根の国への階段。灯りのない者は、帰り道を見失う' });
+  m.o({ k: 'exit', id: 'down', x: 5, y: 13, w: 1, h: 1, to: 'nenokuni', tx: 19, ty: 27, dir: 'up', show: 'ne_open' });
+  m.o({ k: 'sign', id: 's1', x: 3, y: 14, text: '根の国への階段。灯りのない者は、帰り道を見失う' });
   MAPS.ten = m.out();
   MAPS.ten.auto = [{ ev: 'ten_enter', show: '!ten_entered' }];
 }
@@ -544,7 +652,7 @@ function add(m) { MAPS[m.id] = m.out(); }
   m.o({ k: 'chest', id: 'c4', x: 24, y: 19, get: 'tokukizu', n: 3 });
   m.o({ k: 'chest', id: 'c5', x: 13, y: 3, get: 'choumei', n: 1 });
   m.o({ k: 'chest', id: 'c6', x: 22, y: 9, get: 'tamahagane', n: 3 });
-  m.o({ k: 'exit', id: 'up', x: 19, y: 29, w: 2, h: 1, to: 'ten', tx: 6, ty: 17, dir: 'down' });
+  m.o({ k: 'exit', id: 'up', x: 19, y: 29, w: 2, h: 1, to: 'ten', tx: 5, ty: 14, dir: 'down' });
   [[16, 26], [7, 22], [5, 14], [9, 9], [29, 22], [32, 14], [28, 9], [15, 18], [22, 14], [20, 5]].forEach(([x, y], i) => m.o({ k: 'enemy', id: 'e' + i, x, y, pool: 'nenokuni', r: 2 }));
   MAPS.nenokuni = m.out();
 }
@@ -552,7 +660,7 @@ function add(m) { MAPS[m.id] = m.out(); }
 /* ================= 旅の地図 ================= */
 const TRAVEL = {
   nodes: [
-    { id: 'koka', name: '甲賀の里', x: 300, y: 470, map: 'koka', at: [14, 19, 'up'] },
+    { id: 'koka', name: '甲賀の里', x: 300, y: 470, map: 'koka', at: [14, 18, 'up'] },
     { id: 'kitsunebi', name: '狐火の森', x: 180, y: 390, map: 'kitsunebi', at: [17, 26, 'up'], show: 'op_done' },
     { id: 'iga', name: '伊賀の里', x: 430, y: 330, map: 'iga', at: [15, 20, 'up'], show: 'ch1_clear' },
     { id: 'kirimichi', name: '霧の山道', x: 500, y: 200, map: 'kirimichi', at: [17, 28, 'up'], show: 'ch1_clear' },

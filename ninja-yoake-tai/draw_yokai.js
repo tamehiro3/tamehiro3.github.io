@@ -265,6 +265,28 @@
   }
   var SIZE = { blob: 40, tanuki: 52, wisp: 50, kodama: 52, kasa: 52, fox: 50, mist: 42, rock: 38, tengu: 52, spider: 36, echo: 40, kappa: 48, crab: 36, chochin: 54, jelly: 44, firefly: 46, shadow: 56, weasel: 42, cloth: 50, daruma: 40, crow: 62, umibozu: 56, orochi: 28, yama: 36, seal_stone: 44 };
 
-  var api = { draw: draw, PAL: PAL, SIZE: SIZE, shapes: Object.keys(SH) };
+  // ドット絵のコマ（地図と戦闘で使う）。o: { s（大きさ）, dir, turn, boss, state（'daze'|'ko'）, n（コマの数）}
+  // 返す値：{ frames: [キャンバス...], ax, ay（足もとの位置）, w, h }。同じものは一度だけ作る
+  var pixCache = {};
+  var EYE_COLS = ['#2b1d3a', '#20161a', '#7a2a1a', '#4a5a8a', '#7a3ea6', '#c8202c'];
+  function pixFrames(shape, col, o) {
+    var PIX = root.NYT_PIX; if (!PIX || typeof document === 'undefined') return null;
+    o = o || {};
+    var s = Math.round((o.s || 1) * 100) / 100, n = o.n || 4;
+    var key = [shape, col, s, o.dir || 1, o.boss ? 1 : 0, o.state || '', o.turn ? 1 : 0, n].join('|');
+    if (pixCache[key]) return pixCache[key];
+    var sz = SIZE[shape] || 44, H = Math.ceil(sz * s * 1.45) + 6, W = Math.ceil(sz * s * 1.8) + 6;
+    var ax = Math.round(W / 2), ay = H - 3, frames = [], N = H > 90 ? 4 : H > 60 ? 5 : 6;
+    for (var i = 0; i < n; i++) {
+      var t = i * 0.3;
+      frames.push(PIX.fromDraw(W, H, N, function (g) {
+        g.translate(ax, ay);
+        draw(g, shape, col, { s: s, t: t, dir: o.dir || 1, turn: o.turn, boss: o.boss, shadow: false, daze: o.state === 'daze', ko: o.state === 'ko' });
+      }, { eyes: EYE_COLS, eye: 0.12 }));
+    }
+    return (pixCache[key] = { frames: frames, ax: ax, ay: ay, w: W, h: H });
+  }
+
+  var api = { draw: draw, pixFrames: pixFrames, PAL: PAL, SIZE: SIZE, shapes: Object.keys(SH) };
   root.NYT_YOKAI = api;
 })(typeof window !== 'undefined' ? window : globalThis);

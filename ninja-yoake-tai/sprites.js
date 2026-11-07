@@ -1,19 +1,22 @@
-/* ニンジャ夜明け隊（RPG） — 忍者の絵（art.js の SVG → 画像 → キャンバス）
- * 2.7頭身で描く。左右を向くときは横顔に近い斜め（yaw ±70）。
- * 向き・しぐさ・歩きのコマ・大きさごとに、一度だけ作って使い回す。作っているあいだは、前に作った絵を出す。
+/* ニンジャ夜明け隊（RPG） — 忍者のドット絵（art.js の SVG → 高い解像度の画像 → ドット絵）
+ * 2.7頭身。キャラクターシートと同じ見た目の定義（chars.js）から、ドット絵を作る（pixel.js）。
+ * 大きさ：地図 40×48ドット・戦闘 60×72ドット・メニュー 80×96ドット。左右を向くときは斜め（yaw ±70）。
+ * 向き・しぐさ・歩きのコマ・大きさごとに、一度だけ作って使い回す。作るのは1枚ずつ順番に。
+ * 作っているあいだは、同じ人の前に作った絵を出す。
  * 主人公・村の人の見た目もここで決める（村の人は apprenticeArt を色がえして使う）。
  */
 (function (root) {
   'use strict';
-  var A = root.NinjaArt, CH = root.NSL_CHARS;
-  var SP = { cache: {}, last: {}, pending: 0, defs: {} };
+  var A = root.NinjaArt, CH = root.NSL_CHARS, PIX = root.NYT_PIX;
+  var SP = { cache: {}, last: {}, pending: 0, defs: {}, queue: [], busy: false };
 
   // 2.7頭身で描く（art.js の heads）。絵の枠は、頭の飾り・耳・長い襟巻きまで入るように広めにとる
   var HEADS = 2.7;
   var VB = [-14, -30, 228, 272];            // art.js の座標で x, y, 幅, 高さ
   var ASPECT = VB[2] / VB[3];               // 幅 ÷ 高さ
   var FOOT_Y = (232 - VB[1]) / VB[3];       // 足もと（地面 y=232）の高さの割合。まん中は x=100
-  var FACE = { h: 2.7, cy: 0.33 };          // 顔の切り抜き：絵の高さ（枠の何倍）と、頭のまん中の高さの割合
+  var FACE = { cy: 0.33, h: 0.36 };         // 顔の切り抜き：頭のまん中の高さ・切り抜く高さ（絵の高さに対する割合）
+  var SIZE = { field: [40, 48], battle: [60, 72], big: [80, 96] };
 
   function mk(w, h) { var c = document.createElement('canvas'); c.width = Math.max(1, Math.round(w)); c.height = Math.max(1, Math.round(h)); return c; }
 
@@ -60,38 +63,62 @@
   // 仲間の id から
   function memberDef(id, S) { return id === 'hero' ? heroDef(S) : cnDef(id); }
 
-  // ---- 絵を取りだす ----
-  // o: { yaw, pose, frame, h（画素の高さ）, companions, prop, expr }
-  function get(d, o) {
-    if (!A || !d || !d.def || typeof document === 'undefined') return null;
-    var h = Math.max(24, Math.round(o.h / 4) * 4);
-    var k = d.key + '|' + (o.yaw || 0) + '|' + (o.pose || 'stand') + '|' + (o.frame || 0) + '|' + h + '|' + (o.companions ? 1 : 0) + '|' + (o.expr || '') + '|' + (o.prop === false ? 0 : 1);
-    var e = SP.cache[k];
-    var lastKey = d.key + '|' + h;
-    if (e) return e.cv ? e.cv : (SP.last[lastKey] || null);
-    e = SP.cache[k] = { cv: null };
-    var w = Math.round(h * ASPECT);
-    var svg;
-    try {
-      svg = A.render(d.def, { yaw: o.yaw || 0, pose: o.pose || 'stand', frame: o.frame || 0, w: w, h: h, shadow: false, companions: !!o.companions, prop: o.prop, expr: o.expr, heads: HEADS, viewBox: VB.join(' ') });
-    } catch (err) { return null; }
-    var img = new Image();
+  // ---- ドット絵を取りだす ----
+  // o: { yaw, pose, frame, size（'field'|'battle'|'big'）, companions, prop, expr }
+  // できていれば絵（キャンバス）を返す。まだなら作る順番に入れて、同じ人の前の絵（なければ null）を返す
+  function pix(d, o) {
+    if (!A || !PIX || !d || !d.def || typeof document === 'undefined') return null;
+    o = o || {};
+    var size = SIZE[o.size] ? o.size : 'field', wh = SIZE[size];
+    var k = d.key + '|' + size + '|' + (o.yaw || 0) + '|' + (o.pose || 'stand') + '|' + (o.frame || 0) + '|' + (o.companions ? 1 : 0) + '|' + (o.expr || '') + '|' + (o.prop === false ? 0 : 1);
+    var e = SP.cache[k], lastKey = d.key + '|' + size;
+    if (e) return e.cv || SP.last[lastKey] || null;
+    SP.cache[k] = e = { cv: null };
     SP.pending++;
-    img.onload = function () { var cv = mk(img.width, img.height); cv.getContext('2d').drawImage(img, 0, 0); e.cv = cv; SP.last[lastKey] = cv; SP.pending--; };
-    img.onerror = function () { SP.pending--; };
-    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    SP.queue.push({ e: e, d: d, o: o, wh: wh, lastKey: lastKey, first: !SP.last[lastKey] });
+    // その人の最初の1枚は先に（だれも描けないままにしない）
+    if (!SP.last[lastKey]) SP.queue.sort(function (a, b) { return (b.first ? 1 : 0) - (a.first ? 1 : 0); });
+    pump();
     return SP.last[lastKey] || null;
   }
-  // 先に作っておく（地図に入ったとき）
-  function warm(d, h, dirs) {
-    (dirs || [0, 180, -90, 90]).forEach(function (y) {
-      get(d, { yaw: y, pose: 'stand', h: h });
-      for (var f = 0; f < 4; f++) get(d, { yaw: y, pose: 'walk', frame: f, h: h });
+  function pump() {
+    if (SP.busy || !SP.queue.length) return;
+    var job = SP.queue.shift();
+    SP.busy = true;
+    var o = job.o, W = job.wh[0], H = job.wh[1];
+    var done = function (cv) {
+      job.e.cv = cv; if (cv) SP.last[job.lastKey] = cv;
+      SP.pending--; SP.busy = false;
+      setTimeout(pump, 0);
+    };
+    try {
+      PIX.fromSvg(function (w, h) {
+        return A.render(job.d.def, { yaw: o.yaw || 0, pose: o.pose || 'stand', frame: o.frame || 0, w: w, h: h, shadow: false, companions: !!o.companions, prop: o.prop, expr: o.expr, heads: HEADS, viewBox: VB.join(' ') });
+      }, W, H, { N: W >= 60 ? 5 : 6 }).then(done, function () { done(null); });
+    } catch (err) { done(null); }
+  }
+  // 顔（ドット絵の頭のまわりを切り抜く）。できていなければ null
+  function face(d, o) {
+    var big = pix(d, Object.assign({ size: 'big' }, o || {}));
+    if (!big) return null;
+    if (big._face) return big._face;
+    var H = big.height, s = Math.round(H * FACE.h), cy = Math.round(H * FACE.cy);
+    var c = mk(s, s), g = c.getContext('2d');
+    g.drawImage(big, Math.round((big.width - s) / 2), cy - Math.round(s / 2), s, s, 0, 0, s, s);
+    big._face = c;
+    return c;
+  }
+  // 先に作っておく（地図に入ったとき）：4方向の立ち姿と歩くコマ
+  function warm(d) {
+    ['down', 'up', 'left', 'right'].forEach(function (dir) {
+      var y = YAW[dir];
+      pix(d, { yaw: y, pose: 'stand' });
+      for (var f = 0; f < 4; f++) pix(d, { yaw: y, pose: 'walk', frame: f });
     });
   }
   // 向き → art.js の yaw（正の yaw は画面の右を向く）
   var YAW = { down: 0, up: 180, left: -70, right: 70 };
 
-  var api = { get: get, warm: warm, heroDef: heroDef, cnDef: cnDef, villagerDef: villagerDef, defFor: defFor, memberDef: memberDef, YAW: YAW, FOOT_Y: FOOT_Y, ASPECT: ASPECT, FACE: FACE, HEADS: HEADS, VILLAGER: VILLAGER, mk: mk, state: SP };
+  var api = { pix: pix, face: face, warm: warm, heroDef: heroDef, cnDef: cnDef, villagerDef: villagerDef, defFor: defFor, memberDef: memberDef, YAW: YAW, FOOT_Y: FOOT_Y, ASPECT: ASPECT, FACE: FACE, SIZE: SIZE, HEADS: HEADS, VILLAGER: VILLAGER, mk: mk, state: SP };
   root.NYT_SPRITES = api;
 })(typeof window !== 'undefined' ? window : globalThis);

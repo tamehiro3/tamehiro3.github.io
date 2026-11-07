@@ -1,11 +1,12 @@
 # ニンジャ夜明け隊（試作版）
 
 CryptoNinja の39人が仲間になる、**コマンドでたたかうRPG** です。
-割れた「暁の鐘」のかけら5つを取り戻して、明けない夜を終わらせます。設計は [`DESIGN.md`](DESIGN.md)（③ RPG 版 詳細設計書 v2.0）。
+割れた「暁の鐘」のかけら5つを取り戻して、明けない夜を終わらせます。設計は [`DESIGN.md`](DESIGN.md)（③ RPG 版 詳細設計書 v2.2）。
+画面は、むかしのRPGのような **ドット絵**（1マス32ドット・整数倍で拡大。`DESIGN.md` §11.3）。町の地図の作り方は §11.4。
 
 - 遊ぶ: https://tamehiro3.github.io/ninja-yoake-tai/
 - 遊び方・保護者の方へ: `about.html`
-- キャラクターシート（39体・2.7頭身）: `sheets/`。ゲームの絵と同じ **2.7頭身**（`DESIGN.md` §11.1）。見た目の定義は `../ninja-sato-life/chars.js`（2頭身のシートは `../ninja-sato-life/sheets/`）
+- キャラクターシート（39体・2.7頭身）: `sheets/`。ゲームのドット絵のもとになる **2.7頭身** の絵（`DESIGN.md` §11.1）。見た目の定義は `../ninja-sato-life/chars.js`（2頭身のシートは `../ninja-sato-life/sheets/`）
 
 CryptoNinja（CC0・Ninja DAO）のキャラクターを使った個人制作の非公式ファンゲームです。物語・忍術・セリフ・妖怪はゲームの創作で、公式の設定ではありません。
 2026-10-04 に、協力防衛の試作（② 1回6分・NPC2人）から、このRPGに作り直しました（名前と置き場所は引きつぎ）。
@@ -39,8 +40,10 @@ python3 -m http.server 8765
 | `data_maps.js` | 13の地図と旅の地図（`tools/build_maps.mjs` で作る。手で直さない） |
 | `data_story.js` | 物語と加入のイベント（命令の並び） |
 | `state.js` / `battle.js` / `field.js` / `script.js` | 判定（状態と保存・戦闘・マス目と障害物・イベントの実行）。画面に依存しないので Node でテストする |
-| `sprites.js` / `draw_world.js` / `draw_yokai.js` | 忍者の絵（art.js の SVG を画像に）・地面と建物・妖怪の絵 |
-| `render_field.js` / `render_battle.js` | フィールド（夜の明かり・霧）と戦闘（背景・術の光・数字）の描画 |
+| `pixel.js` | ドット絵の道具（SVG・canvas の絵をドット絵に落とす・縁どり・ドットで描く小さな関数） |
+| `sprites.js` / `draw_world.js` / `draw_yokai.js` | 忍者のドット絵（art.js の2.7頭身の SVG から作る）・地面と建物と小物・妖怪のドット絵 |
+| `render_field.js` / `render_battle.js` | フィールド（整数倍の拡大・夜の明かり・霧）と戦闘（背景・術の光・数字）の描画 |
+| `fonts/` | ドットの字体 DotGothic16（@fontsource/dotgothic16 の日本語の woff2。SIL Open Font License 1.1、`fonts/OFL.txt`） |
 | `battle_ui.js` | 戦闘の流れ（できごとを順に見せる）・コマンド・ねらう相手・勝ち負け |
 | `ui.js` / `ui_menu.js` | 会話・えらぶ・タイトル・はじめる画面／メニュー・店・鍛冶・仲間帳・図鑑・旅の地図 |
 | `input.js` / `audio.js` / `game.js` | 入力（キー・タッチ・マウス）／音（WebAudio で合成した曲と効果音）／全体の流れとイベントの host |
@@ -65,7 +68,8 @@ node ninja-sato-life/tools/build_sheets.mjs --heads 2.7 --out ../ninja-yoake-tai
 
 ## 更新するとき
 
-- 中身を変えたら `index.html` の `?v=4` と `sw.js` の `CACHE` / `V` の番号を上げる
+- 中身を変えたら `index.html` の `?v=5` と `sw.js` の `CACHE` / `V` の番号を上げる
+- 画面で使う字を増やしたら、`fonts/` の字体に入っているか確かめる（JIS第1・第2水準の漢字まで入っている。入っていない字や記号はほかの字体で出る）
 - `../ninja-sato-life/art.js` を直したら（2.7頭身の `heads` など）、`index.html` と `sw.js` で読む `art.js?v=3` の番号も上げる。`chars.js?v=2` は里ライフ側の番号に合わせる
 - art.js の既定（`heads` なし）の絵はニンジャ里ライフが使うので、変えるときは里ライフの見た目が変わらないことを確かめる
 - 地図は `tools/build_maps.mjs` を直して作り直す。数値を変えたら `test_core.mjs`・`playthrough.mjs`・`balance.mjs` を回す

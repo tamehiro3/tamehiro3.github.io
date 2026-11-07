@@ -14,8 +14,8 @@ const stats = { battles: 0, symbolBattles: 0, losses: 0, grind: 0, steps: 0, inn
 
 let S = ST.fresh('テスト', { set: 'ai', hair: 'short' });
 S.seed = SEED;
-S.map = { id: 'koka', x: 15, y: 7, dir: 'up' };
-let F = null, P = { x: 15, y: 7, dir: 'up' };
+S.map = { id: 'koka', x: 14, y: 8, dir: 'up' };
+let F = null, P = { x: 14, y: 8, dir: 'up' };
 let pending = [];   // 実行待ちのイベント
 
 function chapterKey() { return S.flags.ch4_clear ? 'ch5' : S.flags.ch3_clear ? 'ch4' : S.flags.ch2_clear ? 'ch3' : S.flags.ch1_clear ? 'ch2' : S.flags.op_done ? 'ch1' : 'op'; }
@@ -308,7 +308,7 @@ const STEPS = [
 
 // ---------- はじめる ----------
 host.S = S;
-loadMap('koka', 15, 7, 'up');
+loadMap('koka', 14, 8, 'up');
 const lvAt = {};
 for (const st of STEPS) {
   try { doStep(st); } catch (e) { console.log('×', e.message); console.log('  at step', JSON.stringify(st), 'map', S.map.id, P.x + ',' + P.y, 'Lv', S.members.hero.lv); process.exitCode = 1; break; }

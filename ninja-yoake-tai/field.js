@@ -12,7 +12,7 @@
     '.': { n: 'grass', w: 1 }, ',': { n: 'path', w: 1 }, '_': { n: 'stone', w: 1 }, '"': { n: 'tallgrass', w: 1 }, 'f': { n: 'flowers', w: 1 },
     's': { n: 'sand', w: 1 }, ':': { n: 'deck', w: 1 }, 'd': { n: 'cave', w: 1 }, 'p': { n: 'floor', w: 1 }, 'c': { n: 'cloud', w: 1 },
     'k': { n: 'dark', w: 1 }, 'l': { n: 'lily', w: 1 }, '=': { n: 'bridge', w: 1 }, 'g': { n: 'gravel', w: 1 },
-    '~': { n: 'water', w: 0 }, 'T': { n: 'tree', w: 0, tall: 1 }, 'Y': { n: 'pine', w: 0, tall: 1 }, 'B': { n: 'bamboo', w: 0, tall: 1 },
+    '~': { n: 'water', w: 0 }, 'T': { n: 'tree', w: 0, tall: 1 }, 'Y': { n: 'pine', w: 0, tall: 1 }, 'B': { n: 'bamboo', w: 0, tall: 1 }, 'K': { n: 'sakura', w: 0, tall: 1 },
     't': { n: 'bush', w: 0 }, '#': { n: 'cliff', w: 0 }, 'D': { n: 'cavewall', w: 0 }, 'W': { n: 'wall', w: 0 }, 'F': { n: 'fence', w: 0 },
     'r': { n: 'rock', w: 0 }, 'S': { n: 'stonewall', w: 0 }, 'x': { n: 'void', w: 0 }, 'v': { n: 'cloudedge', w: 0 }
   };

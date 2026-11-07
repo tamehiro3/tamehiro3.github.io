@@ -244,8 +244,9 @@ section('フィールド（条件・歩ける場所・道さがし・障害物�
   ok(FD.cond(S, 'has:xiaolan&!has:oen&item:kizugusuri>=3&frag>=0'), '条件：has・否定・道具の数・かけら');
   ok(!FD.cond(S, 'item:kizugusuri>=4') && !FD.cond(S, 'ability:hawk') && FD.cond(S, 'ability:push'), '条件：探索の術');
   const F = FD.load(S, 'koka');
-  ok(FD.path(F, 15, 9, 14, 19) !== null, '甲賀の里：社から南の出口まで道がある');
-  ok(!FD.walkable(F, 15, 6), '人のいるマスは歩けない');
+  ok(FD.path(F, 15, 5, 14, 21) !== null, '甲賀の里：社から南の出口まで道がある');
+  ok(!FD.walkable(F, 14, 4), '人のいるマスは歩けない');
+  ok(FD.walkable(F, 14, 7) && !FD.walkable(F, 13, 7), '鳥居は柱のあいだだけ通れる');
   // 稲荷の洞：大岩を押して穴を埋める
   const I = FD.load(S, 'inari');
   const b1 = I.objs.find(o => o.id === 'b1' && o.k === 'obst');

@@ -159,6 +159,53 @@ npx cap sync           # www と プラグインを android/ ios/ に反映
 5. 実機をつないで Run ▶。初回は iPhone の 設定 → 一般 → VPN とデバイス管理 で開発元を信頼する。
 6. 配布は Product → Archive → Distribute App（TestFlight）。その前に下の「配布の前に」を済ませる。
 
+### iPhone で試す（Mac がなくてもできる方法: GitHub の Mac と TestFlight）
+
+Mac がなくても、GitHub の Mac（GitHub Actions の macOS）で組み立てて、TestFlight で自分の iPhone に入れられる。必要なのは Apple Developer Program（有料）と、Windows のブラウザでの設定だけ。
+
+- 組み立ての仕組み: リポジトリの `.github/workflows/shinobi-ashi-ios.yml`（「忍び足 iOS」）。`shinobi-ashi/` が変わるたびに、署名なしで組み立てて壊れていないかを確かめる。下の4つの秘密がそろっていれば、続けて署名して TestFlight に送る。
+- 公開リポジトリなので、GitHub の Mac の利用料はかからない。
+
+**1. Apple Developer Program に入る（年 99 米ドル。日本の税込み額は要確認）**
+iPhone の「Apple Developer」アプリから申し込むのがいちばん簡単（個人で登録。Apple ID の2ファクタ認証が要る）。承認まで1〜2日かかることがある。
+
+**2. アプリの ID を登録する（developer.apple.com、Windows のブラウザでよい）**
+Account → Certificates, Identifiers & Profiles → Identifiers → ＋ → App IDs → App → Bundle ID を Explicit で `io.github.tamehiro3.shinobiashi`。Capabilities は何も付けない（歩数の「モーションとフィットネス」と端末内の通知には要らない）。
+
+**3. App Store Connect でアプリを作る**
+appstoreconnect.apple.com → アプリ → ＋ → 新規アプリ。プラットフォーム iOS、名前は App Store 全体で重ならないものが要るので、まずは仮の名前（例「忍び足 試作」。あとで変えられる）、言語は日本語、バンドル ID は 2. のもの、SKU は `shinobi-ashi`。ストアに出すわけではないので、説明文やスクリーンショットはまだ要らない。
+
+**4. API キーを作る**
+App Store Connect → ユーザとアクセス → 統合 → App Store Connect API → チームキー → ＋。名前は `github-actions`、アクセスは「Admin（管理）」（GitHub の Mac が配布用の証明書を作るため。より弱い権限で通るかは要確認）。
+作ったら次の3つを控える。
+- キー ID（10文字）
+- 発行者 ID（Issuer ID。画面の上にある長い文字列）
+- `AuthKey_キーID.p8` のファイル（ダウンロードは1回だけしかできない）
+
+**5. チーム ID を控える**
+developer.apple.com → Account → メンバーシップの詳細 → チーム ID（10文字）。
+
+**6. GitHub に4つの秘密を入れる**
+github.com のこのリポジトリ → Settings → Secrets and variables → Actions → New repository secret を4回。
+
+| 名前 | 中身 |
+|---|---|
+| `ASC_KEY_ID` | 4. のキー ID |
+| `ASC_ISSUER_ID` | 4. の発行者 ID |
+| `ASC_KEY_P8` | `.p8` ファイルをメモ帳で開き、`-----BEGIN PRIVATE KEY-----` から `-----END PRIVATE KEY-----` までを全部貼る |
+| `APPLE_TEAM_ID` | 5. のチーム ID |
+
+秘密は GitHub の中で隠されて、ログにも出ない。ほかの人には見えない。
+
+**7. 組み立てて TestFlight に送る**
+秘密を入れたあと、`shinobi-ashi/` の中を何か変えて push するか、Actions の「忍び足 iOS」の最新の実行を Re-run する（Claude に「秘密を入れた」と伝えれば、こちらで Re-run できる）。成功すると App Store Connect に新しいビルドが届き、10〜30分ほどの処理のあと TestFlight に出る。ビルド番号は実行ごとに1つずつ増える。暗号の質問（輸出コンプライアンス）は Info.plist の `ITSAppUsesNonExemptEncryption = NO` で出ない。
+
+**8. iPhone に入れる**
+App Store Connect → アプリ → TestFlight → 内部テスト → グループを作り、自分（アカウントの持ち主）を足す。iPhone に App Store から「TestFlight」アプリを入れ、届いた招待から「忍び足」を入れる。審査は要らない。1つのビルドは90日で使えなくなるので、それまでに新しいビルドを送る。
+家族に試してもらうときは、家族の Apple ID を App Store Connect のユーザーに足して内部テストに入れる（審査なし）か、外部テストの公開リンクを使う（最初のビルドだけ Apple の簡単な審査がある）。
+
+**Mac があるとき**は上の「Mac（Xcode）」の手順で、無料の Apple ID でも自分の iPhone に入れられる（7日で使えなくなり、入れ直しが要る）。
+
 ## アイコンとスプラッシュ
 
 絵は絵担当の `shinobi-ashi/tools/build_icons.mjs` が `shinobi-ashi/icons/` に作る（`icon-1024.png`・`icon-foreground-1024.png`・`icon-background-1024.png`・`splash-2732.png`）。
@@ -222,7 +269,7 @@ node scripts/make-icons.mjs
 ## この環境で作れなかったもの
 
 - **APK / AAB**: Android SDK と Android Gradle Plugin・androidx・Google Play 開発者サービスのライブラリは `dl.google.com`（`maven.google.com` の転送先）からしか取れず、この環境ではそこへの通信が止められているため、Gradle の組み立てができない。
-- **IPA**: Xcode は macOS にしかないため。`ios/` のプロジェクトは `npx cap add ios` で作れた（Capacitor 8 は SwiftPM なので CocoaPods なしで生成できる）が、組み立てと署名は Mac で行う。
+- **IPA**: Xcode は macOS にしかないため、この環境では作れない。代わりに GitHub の Mac（`.github/workflows/shinobi-ashi-ios.yml`）で組み立てる。署名と TestFlight への送信は、上の「iPhone で試す」の4つの秘密を入れたあとに GitHub の Mac が行う。
 - **play-services-fitness の API 名の照合**: AAR を `maven.google.com` から取れなかったため、`javap` での確認はできていない。`ShinobiStepsPlugin.java` は次のように型検査した:
   - Android の API（SensorManager・Settings.Global.BOOT_COUNT・getNoBackupFilesDir など）: Maven Central の `org.robolectric:android-all:16-robolectric-13921718` で javac が通った
   - Capacitor の型: `node_modules/@capacitor/android` の本物のソース（JSObject・JSArray・PermissionState・注釈）と、Plugin・PluginCall・BridgeActivity の署名を写した stub で javac が通った

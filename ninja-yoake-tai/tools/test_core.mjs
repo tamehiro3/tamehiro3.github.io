@@ -247,6 +247,8 @@ section('フィールド（条件・歩ける場所・道さがし・障害物�
   ok(FD.path(F, 15, 5, 14, 21) !== null, '甲賀の里：社から南の出口まで道がある');
   ok(!FD.walkable(F, 14, 4), '人のいるマスは歩けない');
   ok(FD.walkable(F, 14, 7) && !FD.walkable(F, 13, 7), '鳥居は柱のあいだだけ通れる');
+  const sp = FD.safeSpot(F, 21, 3), sp2 = FD.safeSpot(F, 14, 8);
+  ok(FD.walkable(F, sp[0], sp[1], { ignoreNpc: true }) && Math.abs(sp[0] - 21) + Math.abs(sp[1] - 3) <= 3 && sp2[0] === 14 && sp2[1] === 8, '建物の中から始まる古い記録は、近くの歩けるマスに出る（歩ける場所ならそのまま）');
   // 稲荷の洞：大岩を押して穴を埋める
   const I = FD.load(S, 'inari');
   const b1 = I.objs.find(o => o.id === 'b1' && o.k === 'obst');

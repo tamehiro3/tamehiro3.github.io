@@ -82,6 +82,7 @@
     var S = G.S;
     S.map = { id: id, x: x, y: y, dir: dir };
     var F = G.F = FD.load(S, id);
+    var sp = FD.safeSpot(F, x, y); x = S.map.x = sp[0]; y = S.map.y = sp[1];   // 前の版の記録で、建物や水の上にいたとき
     FD.spawnEnemies(S, F, G.rng);
     F.objs.forEach(function (o) { if (o.k === 'npc') { o.home = [o.x, o.y]; o.wt = 1 + G.rng() * 3; } if (o.k === 'enemy') o.wt = 0.5 + G.rng(); });
     RF.setMap(F);

@@ -235,9 +235,32 @@
   }
   function enemyAt(F, x, y) { return F.objs.filter(function (o) { return o.k === 'enemy' && o.on && !o.beaten && o.x === x && o.y === y; })[0] || null; }
 
+  // 立っている場所が歩けないとき（地図を作り直す前の記録など）、近くの歩けるマスを返す。
+  // 閉じこめられた小さなすきまに出ないように、地図のはじめの位置へ歩いて行けるマスを先にえらぶ
+  function safeSpot(F, x, y) {
+    var opts = { ignoreNpc: true };
+    if (walkable(F, x, y, opts)) return [x, y];
+    var W = F.w, seen = new Uint8Array(W * F.h), q = [[x, y, 0]], head = 0, found = [];
+    if (x >= 0 && y >= 0 && x < W && y < F.h) seen[y * W + x] = 1;
+    while (head < q.length && found.length < 12) {
+      var c = q[head++];
+      for (var i = 0; i < 4; i++) {
+        var d = DIRS[DIR_LIST[i]], nx = c[0] + d[0], ny = c[1] + d[1];
+        if (nx < 0 || ny < 0 || nx >= W || ny >= F.h || seen[ny * W + nx]) continue;
+        seen[ny * W + nx] = 1;
+        // 人の立っているマスには出さない。建物のうしろ（上）より前（下）を少しだけ先にする
+        if (walkable(F, nx, ny)) found.push([nx, ny, c[2] + 1 + (ny < y ? 2 : 0)]);
+        q.push([nx, ny, c[2] + 1]);
+      }
+    }
+    found.sort(function (a, b) { return a[2] - b[2]; });
+    var st = F.def && F.def.start;
+    for (var k = 0; k < found.length; k++) if (!st || path(F, found[k][0], found[k][1], st[0], st[1], opts)) return [found[k][0], found[k][1]];
+    return found.length ? [found[0][0], found[0][1]] : [x, y];
+  }
   var api = {
     TILES: TILES, DIRS: DIRS, DIR_LIST: DIR_LIST, dirOf: dirOf, opposite: opposite, cond: cond, hasAbility: hasAbility, ABILITY: ABILITY, ABILITY_NAME: ABILITY_NAME,
-    load: load, refresh: refresh, tileAt: tileAt, tileInfo: tileInfo, objsAt: objsAt, walkable: walkable, front: front, path: path,
+    load: load, refresh: refresh, tileAt: tileAt, tileInfo: tileInfo, objsAt: objsAt, walkable: walkable, safeSpot: safeSpot, front: front, path: path,
     interactAt: interactAt, stepAt: stepAt, useObstacle: useObstacle, spawnEnemies: spawnEnemies, enemyStep: enemyStep, enemyAt: enemyAt, decoBlocks: decoBlocks
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

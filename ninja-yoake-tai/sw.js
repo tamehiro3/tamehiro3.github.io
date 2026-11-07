@@ -1,14 +1,14 @@
 // Service Worker：一度読みこめばオフラインでも遊べるようにする
 // 更新時は CACHE の番号と index.html の ?v=N を両方上げる（ニンジャ里ライフの art.js / chars.js も使う）
-const CACHE = 'ninja-yoake-tai-v5';
-const V = '?v=5';
+const CACHE = 'ninja-yoake-tai-v6';
+const V = '?v=6';
 const FILES = ['data_base.js', 'data_skills.js', 'data_chars.js', 'data_items.js', 'data_enemies.js', 'data_maps.js', 'data_story.js',
   'state.js', 'field.js', 'script.js', 'battle.js', 'pixel.js', 'sprites.js', 'draw_world.js', 'draw_yokai.js', 'render_field.js', 'render_battle.js',
   'audio.js', 'input.js', 'ui.js', 'ui_menu.js', 'battle_ui.js', 'game.js'];
 const CORE = [
   './', './index.html', './about.html', './manifest.webmanifest', './style.css' + V
 ].concat(FILES.map(f => './' + f + V)).concat([
-  '../ninja-sato-life/art.js?v=3', '../ninja-sato-life/chars.js?v=2',
+  '../ninja-sato-life/art.js?v=4', '../ninja-sato-life/chars.js?v=2',
   './fonts/dotgothic16-japanese-400-normal.woff2',
   './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'
 ]);

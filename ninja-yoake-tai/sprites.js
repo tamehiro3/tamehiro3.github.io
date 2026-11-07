@@ -1,6 +1,6 @@
 /* ニンジャ夜明け隊（RPG） — 忍者のドット絵（art.js の SVG → 高い解像度の画像 → ドット絵）
  * 2.7頭身。キャラクターシートと同じ見た目の定義（chars.js）から、ドット絵を作る（pixel.js）。
- * 大きさ：地図 40×48ドット・戦闘 60×72ドット・メニュー 80×96ドット。左右を向くときは斜め（yaw ±70）。
+ * 大きさ：地図 40×48ドット・戦闘とメニュー 80×96ドット。左右を向くときは斜め（yaw ±70）。萌え絵風（art.js の moe）で描く。
  * 向き・しぐさ・歩きのコマ・大きさごとに、一度だけ作って使い回す。作るのは1枚ずつ順番に。
  * 作っているあいだは、同じ人の前に作った絵を出す。
  * 主人公・村の人の見た目もここで決める（村の人は apprenticeArt を色がえして使う）。
@@ -16,7 +16,7 @@
   var ASPECT = VB[2] / VB[3];               // 幅 ÷ 高さ
   var FOOT_Y = (232 - VB[1]) / VB[3];       // 足もと（地面 y=232）の高さの割合。まん中は x=100
   var FACE = { cy: 0.33, h: 0.36 };         // 顔の切り抜き：頭のまん中の高さ・切り抜く高さ（絵の高さに対する割合）
-  var SIZE = { field: [40, 48], battle: [60, 72], big: [80, 96] };
+  var SIZE = { field: [40, 48], battle: [80, 96], big: [80, 96] };   // 戦闘は big と同じ絵を使う
 
   function mk(w, h) { var c = document.createElement('canvas'); c.width = Math.max(1, Math.round(w)); c.height = Math.max(1, Math.round(h)); return c; }
 
@@ -69,7 +69,7 @@
   function pix(d, o) {
     if (!A || !PIX || !d || !d.def || typeof document === 'undefined') return null;
     o = o || {};
-    var size = SIZE[o.size] ? o.size : 'field', wh = SIZE[size];
+    var size = o.size === 'battle' ? 'big' : (SIZE[o.size] ? o.size : 'field'), wh = SIZE[size];   // 戦闘も大きい絵（萌え絵風の目が見えるように）
     var k = d.key + '|' + size + '|' + (o.yaw || 0) + '|' + (o.pose || 'stand') + '|' + (o.frame || 0) + '|' + (o.companions ? 1 : 0) + '|' + (o.expr || '') + '|' + (o.prop === false ? 0 : 1);
     var e = SP.cache[k], lastKey = d.key + '|' + size;
     if (e) return e.cv || SP.last[lastKey] || null;
@@ -93,9 +93,16 @@
     };
     try {
       PIX.fromSvg(function (w, h) {
-        return A.render(job.d.def, { yaw: o.yaw || 0, pose: o.pose || 'stand', frame: o.frame || 0, w: w, h: h, shadow: false, companions: !!o.companions, prop: o.prop, expr: o.expr, heads: HEADS, viewBox: VB.join(' ') });
-      }, W, H, { N: W >= 60 ? 5 : 6 }).then(done, function () { done(null); });
+        return A.render(job.d.def, { yaw: o.yaw || 0, pose: o.pose || 'stand', frame: o.frame || 0, w: w, h: h, shadow: false, companions: !!o.companions, prop: o.prop, expr: o.expr, heads: HEADS, viewBox: VB.join(' '), moe: MOE, pixel: true });
+      }, W, H, { N: W >= 60 ? 5 : 6, eyes: eyeColors(job.d), maxPal: 48 }).then(done, function () { done(null); });
     } catch (err) { done(null); }
+  }
+  // 萌え絵風（大きくきらめく目・チーク・髪の光）で描く（DESIGN.md §11.1）
+  var MOE = true;
+  function eyeColors(d) {
+    if (!MOE || !A.moeEyeColors) return null;
+    if (!d._eyes) d._eyes = A.moeEyeColors(d.def);
+    return d._eyes;
   }
   // 顔（ドット絵の頭のまわりを切り抜く）。できていなければ null
   function face(d, o) {

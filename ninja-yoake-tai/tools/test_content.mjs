@@ -21,6 +21,26 @@ const TYPES = BS.TYPE_IDS, TG = ['e1', 'ea', 'er', 'a1', 'aa', 'me', 'ko'];
 const C = CHD.CHARS, ids39 = CHD.ORDER;
 const anyItem = id => !!(IT.ITEMS[id] || IT.CHARMS[id] || IT.MATS[id] || IT.KEYS[id]);
 
+// ---------------- 絵（萌え絵風） ----------------
+section('絵（萌え絵風の顔・2.7頭身）');
+{
+  const A = require(path.join(ROOT, '../ninja-sato-life/art.js'));
+  const looks = NSL.CHARS.map(c => [c.id, c.art]);
+  NSL.APPRENTICE_SETS.forEach(s => NSL.APPRENTICE_HAIR.forEach(h => looks.push(['hero:' + s.id + ':' + h.id, NSL.apprenticeArt(s.id, h.id, {})])));
+  const bad = [], noEye = [];
+  for (const [id, def] of looks) {
+    for (const yaw of [0, 16, -70, 70, 180]) for (const pose of ['stand', 'walk', 'happy', 'surprised', 'serious']) for (const pixel of [false, true]) {
+      try { const svg = A.render(def, { heads: 2.7, yaw, pose, moe: true, pixel, frame: 1 }); if (!/^<svg/.test(svg) || /NaN|undefined/.test(svg)) bad.push(id + ' ' + yaw + ' ' + pose); } catch (e) { bad.push(id + ' ' + yaw + ' ' + pose + ' ' + e.message); }
+    }
+    const ec = A.moeEyeColors(def);
+    if (ec.length !== 10 || ec.some(c => !/^#[0-9a-f]{6}$/.test(c))) noEye.push(id);
+  }
+  none(bad.slice(0, 5), '39人と主人公9通りが、萌え絵風で、どの向き・しぐさでも描ける（SVG に NaN がない）');
+  none(noEye, 'ドット絵で目の色を残すための色（瞳・影・瞳孔・照り返し）が、だれにもある');
+  const m = {}; A.render(NSL.BY_ID.hinanojoh.art, { heads: 2.7, moe: true, raw: true, metrics: m });
+  ok(m.head && m.head.cy > 80 && m.head.ry > 40, '顔の絵の切り抜きに使う頭の位置がわかる（ひよこの体格でも）');
+}
+
 // ---------------- 仲間 ----------------
 section('仲間（39人＋主人公）');
 eq(ids39.length, 39, '仲間は39人');

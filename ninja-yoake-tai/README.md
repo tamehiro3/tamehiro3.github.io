@@ -1,12 +1,12 @@
 # ニンジャ夜明け隊（試作版）
 
 CryptoNinja の39人が仲間になる、**コマンドでたたかうRPG** です。
-割れた「暁の鐘」のかけら5つを取り戻して、明けない夜を終わらせます。設計は [`DESIGN.md`](DESIGN.md)（③ RPG 版 詳細設計書 v2.2）。
-画面は、むかしのRPGのような **ドット絵**（1マス32ドット・整数倍で拡大。`DESIGN.md` §11.3）。町の地図の作り方は §11.4。
+割れた「暁の鐘」のかけら5つを取り戻して、明けない夜を終わらせます。設計は [`DESIGN.md`](DESIGN.md)（③ RPG 版 詳細設計書 v2.3）。
+画面は、むかしのRPGのような **ドット絵**（1マス32ドット・整数倍で拡大。`DESIGN.md` §11.3）。キャラクターは大きな目の **萌え絵風**（§11.1）。町の地図の作り方は §11.4。
 
 - 遊ぶ: https://tamehiro3.github.io/ninja-yoake-tai/
 - 遊び方・保護者の方へ: `about.html`
-- キャラクターシート（39体・2.7頭身）: `sheets/`。ゲームのドット絵のもとになる **2.7頭身** の絵（`DESIGN.md` §11.1）。見た目の定義は `../ninja-sato-life/chars.js`（2頭身のシートは `../ninja-sato-life/sheets/`）
+- キャラクターシート（39体・2.7頭身・萌え絵風）: `sheets/`。ゲームのドット絵と顔の絵のもとになる **2.7頭身・萌え絵風** の絵（`DESIGN.md` §11.1）。見た目の定義は `../ninja-sato-life/chars.js`（2頭身のシートは `../ninja-sato-life/sheets/`）
 
 CryptoNinja（CC0・Ninja DAO）のキャラクターを使った個人制作の非公式ファンゲームです。物語・忍術・セリフ・妖怪はゲームの創作で、公式の設定ではありません。
 2026-10-04 に、協力防衛の試作（② 1回6分・NPC2人）から、このRPGに作り直しました（名前と置き場所は引きつぎ）。
@@ -41,14 +41,14 @@ python3 -m http.server 8765
 | `data_story.js` | 物語と加入のイベント（命令の並び） |
 | `state.js` / `battle.js` / `field.js` / `script.js` | 判定（状態と保存・戦闘・マス目と障害物・イベントの実行）。画面に依存しないので Node でテストする |
 | `pixel.js` | ドット絵の道具（SVG・canvas の絵をドット絵に落とす・縁どり・ドットで描く小さな関数） |
-| `sprites.js` / `draw_world.js` / `draw_yokai.js` | 忍者のドット絵（art.js の2.7頭身の SVG から作る）・地面と建物と小物・妖怪のドット絵 |
+| `sprites.js` / `draw_world.js` / `draw_yokai.js` | 忍者のドット絵（art.js の2.7頭身・萌え絵風の SVG から作る）・地面と建物と小物・妖怪のドット絵 |
 | `render_field.js` / `render_battle.js` | フィールド（整数倍の拡大・夜の明かり・霧）と戦闘（背景・術の光・数字）の描画 |
 | `fonts/` | ドットの字体 DotGothic16（@fontsource/dotgothic16 の日本語の woff2。SIL Open Font License 1.1、`fonts/OFL.txt`） |
 | `battle_ui.js` | 戦闘の流れ（できごとを順に見せる）・コマンド・ねらう相手・勝ち負け |
 | `ui.js` / `ui_menu.js` | 会話・えらぶ・タイトル・はじめる画面／メニュー・店・鍛冶・仲間帳・図鑑・旅の地図 |
 | `input.js` / `audio.js` / `game.js` | 入力（キー・タッチ・マウス）／音（WebAudio で合成した曲と効果音）／全体の流れとイベントの host |
 | `sw.js` / `manifest.webmanifest` / `icons/` | ホーム画面に追加・オフライン |
-| `sheets/` | 2.7頭身のキャラクターシート39枚と一覧（`../ninja-sato-life/tools/build_sheets.mjs --heads 2.7` で作る） |
+| `sheets/` | 2.7頭身・萌え絵風のキャラクターシート39枚と一覧（`../ninja-sato-life/tools/build_sheets.mjs --heads 2.7 --moe 1` で作る） |
 | `tools/` | テストと開発用の道具（下） |
 
 ## テスト
@@ -59,8 +59,8 @@ node ninja-yoake-tai/tools/test_content.mjs    # 内容：仲間・忍術・妖�
 node ninja-yoake-tai/tools/playthrough.mjs 7   # 自動で最初から最後まで（種を変えて何度か）
 node ninja-yoake-tai/tools/balance.mjs 40      # 章ごとの雑魚戦・ボスの勝率と長さ（開発用）
 node ninja-yoake-tai/tools/build_maps.mjs show kirimichi   # 地図を文字で見る（引数なしなら data_maps.js を作り直す）
-# 2.7頭身のキャラクターシートを作り直す（playwright-core と Chromium が必要。くわしくは build_sheets.mjs の先頭）
-node ninja-sato-life/tools/build_sheets.mjs --heads 2.7 --out ../ninja-yoake-tai/sheets --game ニンジャ夜明け隊
+# 2.7頭身・萌え絵風のキャラクターシートを作り直す（playwright-core と Chromium が必要。見出しの字は SHEET_FONT_DIR の Zen Maru Gothic。くわしくは build_sheets.mjs の先頭）
+node ninja-sato-life/tools/build_sheets.mjs --heads 2.7 --moe 1 --out ../ninja-yoake-tai/sheets --game ニンジャ夜明け隊
 ```
 
 自動で遊ぶテスト（`playthrough.mjs`）は、物語の順に歩いて話し、障害物を片づけ、戦いは「おまかせ」で進めます。
@@ -68,9 +68,9 @@ node ninja-sato-life/tools/build_sheets.mjs --heads 2.7 --out ../ninja-yoake-tai
 
 ## 更新するとき
 
-- 中身を変えたら `index.html` の `?v=5` と `sw.js` の `CACHE` / `V` の番号を上げる
+- 中身を変えたら `index.html` の `?v=6` と `sw.js` の `CACHE` / `V` の番号を上げる
 - 画面で使う字を増やしたら、`fonts/` の字体に入っているか確かめる（JIS第1・第2水準の漢字まで入っている。入っていない字や記号はほかの字体で出る）
-- `../ninja-sato-life/art.js` を直したら（2.7頭身の `heads` など）、`index.html` と `sw.js` で読む `art.js?v=3` の番号も上げる。`chars.js?v=2` は里ライフ側の番号に合わせる
-- art.js の既定（`heads` なし）の絵はニンジャ里ライフが使うので、変えるときは里ライフの見た目が変わらないことを確かめる
+- `../ninja-sato-life/art.js` を直したら（2.7頭身の `heads`・萌え絵風の `moe` など）、`index.html` と `sw.js` で読む `art.js?v=4` の番号も上げる。`chars.js?v=2` は里ライフ側の番号に合わせる
+- art.js の既定（`heads`・`moe` なし）の絵はニンジャ里ライフが使うので、変えるときは里ライフの見た目が変わらないことを確かめる（既定の SVG が変わらないこと）
 - 地図は `tools/build_maps.mjs` を直して作り直す。数値を変えたら `test_core.mjs`・`playthrough.mjs`・`balance.mjs` を回す
 - トップページの紹介文を変えたら、`../_marketing/OFFER_FACTS.md` も同じコミットで直す

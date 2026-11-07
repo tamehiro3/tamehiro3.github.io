@@ -4,7 +4,7 @@
 // 必要：playwright-core と Chromium（環境変数 CHROME に実行ファイルのパス）。
 // フォント：環境変数 SHEET_FONT_DIR に Zen Maru Gothic（ZenMaruGothic-500/700/900.ttf）を置くと、見出しが丸ゴシックになる。
 // 出力：ninja-sato-life/sheets/<id>.jpg（1536×1024）と sheets/thumb/<id>.jpg（幅480）
-// 2.7頭身（ニンジャ夜明け隊の絵）：--heads 2.7 --out ../ninja-yoake-tai/sheets --game ニンジャ夜明け隊
+// 2.7頭身・萌え絵風（ニンジャ夜明け隊の絵）：--heads 2.7 --moe 1 --out ../ninja-yoake-tai/sheets --game ニンジャ夜明け隊
 import { createRequire } from 'module';
 import path from 'path';
 import fs from 'fs';
@@ -24,7 +24,7 @@ for (let i = 0; i < args.length; i++) { if (args[i].startsWith('--')) flags[args
 const OUT = flags.out ? path.resolve(ROOT, flags.out) : path.join(ROOT, 'sheets');
 const THUMB = path.join(OUT, 'thumb');
 fs.mkdirSync(THUMB, { recursive: true });
-const sheetOpt = { heads: flags.heads ? +flags.heads : null, game: flags.game || '' };
+const sheetOpt = { heads: flags.heads ? +flags.heads : null, moe: flags.moe === '1', game: flags.game || '' };
 const fontDir = process.env.SHEET_FONT_DIR || '';
 const face = fontDir ? [500, 700, 900].map(w => `@font-face{font-family:'Zen Maru Gothic';font-weight:${w};src:url('file://${path.join(fontDir, `ZenMaruGothic-${w}.ttf`)}')}`).join('') : '';
 

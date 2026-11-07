@@ -341,7 +341,7 @@
     if (!def || !def.def) return;
     var pose = v.pose || (d.ko ? 'surprised' : V.win && d.side === 'p' ? 'happy' : 'stand');
     var expr = v.pose ? null : (d.ko ? 'surprised' : d.side === 'e' || V.cur === d.uid ? 'serious' : null);
-    var yaw = d.side === 'p' ? -62 : 62;   // 正の yaw は右向き。仲間（右）は左を、相手（左）は右を向いて向かい合う
+    var yaw = d.side === 'p' ? -48 : 48;   // 正の yaw は右向き。仲間（右）は左を、相手（左）は右を向いて向かい合う（萌え絵風の目が見えるよう、横顔より少し正面寄り）
     var img = SPR.pix(def, { yaw: yaw, pose: pose, size: 'battle', expr: expr || undefined });
     DW.ell(c, x, y, p.h * 0.2, p.h * 0.05, 'rgba(0,0,0,.3)');
     if (!img) return;

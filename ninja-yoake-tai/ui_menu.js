@@ -309,7 +309,7 @@
       var joined = !!S.members[id], nsl = NSL() && NSL().BY_ID[id];
       var b = el('button', 'cn-cell' + (joined ? '' : ' no') + (sel === id ? ' sel' : ''));
       b.type = 'button';
-      var ph = el('div', 'ph'); var im = new Image(); im.alt = ''; im.loading = 'lazy'; im.src = UI().portrait(id); ph.appendChild(im);
+      var ph = el('div', 'ph'); ph.appendChild(UI().portraitImg(UI().portrait(id, { crop: 'face' })));
       b.appendChild(ph); b.appendChild(el('div', '', joined ? esc(nsl ? nsl.name : id) : (nsl ? 'No.' + esc(nsl.num) : '？？？')));
       b.onclick = function () {
         sfx('click');

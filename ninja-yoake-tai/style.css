@@ -315,3 +315,5 @@ body.bt-side #bt-help { left: 30%; }
   #dlg .txt { font-size: 15px; line-height: 1.6; }
 }
 canvas.pix { image-rendering: pixelated; image-rendering: crisp-edges; }
+/* 萌え絵風の顔の絵（SVG）：もう顔の大きさに切ってあるので、拡大しない */
+img.moe { transform: none !important; object-fit: cover !important; object-position: 50% 50% !important; }

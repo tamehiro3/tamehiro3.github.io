@@ -16,9 +16,32 @@
   function NSL() { return root.NSL_CHARS; }
   function cname(id) { if (id === 'hero') return UI.S ? UI.S.name : '見習い'; var c = NSL() && NSL().BY_ID[id]; return c ? c.name : id; }
   UI.cname = cname;
-  // 公式の絵（ビルドでは root.NYT_PORTRAITS に埋めこむ）
-  function portrait(id) { return (root.NYT_PORTRAITS && root.NYT_PORTRAITS[id]) || ('../ninja-sato-life/img/art/' + id + '.jpg'); }
-  UI.portrait = portrait;
+  // 顔の絵：萌え絵風（art.js の moe）の2.7頭身を胸から上で描いた SVG。仲間・主人公・村の人で同じ描き方（DESIGN.md §11.1）
+  // crop: 'bust'（胸から上・会話や加入）/ 'face'（顔だけ・小さな枠）。expr: 'normal' / 'happy'
+  var PCACHE = {};
+  function portraitOf(dd, o) {
+    o = o || {};
+    var A = root.NinjaArt, SP = root.NYT_SPRITES;
+    if (!A || !SP || !dd || !dd.def) return '';
+    var crop = o.crop === 'face' ? 'face' : 'bust', key = dd.key + '|' + (o.expr || 'normal') + '|' + crop;
+    if (PCACHE[key]) return PCACHE[key];
+    var mt = {}, inner = A.render(dd.def, { heads: SP.HEADS, yaw: 16, pose: 'stand', expr: o.expr || 'normal', moe: true, raw: true, shadow: false, companions: false, prop: false, metrics: mt });
+    // 頭の位置に合わせて切り抜く（ひよこ・子どもの体格でも顔がまん中に来る）
+    var hm = mt.head || { cx: 100, cy: 60, ry: 40 }, sz = hm.ry * (crop === 'face' ? 2.22 : 2.93), cy = hm.cy + hm.ry * (crop === 'face' ? 0.25 : 0.1);
+    var vb = [hm.cx - sz / 2, cy - sz / 2, sz, sz].map(function (v) { return Math.round(v * 10) / 10; });
+    var U = A.util, cn = dd.key.indexOf('cn:') === 0 && NSL() && NSL().BY_ID[dd.key.slice(3)];
+    var col = (cn && cn.palette && cn.palette[0]) || (dd.def.top && dd.def.top.color) || '#8a9ac8';
+    var bg = '<defs><radialGradient id="pbg" cx="50%" cy="38%" r="72%"><stop offset="0" stop-color="' + U.lt(col, 0.78) + '"/><stop offset="1" stop-color="' + U.lt(col, 0.42) + '"/></radialGradient></defs>' +
+      '<rect x="' + vb[0] + '" y="' + vb[1] + '" width="' + vb[2] + '" height="' + vb[3] + '" fill="url(#pbg)"/>';
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="' + vb.join(' ') + '" width="256" height="256">' + bg + inner + '</svg>';
+    return (PCACHE[key] = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg));
+  }
+  function portrait(id, o) {
+    var SP = root.NYT_SPRITES; if (!SP) return '';
+    return portraitOf(id === 'hero' ? SP.heroDef(UI.S) : SP.cnDef(id), o);
+  }
+  function portraitImg(src) { var im = new Image(); im.alt = ''; im.decoding = 'async'; im.className = 'moe'; im.src = src; return im; }
+  UI.portrait = portrait; UI.portraitOf = portraitOf; UI.portraitImg = portraitImg;
   // 絵（忍者）を小さなキャンバスに。作り終わるまで何度か描きなおす
   function spriteCanvas(def, size, o) {
     var cv = document.createElement('canvas'), dpr = Math.min(2, root.devicePixelRatio || 1), full = o && o.full;
@@ -65,10 +88,11 @@
     size = size || 84;
     var SP = root.NYT_SPRITES;
     if (!who) return null;
-    if (who === 'hero') return spriteCanvas(SP.heroDef(UI.S), size, { expr: 'happy' });
+    var crop = size <= 56 ? 'face' : 'bust';
     if (who.indexOf('e:') === 0) return yokaiCanvas(who.slice(2), size);
-    if (who.indexOf('v:') === 0) return spriteCanvas(SP.villagerDef(who.slice(2)), size);
-    if (NSL() && NSL().BY_ID[who]) { var im = new Image(); im.alt = ''; im.decoding = 'async'; im.src = portrait(who); return im; }
+    if (who === 'hero') return portraitImg(portrait('hero', { crop: crop }));
+    if (who.indexOf('v:') === 0) return portraitImg(portraitOf(SP.villagerDef(who.slice(2)), { crop: crop }));
+    if (NSL() && NSL().BY_ID[who]) return portraitImg(portrait(who, { crop: crop }));
     return null;
   }
   UI.faceEl = faceEl;

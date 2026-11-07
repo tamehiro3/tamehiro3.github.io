@@ -461,7 +461,7 @@
     var roles = cd.roles.map(function (r) { return BS.ROLES[r].name; }).join('・');
     var first = S.order.length === 5 && !S.flags.tip_form;
     if (first) S.flags.tip_form = 1;
-    c.innerHTML = '<div class="join-box"><div class="join-ph"><img alt="" src="' + UI.portrait(id) + '"></div><h2>' + UI.esc(nsl ? nsl.name : id) + 'が仲間になった！</h2><p>' + (nsl ? UI.esc(nsl.clan) + '・' : '') + roles + '・Lv' + lv + (cd.field ? '<br>探索の術：' + UI.esc(FD.ABILITY_NAME[cd.field]) : '') + '</p>' + (first ? '<p class="note">5人目からは「控え」。メニューの「隊列」で、戦う4人をえらべます。</p>' : '') + '<p class="note">タップでつづける</p></div>';
+    c.innerHTML = '<div class="join-box"><div class="join-ph"><img class="moe" alt="" src="' + UI.portrait(id, { expr: 'happy' }) + '"></div><h2>' + UI.esc(nsl ? nsl.name : id) + 'が仲間になった！</h2><p>' + (nsl ? UI.esc(nsl.clan) + '・' : '') + roles + '・Lv' + lv + (cd.field ? '<br>探索の術：' + UI.esc(FD.ABILITY_NAME[cd.field]) : '') + '</p>' + (first ? '<p class="note">5人目からは「控え」。メニューの「隊列」で、戦う4人をえらべます。</p>' : '') + '<p class="note">タップでつづける</p></div>';
     c.hidden = false;
     AU.jingle('join');
     var fin = function () { if (c.hidden) return; c.hidden = true; c.onclick = null; UI.cardSkip = null; done(); };
@@ -481,7 +481,7 @@
   }
   function showCut(ids, t, done) {
     var c = $('card');
-    c.innerHTML = '<div class="join-box"><div class="cut-row">' + (ids || []).map(function (id) { return '<img alt="" src="' + UI.portrait(id) + '">'; }).join('') + '</div><h2>' + UI.esc(t || '') + '</h2></div>';
+    c.innerHTML = '<div class="join-box"><div class="cut-row">' + (ids || []).map(function (id) { return '<img class="moe" alt="" src="' + UI.portrait(id) + '">'; }).join('') + '</div><h2>' + UI.esc(t || '') + '</h2></div>';
     c.hidden = false;
     later(1.6, function () { c.hidden = true; done(); });
   }
@@ -489,7 +489,7 @@
     var S = G.S, cr = $('credits');
     AU.bgm('ending');
     var n = CHD.ORDER.filter(function (id) { return S.members[id]; }).length;
-    var grid = CHD.ORDER.map(function (id) { return '<div class="' + (S.members[id] ? '' : 'no') + '"><img alt="" src="' + UI.portrait(id) + '"></div>'; }).join('');
+    var grid = CHD.ORDER.map(function (id) { return '<div class="' + (S.members[id] ? '' : 'no') + '"><img class="moe" alt="" src="' + UI.portrait(id, { crop: 'face', expr: S.members[id] ? 'happy' : 'normal' }) + '"></div>'; }).join('');
     cr.innerHTML = '<h2>夜明け</h2><p>暁の鐘が鳴り、長い夜が明けた。<br>' + UI.esc(S.name) + 'と仲間たちの旅は、ここでひと区切り。</p>' +
       '<div class="cr-grid">' + grid + '</div><p>仲間 ' + n + '/39　プレイ時間 ' + Math.floor(S.time / 3600) + '時間' + Math.floor(S.time / 60) % 60 + '分　戦い ' + S.battles + '回</p>' +
       '<p style="font-size:13px">キャラクター：CryptoNinja（CC0・Ninja DAO）<br>非公式ファンゲーム。技・セリフ・物語はゲームの創作で、公式の設定ではありません。</p>' +

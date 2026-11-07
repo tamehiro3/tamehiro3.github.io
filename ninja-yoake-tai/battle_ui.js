@@ -100,11 +100,7 @@
       if (!Q.faces[key]) Q.faces[key] = UI().yokaiCanvas(d.eid, 40);
       return copyCanvas(Q.faces[key]);
     }
-    if (d.id === 'hero') {
-      if (!Q.faces.hero) { Q.faces.hero = UI().faceEl('hero', 40); [400, 1200, 2500].forEach(function (ms) { setTimeout(function () { if (Q) renderOrder(); }, ms); }); }
-      return copyCanvas(Q.faces.hero);
-    }
-    var im = new Image(); im.alt = ''; im.src = UI().portrait(d.id); return im;
+    return UI().portraitImg(UI().portrait(d.id, { crop: 'face' }));
   }
   function copyCanvas(src) { var c = document.createElement('canvas'); c.width = src.width; c.height = src.height; try { c.getContext('2d').drawImage(src, 0, 0); } catch (e) { } return c; }
 
@@ -284,7 +280,7 @@
     var band = el('div', 'cut-band' + (kizuna ? ' kz' : '') + ((ids || []).length > 2 ? ' many' : ''));
     (ids || []).slice(0, 4).forEach(function (id) {
       var f = el('div', 'cut-face');
-      if (id === 'hero') f.appendChild(UI().faceEl('hero', 120)); else { var im = new Image(); im.alt = ''; im.src = UI().portrait(id); f.appendChild(im); }
+      f.appendChild(UI().portraitImg(UI().portrait(id, { expr: kizuna ? 'happy' : 'normal' })));
       band.appendChild(f);
     });
     band.appendChild(el('div', 'cut-name', esc(name)));

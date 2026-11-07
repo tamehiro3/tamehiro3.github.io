@@ -55,12 +55,14 @@
       for (var j = 0; j < pal.length; j++) { var dd = d2(pal[j], r, g, b); if (dd < bd) { bd = dd; bi = j; } }
       memo.set(key, bi); return bi;
     }
-    var idx = new Int16Array(W * H).fill(-1), NN = N * N;
+    var idx = new Int16Array(W * H).fill(-1), NN = N * N, eh = new Float32Array(pal.length), iWhite = -1;
+    if (o.eyes) pal.forEach(function (p, j) { if (eyeSet[j] && p[0] > 245 && p[1] > 245 && p[2] > 245) iWhite = j; });
     var coverT = NN * (o.cover == null ? 0.42 : o.cover), eyeT = NN * (o.eye == null ? 0.1 : o.eye), lineT = NN * (o.line == null ? 0.6 : o.line);
     var lo = N * 0.2, hi = N * 0.8, hist = new Float32Array(pal.length), used = [];
     for (var y = 0; y < H; y++) for (var x = 0; x < W; x++) {
-      var op = 0, nOut = 0, nEye = 0, eyeIdx = -1;
+      var op = 0, nOut = 0, nEye = 0, eyeIdx = -1, eyeBest = 0, nWhite = 0;
       used.length = 0;
+      if (eh) for (var ei = 0; ei < eh.length; ei++) eh[ei] = 0;
       for (var yy = 0; yy < N; yy++) {
         var row = ((y * N + yy) * SW + x * N) * 4;
         for (var xx = 0; xx < N; xx++) {
@@ -69,7 +71,13 @@
           op++;
           var pi = near(d[q], d[q + 1], d[q + 2]);
           if (pi === iOut) { nOut++; continue; }
-          if (eyeSet[pi]) { nEye++; eyeIdx = pi; continue; }
+          if (eyeSet[pi]) {
+            nEye++;
+            var ew = eh[pi] += (yy > lo && yy < hi && xx > lo && xx < hi) ? 2 : 1;
+            if (ew > eyeBest) { eyeBest = ew; eyeIdx = pi; }
+            if (pi === iWhite) nWhite++;
+            continue;
+          }
           if (hist[pi] === 0) used.push(pi);
           hist[pi] += (yy > lo && yy < hi && xx > lo && xx < hi) ? 2 : 1;
         }
@@ -77,7 +85,8 @@
       var best = -1, bv = -1;
       for (var u = 0; u < used.length; u++) { var ui = used[u]; if (hist[ui] > bv) { bv = hist[ui]; best = ui; } hist[ui] = 0; }
       if (op < coverT) continue;
-      if (nEye >= eyeT) best = eyeIdx;
+      if (iWhite >= 0 && nWhite >= NN * 0.2 && nEye >= eyeT) best = iWhite;   // 目の光は小さくても残す
+      else if (nEye >= eyeT) best = eyeIdx;
       else if (best < 0 || nOut >= lineT) best = iOut >= 0 ? iOut : best;
       idx[y * W + x] = best;
     }

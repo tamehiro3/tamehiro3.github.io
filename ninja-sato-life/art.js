@@ -403,6 +403,96 @@
     }
     return out;
   }
+  // 目の位置と大きさ。萌え絵風（opt.moe）は大きく、少し下・外へ（口布の上には出す）
+  function eyeGeo(c) {
+    var e = c.def.eyes || {}, ex = e.x || 24, ey = e.y == null ? -13 : e.y;
+    if (!c.moe) return { ex: ex, ey: ey, w: 5.4, h: 7.4 };
+    var gm = { ex: ex + 3.5, ey: ey - 11, w: 10.2, h: 14.2 }, mk = c.def.mask;
+    if (mk && (mk.kind === 'cloth' || mk.kind === 'scarf')) { var top = mk.top == null ? -21 : mk.top; gm.h = 11; gm.w = 9.2; gm.ey = Math.max(gm.ey, top + 17); }
+    return gm;
+  }
+  // 萌え絵風の目：白目・グラデーションの瞳・瞳孔・下の照り返し・大小のハイライト・太い上まつ毛・目じりのはね・下まつ毛・二重の線
+  function moeIris(c, e, side) {
+    var ir = (side > 0 && e.color2) ? e.color2 : e.color;
+    if (!ir || e.style === 'dot' || e.style === 'wide' || e.style === 'closed') {
+      var hc = c.def.hair && c.def.hair.color;
+      ir = e.color && e.style !== 'dot' ? e.color : (hc ? mix(hc, '#5a3826', 0.55) : '#5a3826');
+    }
+    if (lum(ir) < 0.2) ir = mix(ir, '#a8502e', 0.62);      // 黒すぎる瞳は赤茶をのせる（光が見えるように）
+    if (lum(ir) > 0.72) ir = mix(ir, '#5a3826', 0.3);
+    return ir;
+  }
+  // 色を明るく・あざやかに（瞳の下の照り返し）
+  function vivid(h, dl) {
+    var A = rgb(h), r = A[0] / 255, gg = A[1] / 255, b = A[2] / 255, mx = Math.max(r, gg, b), mn = Math.min(r, gg, b), l = (mx + mn) / 2, s = 0, hu = 0, d = mx - mn;
+    if (d > 0) { s = d / (1 - Math.abs(2 * l - 1)); hu = mx === r ? ((gg - b) / d) % 6 : mx === gg ? (b - r) / d + 2 : (r - gg) / d + 4; hu *= 60; if (hu < 0) hu += 360; }
+    l = Math.min(0.8, l + dl); s = Math.min(1, s * 1.2 + 0.12);
+    var C = (1 - Math.abs(2 * l - 1)) * s, X = C * (1 - Math.abs((hu / 60) % 2 - 1)), m = l - C / 2, rr = 0, g2 = 0, bb = 0;
+    if (hu < 60) { rr = C; g2 = X; } else if (hu < 120) { rr = X; g2 = C; } else if (hu < 180) { g2 = C; bb = X; } else if (hu < 240) { g2 = X; bb = C; } else if (hu < 300) { rr = X; bb = C; } else { rr = C; bb = X; }
+    return hex((rr + m) * 255, (g2 + m) * 255, (bb + m) * 255);
+  }
+  // ドット絵用：目の色だけ、ほかの部分（服など）とまざらないよう、ほんの少しずらした色にする
+  var EYE_WHITE_PX = '#fbfdff';
+  function pxu(h) { var A = rgb(h); return hex(A[0], A[1], A[2] > 127 ? A[2] - 5 : A[2] + 5); }
+  function moePal(ir, px) {
+    var p = { ir: ir, top: dk(ir, 0.5), pup: dk(ir, 0.8), low: vivid(ir, 0.24), hi: '#ffffff' };
+    if (px) { p.ir = pxu(p.ir); p.top = pxu(p.top); p.pup = pxu(p.pup); p.low = pxu(p.low); p.hi = EYE_WHITE_PX; }
+    return p;
+  }
+  function eyeMoe(c, x, y, k, e, side, expr, ks, W0, H0) {
+    var S = c.S, W = W0 * k, Hh = H0 * ks, st = e.style || 'dot', out = '', ir = moeIris(c, e, side);
+    var D = EYE_DARK, PXM = !!c.opt.pixel, cp = moePal(ir, PXM);
+    if (expr === 'happy') {
+      out += sl('M' + r1(x - W) + ' ' + r1(y + Hh * 0.15) + 'Q' + r1(x) + ' ' + r1(y - Hh * 0.95) + ' ' + r1(x + W) + ' ' + r1(y + Hh * 0.15), D, 3 * ks);
+      out += sl('M' + r1(x + side * W * 0.98) + ' ' + r1(y + Hh * 0.1) + 'l' + r1(side * 2.4 * k) + ' ' + r1(1.2 * ks), D, 2 * ks);
+      return out;
+    }
+    if (st === 'closed') {
+      out += sl('M' + r1(x - W) + ' ' + r1(y - Hh * 0.05) + 'Q' + r1(x) + ' ' + r1(y + Hh * 0.62) + ' ' + r1(x + W) + ' ' + r1(y - Hh * 0.05), D, 2.8 * ks);
+      for (var q = 0; q < 2; q++) out += sl('M' + r1(x + side * W * (0.55 + q * 0.38)) + ' ' + r1(y + Hh * (0.3 - q * 0.22)) + 'l' + r1(side * 1.6 * k) + ' ' + r1(2.4 * ks), D, 1.6 * ks);
+      return out;
+    }
+    var sur = expr === 'surprised' || st === 'wide';
+    // まぶたの線（内→外）。つり目・半目・しんけんは上まぶたの形を変える
+    var yI = y - Hh * 0.42, yO = y - Hh * 0.56, yC = y - Hh * 1.28;
+    if (sur) { yI = y - Hh * 0.62; yO = y - Hh * 0.66; yC = y - Hh * 1.42; }
+    else if (st === 'sharp') { yI = y - Hh * 0.06; yO = y - Hh * 0.8; yC = y - Hh * 0.9; }
+    else if (st === 'half') { yI = y - Hh * 0.02; yO = y - Hh * 0.08; yC = y - Hh * 0.14; }
+    if (expr === 'serious' && !sur) { yI = Math.max(yI, y - Hh * 0.12); yO = Math.max(yO, y - Hh * 0.42); yC = Math.max(yC, y - Hh * 0.6); }
+    var xI = x - side * W * 1.0, xO = x + side * W * 1.06, wb = sur ? 1.06 : 1;
+    var lidD = 'M' + r1(xI) + ' ' + r1(yI) + 'Q' + r1(x - side * W * 0.12) + ' ' + r1(yC) + ' ' + r1(xO) + ' ' + r1(yO);
+    var openD = lidD + 'C' + r1(x + side * W * 1.08 * wb) + ' ' + r1(y + Hh * 0.62) + ' ' + r1(x + side * W * 0.62) + ' ' + r1(y + Hh * wb) + ' ' + r1(x) + ' ' + r1(y + Hh * wb) +
+      'C' + r1(x - side * W * 0.62) + ' ' + r1(y + Hh * wb) + ' ' + r1(x - side * W * 1.02 * wb) + ' ' + r1(y + Hh * 0.6) + ' ' + r1(xI) + ' ' + r1(yI) + 'Z';
+    var cid = S.clip(openD), gid = S.id('ig');
+    S.def('<linearGradient id="' + gid + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + dk(ir, 0.6) + '"/><stop offset=".42" stop-color="' + ir + '"/><stop offset="1" stop-color="' + mix(lt(ir, 0.32), '#ffd27a', 0.18) + '"/></linearGradient>');
+    out += sf(openD, PXM && !sur ? lt(ir, 0.8) : '#ffffff');
+    var icx = x + side * W * 0.04, icy = y + Hh * 0.12, irx = W * (sur ? 0.5 : (PXM ? 0.9 : 0.8)), iry = Hh * (sur ? 0.56 : (PXM ? 0.92 : 0.86));
+    var inner = '';
+    if (PXM) { // ドット絵にするときは、グラデーションでなく段のべた塗り（色がつぶれないように）
+      inner += sf(ellD(icx, icy, irx, iry), cp.ir);
+      inner += g(sf('M' + r1(icx - irx - 1) + ' ' + r1(icy - iry - 1) + 'h' + r1(irx * 2 + 2) + 'v' + r1(iry * 0.95) + 'h' + r1(-irx * 2 - 2) + 'Z', cp.top), S.clip(ellD(icx, icy, irx, iry)));
+    } else inner += '<path d="' + ellD(icx, icy, irx, iry) + '" fill="url(#' + gid + ')" stroke="' + dk(ir, 0.62) + '" stroke-width="' + r1(1.1 * ks) + '"/>';
+    inner += sf(ellD(icx, icy + iry * 0.06, irx * 0.46, iry * 0.52), cp.pup);
+    if (e.pupil === 'star') inner += starSvg(icx, icy, 4.4 * ks, e.pupilColor || '#ffd54a');
+    else if (e.pupil === 'heart') inner += heartSvg(icx, icy + 0.5 * ks, 4.4 * ks, e.pupilColor || '#ff5aa0');
+    else if (e.pupil === 'diamond') inner += sf('M' + r1(icx) + ' ' + r1(icy - 5.2 * ks) + 'l' + r1(3.1 * k) + ' ' + r1(5.2 * ks) + 'l' + r1(-3.1 * k) + ' ' + r1(5.2 * ks) + 'l' + r1(-3.1 * k) + ' ' + r1(-5.2 * ks) + 'Z', '#1a0a0a');
+    inner += sf(ellD(icx, icy + iry * 0.66, irx * 0.62, iry * 0.24), cp.low, { op: PXM ? 1 : 0.85 });
+    if (!PXM) inner += sl(lidD, dk(ir, 0.5), 4.2 * ks, { op: 0.35 });   // まぶたの影
+    inner += sf(ellD(x - W * 0.3, y - Hh * 0.2, W * 0.36, Hh * 0.3), cp.hi);
+    if (!PXM) {
+      inner += sf(ellD(x + W * 0.3, y + Hh * 0.44, W * 0.14, W * 0.14), '#ffffff', { op: 0.92 });
+      inner += sf(ellD(x + W * 0.06, y - Hh * 0.46, W * 0.07, W * 0.07), '#ffffff', { op: 0.9 });
+    }
+    out += g(inner, cid);
+    // 上まつ毛（太く、目じりではねる）と下まつ毛
+    out += sl(lidD, D, (st === 'half' ? 2.6 : 3.1) * ks);
+    out += sp('M' + r1(xO - side * 1.2 * k) + ' ' + r1(yO + 0.6 * ks) + 'L' + r1(xO + side * 2.9 * k) + ' ' + r1(yO - 2.4 * ks) + 'L' + r1(xO + side * 0.4 * k) + ' ' + r1(yO + 1.6 * ks) + 'Z', D, { w: 1.2 * ks, sc: D });
+    if (e.lash) out += sl('M' + r1(xO - side * 0.6 * k) + ' ' + r1(yO - 0.6 * ks) + 'l' + r1(side * 2.2 * k) + ' ' + r1(-3.2 * ks), D, 1.5 * ks) + sl('M' + r1(x + side * W * 0.5) + ' ' + r1(yC * 0.5 + yO * 0.5 - 0.6 * ks) + 'l' + r1(side * 1.2 * k) + ' ' + r1(-2.4 * ks), D, 1.3 * ks);
+    if (PXM) return out;   // ドット絵には、下まつ毛・二重の線は細かすぎるので入れない
+    out += sl('M' + r1(x + side * W * 0.45) + ' ' + r1(y + Hh * 0.93) + 'Q' + r1(x + side * W * 0.95) + ' ' + r1(y + Hh * 0.72) + ' ' + r1(x + side * W * 1.04) + ' ' + r1(y + Hh * 0.3), D, 1.1 * ks, { op: 0.7 });
+    if (!sur && st !== 'half' && expr !== 'serious') out += sl('M' + r1(x - side * W * 0.35) + ' ' + r1(yC * 0.42 + yI * 0.58 - Hh * 0.28) + 'Q' + r1(x + side * W * 0.2) + ' ' + r1(yC - Hh * 0.05) + ' ' + r1(x + side * W * 0.88) + ' ' + r1(yO - Hh * 0.3), dk(c.skin || SKIN, 0.38), 1 * ks, { op: 0.6 });
+    return out;
+  }
   function starSvg(x, y, r, col) {
     var p = []; for (var i = 0; i < 8; i++) { var a = i * Math.PI / 4 - Math.PI / 2, rr = i % 2 ? r * 0.38 : r; p.push({ x: x + Math.cos(a) * rr, y: y + Math.sin(a) * rr }); }
     return sf(polyD(p), col);
@@ -502,6 +592,10 @@
     var yaw = opt.yaw == null ? 0 : opt.yaw;
     var pose = opt.pose || 'stand';
     var expr = opt.expr || (pose === 'happy' ? 'happy' : pose === 'surprised' ? 'surprised' : (pose === 'serious' ? 'serious' : 'normal'));
+    var LW0 = LW; if (opt.moe) LW = opt.lw || 2.1;   // 萌え絵風は線を細く（描き終わったら戻す）
+    try { return renderIn(def, opt, yaw, pose, expr); } finally { LW = LW0; }
+  }
+  function renderIn(def, opt, yaw, pose, expr) {
     var uid = 'n' + (++uidSeq).toString(36) + Math.floor(Math.random() * 1e4).toString(36);
     var S = new Scene(uid);
     var cam = new Cam(yaw, opt.pitch);
@@ -509,7 +603,7 @@
     if (tall) cam.wy = tall.wy;
     var R = rig(def, pose, opt.frame, tall && tall.b);
     var b = R.b;
-    var ctx = { def: def, opt: opt, S: S, cam: cam, R: R, b: b, yaw: yaw, expr: expr, pose: R.pose, back: Math.abs(wrap(yaw)) > 95, uid: uid, tall: tall, hs: tall ? tall.hs : 1 };
+    var ctx = { def: def, opt: opt, S: S, cam: cam, R: R, b: b, yaw: yaw, expr: expr, pose: R.pose, back: Math.abs(wrap(yaw)) > 95, uid: uid, tall: tall, hs: tall ? tall.hs : 1, moe: !!opt.moe };
     ctx.skin = def.skin || SKIN;
     cam.oy = GROUND - R.bob;
 
@@ -532,6 +626,7 @@
     var hd = def.head || {};
     var hr = (hd.r ? hd.r * c.hs : b.hr), H = new Head({ x: 0, y: b.headY + (hd.dy || 0) * c.hs, z: (hd.dz || 0) * c.hs, rx: hr * (hd.sx || 1), ry: hr * (hd.sy || 0.92), rz: hr }, cam);
     c.H = H;
+    if (c.opt.metrics) c.opt.metrics.head = { cx: H.cx, cy: H.cy, rx: H.h.rx, ry: H.ry2 };   // 頭の位置（顔の絵の切り抜き用）
     var kind = hd.kind || 'human';
     var hp = def.hair || null, vol = hp ? (hp.vol == null ? 5 : hp.vol) : 0;
     c.vol = vol;
@@ -585,11 +680,24 @@
 
   function drawFace(c, H, ZH) {
     var def = c.def, S = c.S, e = def.eyes || {}, k = H.k, expr = c.expr;
-    var ex = e.x || 24, ey = e.y == null ? -13 : e.y;
+    var geo = eyeGeo(c), ex = geo.ex, ey = geo.ey;
     var eyeExpr = expr;
     if (e.lock) eyeExpr = 'normal';
-    // チーク
-    if (def.cheek !== false && !c.back) {
+    var human = !def.head || !def.head.kind || def.head.kind === 'human';
+    // チーク（萌え絵風は目の下に大きめ。ふだんチークのない人もうすく）
+    if (c.moe && !c.back && human) {
+      var bop = def.cheek === false ? 0.32 : 0.62, bcol = typeof def.cheek === 'string' ? def.cheek : '#f49aa6';
+      for (var s2 = -1; s2 <= 1; s2 += 2) {
+        var fc = H.feat(s2 * (ex + 9), ey - 17);
+        if (!fc.vis) continue;
+        var kc = Math.max(0.35, fc.s);
+        var bo = expr === 'happy' ? bop + 0.15 : bop;
+        // ドット絵では、はだの色とまぜた色でべたに（細い線は入れない）
+        if (c.opt.pixel) { S.add(ZH + 3, sf(ellD(fc.x - s2 * 1.5 * k, fc.y + 1.2 * k, 8.6 * k * kc, 4.4 * k), mix(c.skin, bcol, Math.min(0.75, bo + 0.12)))); continue; }
+        S.add(ZH + 3, sf(ellD(fc.x, fc.y, 7.2 * k * kc, 3.4 * k), bcol, { op: bo }));
+        if (def.cheek !== false) for (var hh = -1; hh <= 1; hh++) S.add(ZH + 3.1, sl('M' + r1(fc.x + (hh * 2.6 - 1) * k * kc) + ' ' + r1(fc.y + 1.6 * k) + 'l' + r1(1.8 * k * kc) + ' ' + r1(-3.2 * k), '#e0707e', 1.1 * k, { op: 0.5 }));
+      }
+    } else if (def.cheek !== false && !c.back && !c.moe) {
       var cc = def.cheek || '#f29a9a';
       for (var s = -1; s <= 1; s += 2) {
         var f = H.feat(s * 40, -27);
@@ -604,22 +712,23 @@
       var eside = si;
       var ecfg = e;
       if (def.eyepatch && def.eyepatch.side === si) continue;
-      if (e.scar === si) { S.add(ZH + 6, sl('M' + r1(fe.x - 5 * kk) + ' ' + r1(fe.y - 5) + 'L' + r1(fe.x + 5 * kk) + ' ' + r1(fe.y + 5) + 'M' + r1(fe.x + 5 * kk) + ' ' + r1(fe.y - 5) + 'L' + r1(fe.x - 5 * kk) + ' ' + r1(fe.y + 5), EYE_DARK, 2.6)); continue; }
-      if (e.wink === si && expr === 'normal') { S.add(ZH + 6, sl('M' + r1(fe.x - 5 * kk) + ' ' + r1(fe.y + 1) + 'Q' + r1(fe.x) + ' ' + r1(fe.y - 6) + ' ' + r1(fe.x + 5 * kk) + ' ' + r1(fe.y + 1), EYE_DARK, 2.8)); continue; }
+      var gs = c.moe ? 1.35 : 1;
+      if (e.scar === si) { S.add(ZH + 6, sl('M' + r1(fe.x - 5 * kk * gs) + ' ' + r1(fe.y - 5 * gs) + 'L' + r1(fe.x + 5 * kk * gs) + ' ' + r1(fe.y + 5 * gs) + 'M' + r1(fe.x + 5 * kk * gs) + ' ' + r1(fe.y - 5 * gs) + 'L' + r1(fe.x - 5 * kk * gs) + ' ' + r1(fe.y + 5 * gs), EYE_DARK, 2.6)); continue; }
+      if (e.wink === si && expr === 'normal') { S.add(ZH + 6, sl('M' + r1(fe.x - 5 * kk * gs) + ' ' + r1(fe.y + 1) + 'Q' + r1(fe.x) + ' ' + r1(fe.y - 6 * gs) + ' ' + r1(fe.x + 5 * kk * gs) + ' ' + r1(fe.y + 1), EYE_DARK, 2.8)); continue; }
       var sty = ecfg.style;
       if (e.styleL && si < 0) sty = e.styleL;
       if (e.styleR && si > 0) sty = e.styleR;
       var ee = { style: sty, color: e.color, color2: e.color2, lash: e.lash, pupil: e.pupil, pupilColor: e.pupilColor, skin: c.skin };
-      S.add(ZH + 6, eyeSvg(fe.x, fe.y, kk, ee, eside, eyeExpr, k));
+      S.add(ZH + 6, c.moe ? eyeMoe(c, fe.x, fe.y, kk, ee, eside, eyeExpr, k, geo.w, geo.h) : eyeSvg(fe.x, fe.y, kk, ee, eside, eyeExpr, k));
       // アイシャドウ・目じりの紅
-      if (def.shadowLid && eyeExpr === 'normal') S.add(ZH + 5, sf(ellD(fe.x, fe.y - 6 * k, 6.5 * kk, 3.2 * k), def.shadowLid, { op: 0.55 }));
-      if (def.liner && eyeExpr !== 'happy') S.add(ZH + 6.5, sl('M' + r1(fe.x + si * 5.4 * kk) + ' ' + r1(fe.y - 1) + 'l' + r1(si * 4.2 * kk) + ' ' + r1(-2.5), def.liner, 2.4));
+      if (def.shadowLid && eyeExpr === 'normal') S.add(ZH + 5, sf(ellD(fe.x, fe.y - (c.moe ? 9.5 : 6) * k, (c.moe ? 9 : 6.5) * kk, (c.moe ? 3.6 : 3.2) * k), def.shadowLid, { op: 0.55 }));
+      if (def.liner && eyeExpr !== 'happy') S.add(ZH + 6.5, sl('M' + r1(fe.x + si * (c.moe ? geo.w * 1.05 : 5.4) * kk) + ' ' + r1(fe.y - (c.moe ? 5 : 1)) + 'l' + r1(si * 4.2 * kk) + ' ' + r1(-2.5), def.liner, 2.4));
     }
     // 眉
     if (def.brows !== 'none' && !c.back) {
-      var bw = def.brows === 'thick' ? 3.4 : 2.2, bc = def.browColor || (def.hair ? dk(def.hair.color, 0.35) : '#3b2a22');
+      var bw = def.brows === 'thick' ? (c.moe ? 2.6 : 3.4) : (c.moe ? 1.7 : 2.2), bc = def.browColor || (def.hair ? dk(def.hair.color, 0.35) : '#3b2a22');
       for (var sb = -1; sb <= 1; sb += 2) {
-        var fb = H.feat(sb * ex, ey + 15);
+        var fb = H.feat(sb * ex, ey + (c.moe ? 25 : 15));
         if (!fb.vis) continue;
         if (def.band && def.band.lo != null && ey + 15 > def.band.lo - 2 && !def.browsOver) continue;
         var kb = k * Math.max(0.3, fb.s), inY = 0, outY = 0;
@@ -635,10 +744,12 @@
     var hd = def.head || {};
     var mk = def.mouth || 'smile';
     if (hd.kind === 'dog' || hd.kind === 'cat' || hd.kind === 'chick' || hd.kind === 'gorilla') return; // 動物は鼻づらで描く
-    var fm = H.feat(0, def.mouthY == null ? -31 : def.mouthY);
+    var fm = H.feat(0, (def.mouthY == null ? -31 : def.mouthY) - (c.moe ? (c.opt.pixel ? 15 : 19) : 0));
     if (fm.s > -0.05 && !c.back) {
-      var km = k * clamp(fm.s, 0.45, 1);
-      S.add(ZH + 6, mouthSvg(fm.x, fm.y, km, k, mk, expr, def));
+      var km = k * clamp(fm.s, 0.45, 1) * (c.moe ? 0.72 : 1);
+      var msvg = mouthSvg(fm.x, fm.y, km, k, mk, expr, def);
+      if (c.moe && c.opt.pixel) msvg = msvg.split('stroke="' + OUT + '"').join('stroke="#a85048"');   // ドット絵では口をやわらかい赤茶に（ひげに見えないように）
+      S.add(ZH + 6, msvg);
       if (mk === 'leaf' || def.leaf) S.add(ZH + 6.5, leafSvg(fm.x + 7 * km, fm.y + 1, k));
       if (def.pipe) { var px0 = fm.x + 5 * km, py0 = fm.y + 1; S.add(ZH + 6.6, sl('M' + r1(px0) + ' ' + r1(py0) + 'L' + r1(px0 + 20 * km) + ' ' + r1(py0 + 5), OUT, 4.4) + sl('M' + r1(px0) + ' ' + r1(py0) + 'L' + r1(px0 + 20 * km) + ' ' + r1(py0 + 5), def.pipe, 2.4) + sp('M' + r1(px0 + 18 * km) + ' ' + r1(py0 + 2) + 'l5 0l0 -6l-5 0Z', def.pipe, { w: 1.4 })); }
     }
@@ -652,6 +763,8 @@
 
   function drawMarks(c, H, marks, ZH) {
     var S = c.S, k = H.k;
+    // 萌え絵風は目が大きいので、頬の印を少し下・外へ
+    if (c.moe) { var H0 = H; H = Object.create(H0); H.feat = function (th, ph, dr) { return (ph < -18 && ph > -30 && Math.abs(th) > 20) ? H0.feat(th + (th > 0 ? 3 : -3), ph - 7, dr) : (ph <= -30 && ph > -40 ? H0.feat(th, ph - 6, dr) : H0.feat(th, ph, dr)); }; }
     marks.forEach(function (m) {
       var s, f;
       if (m.kind === 'freckles') {
@@ -692,7 +805,16 @@
     c.hairClip = cid;
     // ハイライト（上側に1本）と毛の流れ
     var fullMask = c.def.mask && (c.def.mask.kind === 'fox' || c.def.mask.kind === 'oni' || c.def.mask.kind === 'robot');
-    if (!hp.noShine && !fullMask) {
+    if (!hp.noShine && !fullMask && c.moe) {
+      // 萌え絵風：天使の輪（上はなめらか、下はぎざぎざの光の帯）
+      var up = [], dn = [], yawm = c.cam.yaw;
+      for (var tm = -78 - yawm; tm <= 40 - yawm; tm += 5) {
+        var fq = H.feat(tm, 46); if (fq.s < 0.08) continue;
+        up.push(H.p(tm, 50, vol * 0.85));
+        dn.push(H.p(tm, ((Math.round((tm + 400) / 5)) % 2) ? 37 : 42, vol * 0.85));
+      }
+      if (up.length > 2) S.add(ZH + 31, sf(polyD(up.concat(dn.reverse())), hp.shine || lt(hp.color, lum(hp.color) < 0.25 ? 0.4 : 0.5), { clip: cid, op: 0.85 }));
+    } else if (!hp.noShine && !fullMask) {
       var hl = []; for (var th = -48; th <= 8; th += 6) { var f = H.feat(th, 50); if (f.s > 0.05) hl.push(H.p(th, 50, vol * 0.8)); }
       if (hl.length > 2) S.add(ZH + 31, sl(smoothD(hl, false), hp.shine || lt(hp.color, 0.3), 3.5, { clip: cid, op: 0.9 }));
     }
@@ -980,8 +1102,8 @@
   }
 
   function drawEyepatch(c, H, ep, ZH) {
-    var S = c.S, k = H.k, s = ep.side, def = c.def, e = def.eyes || {};
-    var ex = e.x || 24, ey = e.y == null ? -13 : e.y;
+    var S = c.S, k = H.k, s = ep.side, def = c.def, geo = eyeGeo(c);
+    var ex = geo.ex, ey = geo.ey, pr = c.moe ? 1.32 : 1;
     var f = H.feat(s * ex, ey);
     // ひも
     var st = []; var yaw = c.cam.yaw;
@@ -989,7 +1111,7 @@
     S.add(ZH + 38, sl(smoothD(st, false), '#1d1a1c', 2.4));
     if (!f.vis) return;
     var kx = Math.max(0.3, f.s);
-    S.add(ZH + 38.1, sp(ellD(f.x, f.y, 8 * k * kx, 8.6 * k), ep.color || '#1d1a1c', { w: 2 }));
+    S.add(ZH + 38.1, sp(ellD(f.x, f.y, 8 * k * kx * pr, 8.6 * k * pr), ep.color || '#1d1a1c', { w: 2 }));
     if (ep.crest) S.add(ZH + 38.2, flowerSvg(f.x, f.y, 4 * k, ep.crest, kx));
   }
   function flowerSvg(x, y, r, col, kx) {
@@ -998,9 +1120,9 @@
     return o + sf(ellD(x, y, r * 0.3 * kx, r * 0.3), '#f6d36b');
   }
   function drawGlasses(c, H, gl, ZH) {
-    var S = c.S, k = H.k, e = c.def.eyes || {}, ex = e.x || 24, ey = e.y == null ? -13 : e.y, ps = [];
-    for (var s = -1; s <= 1; s += 2) { var f = H.feat(s * ex, ey, 2); if (f.vis) { ps.push(f); S.add(ZH + 38, sp(ellD(f.x, f.y, 9.5 * k * Math.max(0.35, f.s), 9.5 * k), '#ffffff', { w: 2.4, sc: gl.color || '#1d1a1c', op: 1, extra: ' fill-opacity="0.18"' })); } }
-    if (ps.length === 2) S.add(ZH + 38, sl('M' + r1(ps[0].x + 9 * k * ps[0].s) + ' ' + r1(ps[0].y - 1) + 'Q' + r1((ps[0].x + ps[1].x) / 2) + ' ' + r1(ps[0].y - 4) + ' ' + r1(ps[1].x - 9 * k * ps[1].s) + ' ' + r1(ps[1].y - 1), gl.color || '#1d1a1c', 2.2));
+    var S = c.S, k = H.k, geo = eyeGeo(c), ex = geo.ex, ey = geo.ey, ps = [], lr = c.moe ? 12.2 : 9.5;
+    for (var s = -1; s <= 1; s += 2) { var f = H.feat(s * ex, ey, 2); if (f.vis) { ps.push(f); S.add(ZH + 38, sp(ellD(f.x, f.y, lr * k * Math.max(0.35, f.s), lr * k), '#ffffff', { w: 2.4, sc: gl.color || '#1d1a1c', op: 1, extra: ' fill-opacity="0.18"' })); } }
+    if (ps.length === 2) S.add(ZH + 38, sl('M' + r1(ps[0].x + (lr - 0.5) * k * ps[0].s) + ' ' + r1(ps[0].y - 1) + 'Q' + r1((ps[0].x + ps[1].x) / 2) + ' ' + r1(ps[0].y - 4) + ' ' + r1(ps[1].x - (lr - 0.5) * k * ps[1].s) + ' ' + r1(ps[1].y - 1), gl.color || '#1d1a1c', 2.2));
   }
 
   /* ---- 面（お面・口布） ---- */
@@ -2123,8 +2245,15 @@
   }
 
   /* ---------------- 公開 ---------------- */
+  // 萌え絵風の目で使う色（ドット絵にするとき、目の色を優先して残すため）
+  function moeEyeColors(def) {
+    var e = def.eyes || {}, c = { def: def }, out = [EYE_DARK, EYE_WHITE_PX];
+    [-1, 1].forEach(function (s) { var p = moePal(moeIris(c, e, s), true); out.push(p.ir, p.top, p.pup, p.low); });
+    return out;
+  }
   var NinjaArt = {
     render: render,
+    moeEyeColors: moeEyeColors,
     VIEWS: { front: 0, quarter: -38, side: -90, back: 180, walkR: 52, walkL: -52, backR: 128, backL: -128 },
     util: { mix: mix, dk: dk, lt: lt, lum: lum, ellD: ellD, smoothD: smoothD, polyD: polyD, sp: sp, sl: sl, sf: sf, sakuraSvg: sakuraSvg, starSvg: starSvg, sparkle: sparkle, heartSvg: heartSvg, txt: txt, OUT: OUT }
   };

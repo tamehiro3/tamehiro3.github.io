@@ -98,7 +98,7 @@
     top.appendChild(back); body.appendChild(top);
     var d = el('div', 'detail');
     var big = el('div', 'big');
-    big.appendChild(UI().spriteCanvas(id === 'hero' ? root.NYT_SPRITES.heroDef(S) : root.NYT_SPRITES.cnDef(id), 150, { full: true, yaw: 25, expr: 'happy' }));
+    big.appendChild(UI().spriteCanvas(id === 'hero' ? root.NYT_SPRITES.heroDef(S) : root.NYT_SPRITES.cnDef(id), 150, { full: true, yaw: 25, vb: [4, -12, 192, 248] }));   // 萌え絵風の全身（目を開いて）
     d.appendChild(big);
     var right = el('div', '');
     var need = BS().expNeed(m.lv);

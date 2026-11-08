@@ -42,42 +42,28 @@
   }
   function portraitImg(src) { var im = new Image(); im.alt = ''; im.decoding = 'async'; im.className = 'moe'; im.src = src; return im; }
   UI.portrait = portrait; UI.portraitOf = portraitOf; UI.portraitImg = portraitImg;
-  // 絵（忍者）を小さなキャンバスに。作り終わるまで何度か描きなおす
+  // 忍者の全身（萌え絵風の SVG を、そのまま画像に。どの大きさでもなめらか）。full でなければ顔の絵
   function spriteCanvas(def, size, o) {
-    var cv = document.createElement('canvas'), dpr = Math.min(2, root.devicePixelRatio || 1), full = o && o.full;
-    var hh = full ? Math.round(size * 1.2) : size;   // 全身は縦長（幅:高さ = 5:6）
-    cv.width = Math.round(size * dpr); cv.height = Math.round(hh * dpr);
-    cv.style.width = size + 'px'; cv.style.height = hh + 'px';
-    cv.className = 'pix';
-    var tries = 0;
-    (function draw() {
-      var SP = root.NYT_SPRITES;
-      var img = SP && (full ? SP.pix(def, { yaw: (o && o.yaw) || 0, pose: (o && o.pose) || 'stand', size: 'big', expr: o && o.expr }) : SP.face(def, { yaw: (o && o.yaw) || 0, expr: o && o.expr }));
-      if (img) {
-        var c = cv.getContext('2d'); c.clearRect(0, 0, cv.width, cv.height); c.imageSmoothingEnabled = false;
-        if (full) { var k = Math.max(1, Math.floor(cv.height / img.height)), w = img.width * k, h = img.height * k; c.drawImage(img, Math.round((cv.width - w) / 2), cv.height - h, w, h); }
-        else { var k2 = Math.max(1, Math.floor(cv.width / img.width)), s2 = img.width * k2; c.drawImage(img, Math.round((cv.width - s2) / 2), Math.round((cv.height - s2) / 2), s2, s2); }
-        if (++tries < 40 && SP.state.pending > 0) setTimeout(draw, 150);
-      } else if (++tries < 80) setTimeout(draw, 100);
-    })();
-    return cv;
+    o = o || {};
+    if (!o.full) return portraitImg(portraitOf(def, { crop: 'face', expr: o.expr }));
+    var SP = root.NYT_SPRITES, vb = o.vb || SP.VB, hh = Math.round(size * 1.2), ww = Math.round(hh * vb[2] / vb[3]);
+    var im = new Image(); im.alt = ''; im.decoding = 'async'; im.className = 'fig';
+    im.width = ww; im.height = hh;
+    im.src = SP.svgUrl(def, { yaw: o.yaw || 0, pose: o.pose || 'stand', expr: o.expr, vb: vb }, ww * 2, hh * 2);
+    return im;
   }
+  // 妖怪（ベクターで描く）
   function yokaiCanvas(eid, size) {
-    var cv = document.createElement('canvas'), dpr = Math.min(2, root.devicePixelRatio || 1);
+    var cv = document.createElement('canvas'), dpr = Math.min(3, root.devicePixelRatio || 1);
     cv.width = Math.round(size * dpr); cv.height = Math.round(size * dpr);
     cv.style.width = size + 'px'; cv.style.height = size + 'px';
     var e = root.NYT_ENEMIES.ENEMIES[eid], c = cv.getContext('2d');
     if (!e && root.NYT_YOKAI.SIZE[eid]) e = { shape: eid, col: YOKAI_COL[eid] || 'purple' };
     if (!e) return cv;
     if (e.cn) { return spriteCanvas(root.NYT_SPRITES.cnDef(e.cn), size); }
-    // ドット絵（小さく作って、ぼかさずに広げる）
-    var sz = root.NYT_YOKAI.SIZE[e.shape] || 44, ht = size <= 48 ? 18 : 30, fr = root.NYT_YOKAI.pixFrames(e.shape, e.col, { s: ht / sz, n: 1 });
-    cv.className = 'pix';
-    if (fr) {
-      var img = fr.frames[0], k = Math.max(1, Math.floor(cv.height * 0.9 / ht));
-      c.imageSmoothingEnabled = false;
-      c.drawImage(img, Math.round(cv.width / 2 - fr.ax * k), Math.round(cv.height * 0.94 - fr.ay * k), img.width * k, img.height * k);
-    }
+    var sz = root.NYT_YOKAI.SIZE[e.shape] || 44;
+    c.scale(dpr, dpr); c.translate(size / 2, size * 0.88);
+    root.NYT_YOKAI.draw(c, e.shape, e.col, { s: size * 0.78 / sz, t: 1, dir: 1, shadow: false });
     return cv;
   }
   // 戦わない妖怪（式神など）の名前と色
@@ -243,7 +229,7 @@
 
   // ---- はじめる（名前・見た目・難しさ）----
   UI.showNewGame = function (hasSave, h) {
-    var CH = root.NYT_CHARS, box = $('newgame');
+    var CH = root.NYT_CHARS, SP = root.NYT_SPRITES, box = $('newgame');
     var st = { name: 'ヒナタ', set: 'ai', hair: 'short', diff: 'normal', warned: false };
     box.innerHTML = '';
     var w = el('div', 'ng-box win');
@@ -256,18 +242,27 @@
       '</div></div><p class="note" id="ng-warn" hidden></p>' +
       '<div class="ng-go"><button class="btn" id="ng-back" type="button">もどる</button><button class="btn gold" id="ng-start" type="button">旅に出る</button></div>';
     box.appendChild(w); box.hidden = false;
+    // 装束のボタンには、上着と差し色の小さな丸
+    function chip(key, id) {
+      var hs = SP.HERO_SETS[id];
+      if (key !== 'set' || !hs) return '';
+      return '<i class="sw" style="background:linear-gradient(135deg,' + hs.top + ' 0 55%,' + hs.accent + ' 55% 100%)"></i>';
+    }
     function seg(id, list, key) {
-      var s = $(id); s.innerHTML = '';
+      var s2 = $(id); s2.innerHTML = '';
       list.forEach(function (o) {
-        var b = el('button', st[key] === o.id ? 'on' : '', esc(o.name)); b.type = 'button';
+        var b = el('button', st[key] === o.id ? 'on' : '', chip(key, o.id) + esc(o.name)); b.type = 'button';
         b.onclick = function () { st[key] = o.id; sfx('cursor'); seg(id, list, key); prev(); };
-        s.appendChild(b);
+        s2.appendChild(b);
       });
     }
+    // 大きな立ち絵（萌え絵風・なめらか。§11.5）
     function prev() {
-      var p = $('ng-prev'); p.innerHTML = '';
-      var def = root.NYT_SPRITES.heroDef({ look: { set: st.set, hair: st.hair } });
-      p.appendChild(spriteCanvas(def, 120, { full: true, yaw: 20, expr: 'happy' }));
+      var p = $('ng-prev'), hs = SP.HERO_SETS[st.set] || SP.HERO_SETS.ai;
+      p.style.setProperty('--ng-accent', hs.accent);
+      p.innerHTML = '';
+      var def = SP.heroDef({ look: { set: st.set, hair: st.hair } });
+      p.appendChild(spriteCanvas(def, 180, { full: true, yaw: 20, pose: 'happy', expr: 'normal', vb: [4, -12, 192, 248] }));   // 手をふって、目は開いて（萌え絵の目が見えるように）
     }
     seg('ng-set', CH.LOOK_SETS, 'set'); seg('ng-hair', CH.LOOK_HAIR, 'hair');
     seg('ng-diff', [{ id: 'normal', name: 'ふつう' }, { id: 'easy', name: 'やさしい' }], 'diff');

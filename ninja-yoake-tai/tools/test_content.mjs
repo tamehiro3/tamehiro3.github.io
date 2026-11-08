@@ -21,24 +21,43 @@ const TYPES = BS.TYPE_IDS, TG = ['e1', 'ea', 'er', 'a1', 'aa', 'me', 'ko'];
 const C = CHD.CHARS, ids39 = CHD.ORDER;
 const anyItem = id => !!(IT.ITEMS[id] || IT.CHARMS[id] || IT.MATS[id] || IT.KEYS[id]);
 
-// ---------------- 絵（萌え絵風） ----------------
-section('絵（萌え絵風の顔・2.7頭身）');
+// ---------------- 絵（萌え絵風に統一） ----------------
+section('絵（萌え絵風に統一・2.7頭身・主人公の見た目）');
 {
   const A = require(path.join(ROOT, '../ninja-sato-life/art.js'));
+  globalThis.NinjaArt = A;
+  require(path.join(ROOT, 'sprites.js'));
+  const SP = G.NYT_SPRITES;
   const looks = NSL.CHARS.map(c => [c.id, c.art]);
-  NSL.APPRENTICE_SETS.forEach(s => NSL.APPRENTICE_HAIR.forEach(h => looks.push(['hero:' + s.id + ':' + h.id, NSL.apprenticeArt(s.id, h.id, {})])));
-  const bad = [], noEye = [];
+  CHD.LOOK_SETS.forEach(s => CHD.LOOK_HAIR.forEach(h => looks.push(['hero:' + s.id + ':' + h.id, SP.heroDef({ look: { set: s.id, hair: h.id } }).def])));
+  Object.keys(SP.VILLAGER).forEach(v => looks.push(['vil:' + v, SP.villagerDef(v).def]));
+  const bad = [];
   for (const [id, def] of looks) {
-    for (const yaw of [0, 16, -70, 70, 180]) for (const pose of ['stand', 'walk', 'happy', 'surprised', 'serious']) for (const pixel of [false, true]) {
-      try { const svg = A.render(def, { heads: 2.7, yaw, pose, moe: true, pixel, frame: 1 }); if (!/^<svg/.test(svg) || /NaN|undefined/.test(svg)) bad.push(id + ' ' + yaw + ' ' + pose); } catch (e) { bad.push(id + ' ' + yaw + ' ' + pose + ' ' + e.message); }
+    for (const yaw of [0, 16, -48, 48, -70, 70, 180]) for (const pose of ['stand', 'walk', 'happy', 'surprised', 'serious']) {
+      try { const svg = A.render(def, { heads: 2.7, yaw, pose, moe: true, frame: 1 }); if (!/^<svg/.test(svg) || /NaN|undefined/.test(svg)) bad.push(id + ' ' + yaw + ' ' + pose); } catch (e) { bad.push(id + ' ' + yaw + ' ' + pose + ' ' + e.message); }
     }
-    const ec = A.moeEyeColors(def);
-    if (ec.length !== 10 || ec.some(c => !/^#[0-9a-f]{6}$/.test(c))) noEye.push(id);
   }
-  none(bad.slice(0, 5), '39人と主人公9通りが、萌え絵風で、どの向き・しぐさでも描ける（SVG に NaN がない）');
-  none(noEye, 'ドット絵で目の色を残すための色（瞳・影・瞳孔・照り返し）が、だれにもある');
+  none(bad.slice(0, 5), '39人・主人公9通り・村の人が、萌え絵風で、どの向き・しぐさでも描ける（SVG に NaN がない）');
+  // 主人公：装束と髪の id は記録と同じ（前の記録もそのまま遊べる）。装束ごとに差し色と目の色がちがう（§11.5）
+  eq(Object.keys(SP.HERO_SETS).sort(), CHD.LOOK_SETS.map(s => s.id).sort(), '主人公の装束の id が、はじめる画面の装束と同じ');
+  eq(Object.keys(SP.HERO_HAIR).sort(), CHD.LOOK_HAIR.map(h => h.id).sort(), '主人公の髪の id が、はじめる画面の髪と同じ');
+  const hs = Object.values(SP.HERO_SETS);
+  ok(new Set(hs.map(s => s.accent)).size === hs.length && new Set(hs.map(s => s.eye)).size === hs.length, '装束ごとに差し色と目の色がちがう');
+  const hd = SP.heroDef({ look: { set: 'wakakusa', hair: 'pony' } }).def;
+  ok(hd.scarf && hd.band && hd.band.plate && hd.band.lo >= 28 && hd.eyes.lash && hd.ribbon, '主人公に襟巻き・前髪の上の鉢金・まつ毛・ポニーテールのリボンがある');
+  ok(NSL.apprenticeArt('ai', 'short', {}).scarf === undefined, 'ニンジャ里ライフの見習い（chars.js）は変えていない');
   const m = {}; A.render(NSL.BY_ID.hinanojoh.art, { heads: 2.7, moe: true, raw: true, metrics: m });
   ok(m.head && m.head.cy > 80 && m.head.ry > 40, '顔の絵の切り抜きに使う頭の位置がわかる（ひよこの体格でも）');
+  // 読みこむファイル：index.html の絵と字の道具がそろい、オフライン用（sw.js）にも入っている。ドット絵の道具・字体は使わない
+  const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8'), sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8'), css = fs.readFileSync(path.join(ROOT, 'style.css'), 'utf8');
+  const scripts = [...html.matchAll(/<script src="([^"?]+)\?v=(\d+)"/g)].filter(x => !x[1].startsWith('../'));
+  const V = (sw.match(/const V = '\?v=(\d+)'/) || [])[1];
+  none(scripts.filter(x => !fs.existsSync(path.join(ROOT, x[1]))).map(x => x[1]), 'index.html のスクリプトがすべてある');
+  none(scripts.filter(x => x[2] !== V || sw.indexOf("'" + x[1] + "'") < 0).map(x => x[1]), 'index.html のスクリプトが、同じ番号で sw.js にも入っている');
+  ok(!/pixel\.js|DotGothic|dotgothic|image-rendering:\s*pixelated/.test(html + sw + css), 'ドット絵の道具（pixel.js）とドットの字体を使っていない');
+  const fonts = [...css.matchAll(/url\((fonts\/[^)]+)\)/g)].map(x => x[1]);
+  ok(fonts.length === 2 && fonts.every(f => fs.existsSync(path.join(ROOT, f)) && sw.indexOf('./' + f) >= 0), '丸ゴシックの字（2つの太さ）があり、オフライン用にも入っている');
+  ok(fs.readFileSync(path.join(ROOT, 'fonts/OFL.txt'), 'utf8').includes('Zen Maru Gothic'), '字体のライセンス文（OFL）がある');
 }
 
 // ---------------- 仲間 ----------------

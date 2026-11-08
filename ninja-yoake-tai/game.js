@@ -99,8 +99,9 @@
     runQueue();
   }
   function warmSprites() {
-    SPR.warm(G.P.def);
-    G.fol.forEach(function (f) { SPR.warm(f.def); });
+    var wh = SPR.FIELD_H * RF.R.Sd;   // 地図の上の絵の高さ（画面の画素）
+    SPR.warm(G.P.def, wh);
+    G.fol.forEach(function (f) { SPR.warm(f.def, wh); });
   }
   function makeFollowers() {
     var S = G.S, act = ST.active(S).filter(function (id) { return id !== 'hero'; }).slice(0, 3);

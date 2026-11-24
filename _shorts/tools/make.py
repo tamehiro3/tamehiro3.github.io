@@ -50,13 +50,32 @@ def check_audio(d: Path):
                          f"同じコマンドをもう一度実行すると、足りない文だけ作ります")
 
 
+# 本番の声（クローン声）の話す長さ ÷ 仮の声（openjtalk）の話す長さ。文によって大きく変わる。
+# ep30・ep32 は約1.03〜1.06倍と長く出たが、ep39 と ep41 は短く出た
+# （ep41 は約0.87倍。尺合わせで0.94倍まで遅くしても54.9秒で、55秒に届かなかった）
+FAL_RATIO = (0.87, 1.06)
+FIT_MIN, FIT_MAX = 55.5, 59.5          # tools/tts.py の尺合わせと同じ
+
+
+def fitted(fixed: float, speech: float) -> float:
+    """tools/tts.py の尺合わせ（話す速さ 0.94〜1.10 倍）をしたあとの尺"""
+    total = fixed + speech
+    tempo = 1.0
+    if total > FIT_MAX:
+        tempo = min(1.10, speech / (speech - (total - (FIT_MAX - 0.3))))
+    elif total < FIT_MIN:
+        tempo = max(0.94, speech / (speech + ((FIT_MIN + 0.3) - total)))
+    return fixed + speech / tempo
+
+
 def estimate_real(d: Path):
-    """仮の声（openjtalk）の長さから、本番の声での尺を見積もる。本番の声は仮の声より3〜6%長かった（ep30・ep32）"""
+    """仮の声（openjtalk）の長さから、本番の声での尺を見積もる。
+    戻り値は（本番の声が短く出たとき, 長く出たとき）の尺。どちらも尺合わせのあと"""
     t = json.loads((d / "audio" / "timing.json").read_text(encoding="utf-8"))
     tl = json.loads((d / "out" / "timeline.json").read_text(encoding="utf-8"))
     fixed = tl["total"] - sum(v["dur"] for v in t.values())          # 間・見出し・前後の余白
     raw = sum(v.get("raw_dur", v["dur"]) for v in t.values())
-    return fixed + raw * 1.06 / 1.10                                  # 6%長く、速さの上限1.10倍で縮めた場合
+    return tuple(fitted(fixed, raw * r) for r in FAL_RATIO)
 
 
 def main():
@@ -105,9 +124,11 @@ def main():
         issues = [l for l in qa.splitlines() if l.startswith("- ") and "指摘なし" not in l
                   and not l.startswith(("- 尺:", "- ラウドネス", "- 文ごと", "- 音ズレ", "- 効果音"))]
         if a.engine == "openjtalk" and not a.qa_only:
-            est = estimate_real(d)
-            if est > 60.3:
-                issues.insert(0, f"- 本番の声では約{est:.1f}秒の見込み（60.5秒を超えるおそれ。文を短くするか1文減らす）")
+            lo, hi = estimate_real(d)
+            if hi > 60.3:
+                issues.insert(0, f"- 本番の声が長く出ると約{hi:.1f}秒（60.5秒を超えるおそれ。文を短くするか1文減らす）")
+            if lo < 55.3:
+                issues.insert(0, f"- 本番の声が短く出ると約{lo:.1f}秒（55秒を切るおそれ。文に少し言葉を足す）")
         summary.append((ep, dur, verdict, issues))
         print(f"  {dur} / {verdict}", flush=True)
     print("\n=== まとめ")

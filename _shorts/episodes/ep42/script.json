@@ -1,0 +1,222 @@
+{
+ "id": "ep42",
+ "theme": "NVIDIAのジェンスン・フアン氏の『11日間のどんでん返し』を3幕の映画仕立てで見せ、後半は『現実はまだ途中』と『有名人そっくりのAI偽物』に気をつける話で締める回（2026年11月24日・日本時間の時点。日付は米国時間）。起きたこと：米国時間2026/11/12に、NVIDIAはフアン氏が社長・CEO・取締役を即日辞任したと発表（SECへの8-K。8-Kのイベント日は11/11）。CFOのコレット・クレス氏が暫定CEO（CFO兼務）、Harvey C. Jones氏が取締役会長。フアン氏は1993年の創業から約33年社長だった。米国時間11/17の決算説明会で、Jones会長は『取締役会は全会一致で辞任を受け入れ、CEOに戻すつもりはない』と述べ、社内外から後任を探すと説明（Al Jazeera 11/18、SCMP、Impress Watch）。その6日後の米国時間11/23（日本時間11/24）、取締役会は全会一致でフアン氏を社長・CEO・取締役に戻すと発表（8-K、Al Jazeera・Bloomberg・Washington Post・CNBCなど）。辞任の発表から11日後。会長はJones氏のまま。復帰の日、サンタクララの本社で社員が大きな拍手で迎えた（社員が投稿した動画、Yahoo Finance 11/23）。会社の発表では、取締役会の独立調査は復帰後も続く。退任の前後には、本人そっくりのAIパロディ動画も出回った（Euronews 11/11、AFP 11/19）。騙されないための材料：2025/10/28（米国時間）、本物の基調講演と同じ時間帯に、YouTubeでフアン氏のディープフェイクの偽ライブ配信があり、QRコードから暗号資産を送らせようとし、一時は本物より多く見られたと報道（Engadget・Tom's Hardware）。2026/8/7、7府省庁がディープフェイクで著名人を使ったなりすまし詐欺広告への対策を大手SNS5社に要請。言わないこと：辞任の理由（私生活・調査の疑い・外国の諜報の件）、調査の中身、本人の謝罪、『疑いが晴れた』『潔白』『完全復活』、なぜ戻れたか（米政府の意見・大統領の働きかけ。政治的中立）、社員の署名を復帰の原因のように言うこと、株価の急騰・時価総額・業績、株の売り買いのすすめ、偽配信の視聴者数・映像、パロディ動画の中身、『12日後』（誤り）、『会長にも復帰』（誤り）。音声で『フアン』と言わない（『不安』と聞き間違えやすい）。名前は画面とキャプションで出す",
+ "style": "studio",
+ "series": "AI初心者の時短ワザ",
+ "voice": {
+  "engine": "openjtalk",
+  "speed": 1.15,
+  "pitch": 2.5,
+  "intonation": 1.5,
+  "fal_model": "fal-ai/minimax/speech-02-hd",
+  "fal_speed": 1.0,
+  "emotion": "happy"
+ },
+ "sources": [
+  "https://www.sec.gov/Archives/edgar/data/0001045810/000104581026000090/nov23pressrelease.htm",
+  "https://investor.nvidia.com/news/press-release-details/2026/NVIDIA-Announces-CEO-Transition/",
+  "https://www.aljazeera.com/economy/2026/11/23/nvidia-board-reinstates-jensen-huang-as-ceo",
+  "https://www.aljazeera.com/economy/2026/11/18/nvidia-shoots-down-calls-for-jensen-huangs-return-amid-strong-earnings",
+  "https://finance.yahoo.com/markets/stocks/articles/nvidia-employees-greet-jensen-huang-200352361.html",
+  "https://www.engadget.com/ai/more-people-watched-a-fake-nvidia-livestream-than-the-real-thing-170035672.html",
+  "https://www.soumu.go.jp/menu_news/s-news/01ryutsu02_02000486.html"
+ ],
+ "lines": [
+  {
+   "text": "辞めたNVIDIAの社長が、／【もう復帰】ってほんま？",
+   "tts": "辞めたエヌビディアの社長が、／もう復帰って、ほんま？",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🎬",
+    "text": "辞めたNVIDIA社長\n【もう復帰】？",
+    "size": 88
+   }
+  },
+  {
+   "text": "創業から33年ずっと社長やった人が、／【突然辞めた】んや",
+   "tts": "創業から、さんじゅうさんねん、ずっと社長やった人が、／突然やめたんや",
+   "heading": "第1幕 11/12発表",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "list",
+    "title": "ジェンスン・フアン氏の11月（米国時間）",
+    "items": [
+     "11/12 辞任を発表",
+     "11/17「戻すつもりはない」",
+     "11/23 全員一致で復帰"
+    ],
+    "show": 1,
+    "hl": 0,
+    "title_size": 46,
+    "size": 48
+   }
+  },
+  {
+   "text": "代わりに、お金の責任者が／【臨時のトップ】になったんや",
+   "tts": "かわりに、お金の責任者が、／臨時のトップになったんや",
+   "shot": "close",
+   "pose": "pose01",
+   "visual": {
+    "type": "big",
+    "emoji": "💼",
+    "text": "お金の責任者が\n【臨時のトップ】",
+    "size": 88
+   }
+  },
+  {
+   "text": "取締役会は「戻すつもりはない」、／【後任も探す】て言うた",
+   "tts": "とりしまりやくかいは、戻すつもりはない、／こうにんもさがすて言うた",
+   "heading": "第2幕 11/17",
+   "shot": "wide",
+   "pose": "pose05",
+   "visual": {
+    "type": "list",
+    "title": "ジェンスン・フアン氏の11月（米国時間）",
+    "items": [
+     "11/12 辞任を発表",
+     "11/17「戻すつもりはない」",
+     "11/23 全員一致で復帰"
+    ],
+    "show": 2,
+    "hl": 1,
+    "title_size": 46,
+    "size": 48
+   }
+  },
+  {
+   "text": "ところが6日後、その取締役会が／【全員一致で復帰】を発表",
+   "tts": "ところが、むいかご、その、とりしまりやくかいが、／全員一致で復帰を発表",
+   "heading": "第3幕 11/23",
+   "shot": "close",
+   "pose": "pose04",
+   "visual": {
+    "type": "list",
+    "title": "ジェンスン・フアン氏の11月（米国時間）",
+    "items": [
+     "11/12 辞任を発表",
+     "11/17「戻すつもりはない」",
+     "11/23 全員一致で復帰"
+    ],
+    "show": 3,
+    "hl": 2,
+    "title_size": 46,
+    "size": 48
+   }
+  },
+  {
+   "text": "本社に戻った日、社員の／【大きな拍手】で迎えられたんや",
+   "tts": "本社に戻った日、社員の、／大きな拍手でむかえられたんや",
+   "shot": "wide",
+   "pose": "pose03",
+   "visual": {
+    "type": "big",
+    "emoji": "👏",
+    "text": "社員の\n【大きな拍手】",
+    "size": 96
+   }
+  },
+  {
+   "text": "映画ならここでめでたしやけど、／現実は【まだ途中】や",
+   "tts": "映画ならここで、めでたしやけど、／現実はまだ途中や",
+   "heading": "映画とのちがい",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "🎞️",
+    "text": "映画ならめでたし\n現実は【まだ途中】",
+    "size": 84
+   }
+  },
+  {
+   "text": "今回も、本人そっくりのAI動画が／【出回ってた】んや",
+   "tts": "今回も、本人そっくりのエーアイ動画が、／出回ってたんや",
+   "heading": "有名な人ほど偽物も出る",
+   "shot": "wide",
+   "pose": "pose09",
+   "visual": {
+    "type": "big",
+    "emoji": "🤖",
+    "text": "本人そっくりの\n【AI動画】も",
+    "size": 92
+   }
+  },
+  {
+   "text": "去年は、そっくりの偽ライブ配信が／【暗号資産】に誘ってた",
+   "tts": "きょねんは、そっくりのにせライブ配信が、／暗号資産にさそってた",
+   "shot": "close",
+   "pose": "pose05",
+   "visual": {
+    "type": "list",
+    "title": "2025年10月 偽のライブ配信",
+    "items": [
+     "本人そっくりのAI映像",
+     "QRで暗号資産を送らせる",
+     "本物より多く見られたと報道"
+    ],
+    "show": 2,
+    "hl": 1,
+    "title_size": 50,
+    "size": 46
+   }
+  },
+  {
+   "text": "しかもその偽物が、一時は／本物より【見られてた】んやて",
+   "tts": "しかも、そのにせものが、いちじは、／本物より見られてたんやて",
+   "shot": "wide",
+   "pose": "pose04",
+   "visual": {
+    "type": "list",
+    "title": "2025年10月 偽のライブ配信",
+    "items": [
+     "本人そっくりのAI映像",
+     "QRで暗号資産を送らせる",
+     "本物より多く見られたと報道"
+    ],
+    "show": 3,
+    "hl": 2,
+    "title_size": 50,
+    "size": 46
+   }
+  },
+  {
+   "text": "有名人の顔と声で誘う投資は、／【まず偽物】と思ってな",
+   "tts": "有名人の顔と声でさそう投資は、／まず、にせものと思ってな",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "big",
+    "emoji": "🚫",
+    "text": "有名人の顔と声で投資\n【まず偽物】と思う",
+    "size": 80
+   }
+  },
+  {
+   "text": "投資の動画をよう見る家族や友だちに、／【送ったって】な",
+   "tts": "投資の動画をよう見る家族や友だちに、／送ったってな",
+   "shot": "wide",
+   "pose": "pose02",
+   "visual": {
+    "type": "cta",
+    "emoji": "📩",
+    "text": "家族や友だちに\n【送ったって】な",
+    "size": 100,
+    "bounce": true
+   }
+  },
+  {
+   "text": "じゃあもう一回、／最初の質問に戻るね",
+   "shot": "close",
+   "pose": "face",
+   "visual": {
+    "type": "title",
+    "emoji": "🎬",
+    "text": "辞めたNVIDIA社長\n【もう復帰】？",
+    "size": 88
+   }
+  }
+ ]
+}
